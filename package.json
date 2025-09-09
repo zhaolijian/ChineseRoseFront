@@ -1,0 +1,48 @@
+{
+  "name": "chinese-rose-miniprogram",
+  "version": "1.0.0",
+  "description": "阅记 - 纸质书笔记整理助手小程序",
+  "main": "app.js",
+  "keywords": [
+    "miniprogram",
+    "wechat",
+    "reading",
+    "notes",
+    "ocr",
+    "mindmap"
+  ],
+  "author": "Chinese Rose Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/chinese-rose-miniprogram.git"
+  },
+  "scripts": {
+    "dev": "echo '请在微信开发者工具中打开项目'",
+    "build": "echo '构建命令将在微信开发者工具中执行'",
+    "lint": "eslint pages/ components/ utils/ services/ --ext .js",
+    "lint:fix": "eslint pages/ components/ utils/ services/ --ext .js --fix"
+  },
+  "dependencies": {
+    "@vant/weapp": "^1.11.6"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "miniprogram": {
+    "entry": "app.js",
+    "setting": {
+      "urlCheck": true,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    }
+  }
+}

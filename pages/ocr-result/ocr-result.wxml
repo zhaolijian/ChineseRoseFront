@@ -1,0 +1,4 @@
+<view class="page">
+  <van-empty description="{{ message }}" />
+</view>
+

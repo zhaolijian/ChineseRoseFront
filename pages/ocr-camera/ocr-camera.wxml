@@ -1,0 +1,20 @@
+<view class="page">
+  <view class="row">
+    <van-button type="primary" round bind:click="onChooseBook">{{ bookTitle || '选择书籍' }}</van-button>
+    <van-button type="info" round bind:click="onChooseImage" class="ml">选择图片</van-button>
+  </view>
+  <view class="grid">
+    <image
+      wx:for="{{ images }}"
+      wx:key="*this"
+      class="img"
+      src="{{ item }}"
+      mode="aspectFill"
+      bind:tap="onPreview"
+      data-index="{{ index }}"
+    />
+  </view>
+  <view class="row mt">
+    <van-button type="primary" round bind:click="onUploadAndMerge" loading="{{ uploading }}" disabled="{{ !canSubmit }}">上传并生成笔记</van-button>
+  </view>
+</view>

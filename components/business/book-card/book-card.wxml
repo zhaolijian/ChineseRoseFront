@@ -1,0 +1,109 @@
+<!--
+  书籍卡片组件
+  支持网格和列表两种显示模式
+-->
+<view class="book-card {{ mode }}" bind:tap="onBookClick">
+  <!-- 网格模式 -->
+  <block wx:if="{{ mode === 'grid' }}">
+    <view class="book-cover">
+      <van-image
+        src="{{ book.coverUrl || '/images/common/book-placeholder.png' }}"
+        fit="cover"
+        radius="8rpx"
+        width="120rpx"
+        height="160rpx"
+        lazy-load="{{ true }}"
+        error-icon="photo-fail"
+        loading-icon="photo"
+      />
+      <view class="book-status {{ book.status }}" wx:if="{{ book.status && book.status !== 'reading' }}">
+        <text class="status-text">{{ getStatusText(book.status) }}</text>
+      </view>
+      <view class="progress-overlay" wx:if="{{ book.readProgress > 0 }}">
+        <view class="progress-text">{{ book.readProgress }}%</view>
+      </view>
+    </view>
+    
+    <view class="book-info">
+      <view class="book-title">{{ book.title || '未知书名' }}</view>
+      <view class="book-author">{{ book.author || '未知作者' }}</view>
+      
+      <view class="book-progress" wx:if="{{ book.status === 'reading' }}">
+        <van-progress 
+          percentage="{{ book.readProgress || 0 }}" 
+          stroke-width="4"
+          color="#4A90E2"
+          track-color="#f5f5f5"
+        />
+      </view>
+      
+      <view class="book-meta">
+        <van-tag 
+          size="mini" 
+          type="primary" 
+          wx:if="{{ book.noteCount > 0 }}"
+        >
+          {{ book.noteCount }}条笔记
+        </van-tag>
+        <view class="last-read" wx:if="{{ book.lastReadTime }}">
+          {{ formatTime(book.lastReadTime) }}
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 列表模式 -->
+  <block wx:else>
+    <view class="book-cover-small">
+      <van-image
+        src="{{ book.coverUrl || '/images/common/book-placeholder.png' }}"
+        fit="cover"
+        radius="6rpx"
+        width="80rpx"
+        height="100rpx"
+        lazy-load="{{ true }}"
+        error-icon="photo-fail"
+        loading-icon="photo"
+      />
+    </view>
+    
+    <view class="book-content">
+      <view class="book-header">
+        <view class="book-title">{{ book.title || '未知书名' }}</view>
+        <view class="book-status-badge {{ book.status }}" wx:if="{{ book.status && book.status !== 'reading' }}">
+          {{ getStatusText(book.status) }}
+        </view>
+      </view>
+      
+      <view class="book-author">{{ book.author || '未知作者' }}</view>
+      
+      <view class="book-progress" wx:if="{{ book.status === 'reading' && book.readProgress > 0 }}">
+        <van-progress 
+          percentage="{{ book.readProgress }}" 
+          stroke-width="3"
+          color="#4A90E2"
+          track-color="#f5f5f5"
+        />
+        <text class="progress-text">{{ book.readProgress }}%</text>
+      </view>
+      
+      <view class="book-footer">
+        <view class="book-meta">
+          <text class="note-count" wx:if="{{ book.noteCount > 0 }}">
+            <van-icon name="notes-o" size="12" color="#969799" />
+            {{ book.noteCount }}条笔记
+          </text>
+          <text class="category" wx:if="{{ book.category }}">{{ book.category }}</text>
+        </view>
+        
+        <view class="last-read" wx:if="{{ book.lastReadTime }}">
+          {{ formatTime(book.lastReadTime) }}
+        </view>
+      </view>
+    </view>
+    
+    <view class="book-actions">
+      <van-icon name="arrow" size="16" color="#c8c9cc" />
+    </view>
+  </block>
+</view>

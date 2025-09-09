@@ -1,0 +1,33 @@
+{
+  "desc": "关于本文件的更多信息，请参考文档 https://developers.weixin.qq.com/miniprogram/dev/framework/sitemap.html",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "pages/books/index"
+    },
+    {
+      "action": "allow", 
+      "page": "pages/book-detail/book-detail"
+    },
+    {
+      "action": "disallow",
+      "page": "pages/login/login"
+    },
+    {
+      "action": "disallow",
+      "page": "pages/mine/mine"
+    },
+    {
+      "action": "disallow",
+      "page": "pages/note-edit/note-edit"
+    },
+    {
+      "action": "disallow",
+      "page": "pages/ocr-camera/ocr-camera"
+    },
+    {
+      "action": "disallow",
+      "page": "pages/ocr-result/ocr-result"
+    }
+  ]
+}

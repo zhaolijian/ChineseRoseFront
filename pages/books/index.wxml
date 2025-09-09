@@ -1,0 +1,227 @@
+<!--
+  首页（书架）- WXML模板
+  展示用户的书籍列表，支持搜索、添加、排序等功能
+-->
+<view class="page">
+  <!-- 顶部搜索栏 -->
+  <view class="search-header">
+    <van-search 
+      value="{{ searchValue }}" 
+      placeholder="搜索书籍、作者、笔记"
+      shape="round"
+      background="#4A90E2"
+      bind:search="onSearch"
+      bind:click-input="onSearchClick"
+      bind:change="onSearchChange"
+    >
+      <view slot="action" class="scan-icon" bind:tap="onScanCode">
+        <van-icon name="scan" size="20" color="white" />
+      </view>
+    </van-search>
+  </view>
+
+  <!-- 书架统计信息 -->
+  <view class="stats-section" wx:if="{{ bookStats.totalBooks > 0 }}">
+    <view class="stats-card">
+      <view class="stats-item">
+        <view class="stats-number">{{ bookStats.totalBooks }}</view>
+        <view class="stats-label">本书籍</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-number">{{ bookStats.totalNotes }}</view>
+        <view class="stats-label">条笔记</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-number">{{ bookStats.readingDays }}</view>
+        <view class="stats-label">天阅读</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快速操作区 -->
+  <view class="quick-actions">
+    <van-grid column-num="3" border="{{ false }}" gutter="16">
+      <van-grid-item 
+        icon="photograph" 
+        text="拍照识别"
+        bind:click="onQuickOCR"
+      />
+      <van-grid-item 
+        icon="add-o" 
+        text="手动添加"
+        bind:click="onAddBook"
+      />
+      <van-grid-item 
+        icon="notes-o" 
+        text="所有笔记"
+        bind:click="onViewAllNotes"
+      />
+    </van-grid>
+  </view>
+
+  <!-- 分类筛选 -->
+  <view class="filter-section">
+    <van-tabs 
+      active="{{ activeCategory }}" 
+      bind:change="onCategoryChange"
+      color="#4A90E2"
+      title-active-color="#4A90E2"
+      title-inactive-color="#969799"
+    >
+      <van-tab title="全部" name="all"></van-tab>
+      <van-tab title="在读" name="reading"></van-tab>
+      <van-tab title="已读" name="finished"></van-tab>
+      <van-tab title="想读" name="wishlist"></van-tab>
+    </van-tabs>
+  </view>
+
+  <!-- 排序和视图切换 -->
+  <view class="toolbar">
+    <view class="sort-options">
+      <van-dropdown-menu>
+        <van-dropdown-item 
+          value="{{ sortType }}" 
+          options="{{ sortOptions }}"
+          bind:change="onSortChange"
+        />
+      </van-dropdown-menu>
+    </view>
+    <view class="view-toggle">
+      <van-icon 
+        name="{{ viewMode === 'grid' ? 'apps-o' : 'wap-nav' }}" 
+        size="20"
+        color="{{ viewMode === 'grid' ? '#4A90E2' : '#969799' }}"
+        bind:click="toggleViewMode"
+      />
+    </view>
+  </view>
+
+  <!-- 书籍列表 -->
+  <view class="books-container">
+    <!-- 网格视图 -->
+    <view class="books-grid" wx:if="{{ viewMode === 'grid' }}">
+      <view 
+        class="book-card"
+        wx:for="{{ filteredBooks }}"
+        wx:key="{{ item.id }}"
+        bind:tap="onBookClick"
+        data-book="{{ item }}"
+      >
+        <view class="book-cover">
+          <van-image
+            src="{{ item.coverUrl || '/images/book-placeholder.png' }}"
+            fit="cover"
+            radius="8rpx"
+            width="120rpx"
+            height="160rpx"
+            lazy-load="{{ true }}"
+          />
+          <view class="book-status {{ item.status }}" wx:if="{{ item.status !== 'reading' }}">
+            <view class="status-text">{{ getStatusText(item.status) }}</view>
+          </view>
+        </view>
+        <view class="book-info">
+          <view class="book-title">{{ item.title }}</view>
+          <view class="book-author">{{ item.author }}</view>
+          <view class="book-progress">
+            <van-progress 
+              percentage="{{ item.readProgress || 0 }}" 
+              stroke-width="4"
+              color="#4A90E2"
+              track-color="#f5f5f5"
+            />
+            <view class="progress-text">{{ item.readProgress || 0 }}%</view>
+          </view>
+          <view class="book-stats">
+            <van-tag size="mini" type="primary">{{ item.noteCount || 0 }}条笔记</van-tag>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 列表视图 -->
+    <view class="books-list" wx:else>
+      <view 
+        class="book-item"
+        wx:for="{{ filteredBooks }}"
+        wx:key="{{ item.id }}"
+        bind:tap="onBookClick"
+        data-book="{{ item }}"
+      >
+        <view class="book-cover-small">
+          <van-image
+            src="{{ item.coverUrl || '/images/book-placeholder.png' }}"
+            fit="cover"
+            radius="6rpx"
+            width="80rpx"
+            height="100rpx"
+            lazy-load="{{ true }}"
+          />
+        </view>
+        <view class="book-content">
+          <view class="book-header">
+            <view class="book-title">{{ item.title }}</view>
+            <van-icon name="arrow" size="16" color="#c8c9cc" />
+          </view>
+          <view class="book-meta">
+            <view class="book-author">{{ item.author }}</view>
+            <view class="book-category">{{ item.category || '未分类' }}</view>
+          </view>
+          <view class="book-footer">
+            <view class="note-count">
+              <van-icon name="notes-o" size="12" color="#969799" />
+              <text class="count-text">{{ item.noteCount || 0 }}条笔记</text>
+            </view>
+            <view class="last-read">{{ formatLastReadTime(item.lastReadTime) }}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{ filteredBooks.length === 0 && !loading }}">
+      <van-empty 
+        image="/images/empty-books.png" 
+        description="{{ getEmptyDescription() }}"
+      >
+        <van-button 
+          round 
+          type="primary" 
+          bind:click="onAddFirstBook"
+          class="empty-action"
+        >
+          {{ activeCategory === 'all' ? '添加第一本书' : '去添加书籍' }}
+        </van-button>
+      </van-empty>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-wrapper" wx:if="{{ loading }}">
+      <van-loading type="spinner" size="24px">加载中...</van-loading>
+    </view>
+  </view>
+
+  <!-- 浮动添加按钮 -->
+  <view class="fab" bind:tap="onShowAddOptions">
+    <van-icon name="plus" size="24" color="white" />
+  </view>
+
+  <!-- 添加选项弹窗 -->
+  <van-action-sheet
+    show="{{ showAddSheet }}"
+    actions="{{ addActions }}"
+    bind:close="onCloseAddSheet"
+    bind:select="onSelectAddAction"
+    cancel-text="取消"
+    round="{{ true }}"
+  />
+
+  <!-- Toast 提示 -->
+  <van-toast id="van-toast" />
+  
+  <!-- Dialog 确认框 -->
+  <van-dialog id="van-dialog" />
+
+  <!-- Notify 通知 -->
+  <van-notify id="van-notify" />
+</view>

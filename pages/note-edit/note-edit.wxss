@@ -1,0 +1,6 @@
+.page { padding: 16rpx; }
+.toolbar { margin-bottom: 16rpx; display: flex; justify-content: flex-end; }
+.editor { width: 100%; min-height: 60vh; padding: 16rpx; box-sizing: border-box; background: #fff; border-radius: 12rpx; line-height: 1.6; }
+.hint { margin-top: 12rpx; color: #969799; font-size: 24rpx; }
+.loading { margin-top: 24rpx; display: flex; justify-content: center; }
+

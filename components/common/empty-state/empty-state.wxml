@@ -1,0 +1,38 @@
+<!--
+  空状态组件模板
+-->
+<view class="empty-state" style="{{ customStyle }}">
+  <view class="empty-content">
+    <!-- 空状态图片 -->
+    <view class="empty-image" bind:tap="onImageClick">
+      <image 
+        src="{{ getCurrentConfig().image }}" 
+        mode="aspectFit"
+        class="empty-icon"
+      />
+    </view>
+    
+    <!-- 标题 -->
+    <view class="empty-title" wx:if="{{ getCurrentConfig().title }}">
+      {{ getCurrentConfig().title }}
+    </view>
+    
+    <!-- 描述 -->
+    <view class="empty-description" wx:if="{{ getCurrentConfig().description }}">
+      {{ getCurrentConfig().description }}
+    </view>
+    
+    <!-- 操作按钮 -->
+    <view class="empty-action" wx:if="{{ showButton && getCurrentConfig().buttonText }}">
+      <van-button 
+        type="primary" 
+        size="small"
+        round
+        bind:click="onButtonClick"
+        custom-class="empty-button"
+      >
+        {{ getCurrentConfig().buttonText }}
+      </van-button>
+    </view>
+  </view>
+</view>

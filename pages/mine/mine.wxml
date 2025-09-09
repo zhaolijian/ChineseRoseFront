@@ -1,0 +1,24 @@
+<view class="page">
+  <view class="profile-card" wx:if="{{ loggedIn }}">
+    <image class="avatar" src="{{ profile.avatar_url || '/images/common/avatar-default.png' }}" mode="aspectFill" />
+    <view class="info">
+      <view class="name">{{ profile.nickname || '未设置昵称' }}</view>
+      <view class="phone" wx:if="{{ profile.phone }}">{{ profile.phone }}</view>
+      <view class="uid">ID: {{ profile.id }}</view>
+    </view>
+  </view>
+
+  <view class="actions" wx:if="{{ loggedIn }}">
+    <van-cell-group>
+      <van-cell title="阅读统计" is-link bind:click="onViewStats" />
+      <van-cell title="设置" is-link bind:click="onOpenSettings" />
+      <van-cell title="退出登录" title-style="color:#ee0a24" is-link bind:click="onLogout" />
+    </van-cell-group>
+  </view>
+
+  <view class="login-panel" wx:if="{{ !loggedIn }}">
+    <van-empty description="登录后可同步数据至云端" />
+    <van-button round type="primary" bind:click="onGoLogin" class="login-btn">去登录</van-button>
+  </view>
+</view>
+

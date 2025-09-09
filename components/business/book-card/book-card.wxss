@@ -1,0 +1,284 @@
+/**
+ * 书籍卡片组件样式
+ */
+
+/* ==================== 通用样式 ==================== */
+.book-card {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-medium);
+  transition: all 0.3s ease;
+}
+
+.book-card:active {
+  transform: scale(0.98);
+}
+
+/* ==================== 网格模式样式 ==================== */
+.book-card.grid {
+  padding: var(--space-md);
+  text-align: center;
+  box-shadow: var(--shadow-light);
+}
+
+.book-card.grid .book-cover {
+  position: relative;
+  margin-bottom: var(--space-sm);
+  display: flex;
+  justify-content: center;
+}
+
+.book-card.grid .book-status {
+  position: absolute;
+  top: -4rpx;
+  right: -4rpx;
+  border-radius: var(--radius-small);
+  padding: 2rpx 6rpx;
+  font-size: var(--font-xs);
+  color: white;
+  z-index: 2;
+}
+
+.book-card.grid .book-status.finished {
+  background-color: var(--success-color);
+}
+
+.book-card.grid .book-status.wishlist {
+  background-color: var(--warning-color);
+}
+
+.book-card.grid .progress-overlay {
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: var(--radius-small);
+  padding: 2rpx 6rpx;
+}
+
+.book-card.grid .progress-text {
+  font-size: var(--font-xs);
+  color: white;
+}
+
+.book-card.grid .book-title {
+  font-size: var(--font-sm);
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+  height: 2.4em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.2;
+}
+
+.book-card.grid .book-author {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.book-card.grid .book-progress {
+  margin-bottom: var(--space-sm);
+}
+
+.book-card.grid .book-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.book-card.grid .last-read {
+  font-size: var(--font-xs);
+  color: var(--text-hint);
+}
+
+/* ==================== 列表模式样式 ==================== */
+.book-card.list {
+  display: flex;
+  padding: var(--space-md);
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.book-card.list:last-child {
+  border-bottom: none;
+}
+
+.book-card.list:active {
+  background-color: var(--bg-tertiary);
+}
+
+.book-card.list .book-cover-small {
+  margin-right: var(--space-md);
+  flex-shrink: 0;
+}
+
+.book-card.list .book-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.book-card.list .book-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-xs);
+}
+
+.book-card.list .book-title {
+  font-size: var(--font-md);
+  font-weight: bold;
+  color: var(--text-primary);
+  flex: 1;
+  margin-right: var(--space-sm);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.book-card.list .book-status-badge {
+  font-size: var(--font-xs);
+  padding: 2rpx 8rpx;
+  border-radius: var(--radius-small);
+  color: white;
+  flex-shrink: 0;
+}
+
+.book-card.list .book-status-badge.finished {
+  background-color: var(--success-color);
+}
+
+.book-card.list .book-status-badge.wishlist {
+  background-color: var(--warning-color);
+}
+
+.book-card.list .book-author {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.book-card.list .book-progress {
+  margin-bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.book-card.list .book-progress .progress-text {
+  font-size: var(--font-xs);
+  color: var(--text-hint);
+  flex-shrink: 0;
+}
+
+.book-card.list .book-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.book-card.list .book-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.book-card.list .note-count {
+  font-size: var(--font-xs);
+  color: var(--text-hint);
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.book-card.list .category {
+  font-size: var(--font-xs);
+  color: var(--text-hint);
+  background-color: var(--bg-tertiary);
+  padding: 2rpx 6rpx;
+  border-radius: var(--radius-small);
+}
+
+.book-card.list .last-read {
+  font-size: var(--font-xs);
+  color: var(--text-hint);
+}
+
+.book-card.list .book-actions {
+  margin-left: var(--space-md);
+  display: flex;
+  align-items: center;
+}
+
+/* ==================== 响应式适配 ==================== */
+@media screen and (max-width: 375px) {
+  .book-card.grid {
+    padding: var(--space-sm);
+  }
+  
+  .book-card.grid .book-title {
+    font-size: 24rpx;
+  }
+  
+  .book-card.list .book-title {
+    font-size: 26rpx;
+  }
+}
+
+/* ==================== 动画效果 ==================== */
+.book-card.grid:hover,
+.book-card.list:hover {
+  box-shadow: var(--shadow-medium);
+}
+
+.book-status,
+.book-status-badge {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==================== 加载状态 ==================== */
+.book-card.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.book-card.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40rpx;
+  height: 40rpx;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
