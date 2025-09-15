@@ -1,0 +1,140 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "书架",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/notes/index",
+      "style": {
+        "navigationBarTitleText": "笔记",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mindmap/index",
+      "style": {
+        "navigationBarTitleText": "思维导图",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "subPackages": [
+    {
+      "root": "pages-book",
+      "pages": [
+        {
+          "path": "detail/detail",
+          "style": {
+            "navigationBarTitleText": "书籍详情"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages-note",
+      "pages": [
+        {
+          "path": "add/add",
+          "style": {
+            "navigationBarTitleText": "添加笔记"
+          }
+        },
+        {
+          "path": "edit/edit",
+          "style": {
+            "navigationBarTitleText": "编辑笔记"
+          }
+        },
+        {
+          "path": "list/list",
+          "style": {
+            "navigationBarTitleText": "笔记列表"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages-mindmap",
+      "pages": [
+        {
+          "path": "create/create",
+          "style": {
+            "navigationBarTitleText": "创建思维导图"
+          }
+        },
+        {
+          "path": "view/view",
+          "style": {
+            "navigationBarTitleText": "思维导图"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages-user",
+      "pages": [
+        {
+          "path": "profile/profile",
+          "style": {
+            "navigationBarTitleText": "个人资料"
+          }
+        }
+      ]
+    }
+  ],
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#059669",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "书架",
+        "iconPath": "static/images/tabbar/bookshelf.png",
+        "selectedIconPath": "static/images/tabbar/bookshelf-active.png"
+      },
+      {
+        "pagePath": "pages/notes/index",
+        "text": "笔记",
+        "iconPath": "static/images/tabbar/note.png",
+        "selectedIconPath": "static/images/tabbar/note-active.png"
+      },
+      {
+        "pagePath": "pages/mindmap/index",
+        "text": "思维导图",
+        "iconPath": "static/images/tabbar/mindmap.png",
+        "selectedIconPath": "static/images/tabbar/mindmap-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "static/images/tabbar/profile.png",
+        "selectedIconPath": "static/images/tabbar/profile-active.png"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTitleText": "阅记",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F9FAFB",
+    "navigationBarTextStyle": "black"
+  }
+}

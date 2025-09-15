@@ -1,0 +1,130 @@
+{
+  "name": "阅记",
+  "appid": "__UNI__CHINESE_ROSE",
+  "description": "纸质书笔记整理助手",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "modules": {},
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\" />",
+          "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\" />",
+          "<uses-permission android:name=\"android.permission.VIBRATE\" />",
+          "<uses-permission android:name=\"android.permission.READ_LOGS\" />",
+          "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\" />",
+          "<uses-feature android:name=\"android.hardware.camera.autofocus\" />",
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
+          "<uses-permission android:name=\"android.permission.CAMERA\" />",
+          "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\" />",
+          "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
+          "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\" />",
+          "<uses-permission android:name=\"android.permission.WAKE_LOCK\" />",
+          "<uses-permission android:name=\"android.permission.FLASHLIGHT\" />",
+          "<uses-feature android:name=\"android.hardware.camera\" />",
+          "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\" />"
+        ]
+      },
+      "ios": {},
+      "sdkConfigs": {}
+    }
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "wx630471360fc88823",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "enhance": true,
+      "postcss": true,
+      "preloadBackgroundData": false,
+      "minified": true,
+      "newFeature": false,
+      "coverView": true,
+      "nodeModules": false,
+      "autoAudits": false,
+      "showShadowRootLog": false,
+      "scopeDataCheck": false,
+      "uglifyFileName": false,
+      "checkInvalidKey": true,
+      "checkSiteMap": true,
+      "uploadWithSourceMap": true,
+      "compileHotReLoad": false,
+      "lazyloadPlaceholderEnable": false,
+      "useMultiFrameRuntime": true,
+      "useApiHook": true,
+      "useApiHostProcess": true,
+      "babelSetting": {
+        "ignore": [],
+        "disablePlugins": [],
+        "outputPath": ""
+      },
+      "enableEngineNative": false,
+      "useIsolateContext": true,
+      "userConfirmedPrivacyInfo": false,
+      "userConfirmedBundleSwitch": false,
+      "packNpmManually": false,
+      "packNpmRelationList": [],
+      "minifyWXSS": true,
+      "disableUseStrict": false,
+      "minifyWXML": true,
+      "showES6CompileOption": false,
+      "useCompilerPlugins": false
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "您的位置信息将用于小程序位置接口的效果展示"
+      },
+      "scope.camera": {
+        "desc": "用于拍照识别纸质书笔记"
+      },
+      "scope.album": {
+        "desc": "用于选择图片识别纸质书笔记"
+      },
+      "scope.writePhotosAlbum": {
+        "desc": "用于保存识别结果和思维导图"
+      }
+    },
+    "requiredPrivateInfos": [
+      "getLocation"
+    ],
+    "lazyCodeLoading": "requiredComponents"
+  },
+  "mp-alipay": {
+    "usingComponents": true,
+    "lazyCodeLoading": "requiredComponents"
+  },
+  "mp-baidu": {
+    "usingComponents": true
+  },
+  "mp-toutiao": {
+    "usingComponents": true
+  },
+  "h5": {
+    "router": {
+      "mode": "history",
+      "base": "./"
+    },
+    "optimization": {
+      "treeShaking": {
+        "enable": true
+      }
+    },
+    "title": "阅记",
+    "publicPath": "/",
+    "devServer": {
+      "disableHostCheck": true,
+      "https": false
+    },
+    "sdkConfigs": {
+      "maps": {}
+    }
+  },
+  "vueVersion": "3"
+}

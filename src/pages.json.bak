@@ -1,0 +1,16 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "书架"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTitleText": "阅记",
+    "navigationBarBackgroundColor": "#4A90E2",
+    "backgroundColor": "#F5F7FA",
+    "navigationBarTextStyle": "white"
+  }
+}

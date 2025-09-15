@@ -1,0 +1,126 @@
+// 全局设计令牌与 uView 主题变量（统一"翡翠绿/青绿"体系）
+// 说明：页面与组件仅引用本文件令牌，不得直写色值/魔法数字
+
+// 首先导入 uView Plus 的 mixins 和基础主题
+@import 'uview-plus/libs/css/mixin.scss';
+@import 'uview-plus/theme.scss';
+
+// —— uView Plus 主题主色 ——
+$u-primary: #00a82d; // Emerald 600 主色 - 与设计稿一致
+$u-success: #16A34A;
+$u-warning: #F59E0B;
+$u-error:   #DC2626;
+$u-info:    #0EA5E9;
+
+// —— uView 基础中性色 ——
+$u-text-color:     #374151; // 文本
+$u-content-color:  #6B7280; // 次文本
+$u-tips-color:     #6B7280; // 提示/弱文本
+$u-border-color:   #E5E7EB; // 边框
+$u-bg-color:       #F9FAFB; // 背景
+
+// —— 设计令牌（CSS变量）——
+:root {
+  /* 主色阶 */
+  --cr-color-primary-700: #047857;
+  --cr-color-primary-600: #00a82d; /* 主色 - 与设计稿完全一致 */
+  --cr-color-primary-500: #10B981; /* hover/弱强调 */
+  --cr-color-primary-50:  #ECFDF5; /* 浅背景 */
+
+  /* 语义色 */
+  --cr-color-success: #16A34A;
+  --cr-color-warning: #F59E0B;
+  --cr-color-error:   #DC2626;
+  --cr-color-info:    #0EA5E9;
+
+  /* 中性色 */
+  --cr-color-text-strong: #111827;
+  --cr-color-text:        #374151;
+  --cr-color-subtext:     #6B7280;
+  --cr-color-border:      #E5E7EB;
+  --cr-color-divider:     #F3F4F6;
+  --cr-color-bg:          #F9FAFB;
+  --cr-color-surface:     #FFFFFF;
+
+  /* 圆角与阴影 */
+  --cr-radius-base:  12rpx;
+  --cr-radius-card:  16rpx;
+  --cr-shadow-sm:    0 4rpx 12rpx rgba(17, 24, 39, 0.06);
+  --cr-shadow-md:    0 8rpx 20rpx rgba(17, 24, 39, 0.08);
+
+  /* 字体字号 */
+  --cr-font-title:    34rpx;
+  --cr-font-subtitle: 28rpx;
+  --cr-font-body:     26rpx;
+  --cr-font-caption:  24rpx;
+}
+
+// —— 通用工具类（容器/卡片/按钮尺寸/输入/毛玻璃顶栏）——
+
+// 页面背景与容器
+.cr-page-bg {
+  background-color: var(--cr-color-bg);
+}
+
+.cr-container {
+  padding: 24rpx;
+  background-color: var(--cr-color-bg);
+}
+
+// 卡片容器
+.cr-card {
+  background: var(--cr-color-surface);
+  border-radius: var(--cr-radius-card);
+  box-shadow: var(--cr-shadow-sm);
+  border: 1rpx solid var(--cr-color-border);
+}
+
+.cr-card--padded {
+  padding: 24rpx;
+}
+
+// 主要按钮尺寸（基于 u-button）
+.cr-btn {
+  width: 100%;
+  border-radius: 9999rpx; // Pill 形
+}
+.cr-btn--lg { height: 96rpx; font-size: 32rpx; }
+.cr-btn--md { height: 84rpx; font-size: 28rpx; }
+.cr-btn--sm { height: 72rpx; font-size: 26rpx; }
+
+// 输入容器（配合 u-input 使用）
+.cr-input {
+  background: var(--cr-color-surface);
+  border: 1rpx solid var(--cr-color-border);
+  border-radius: var(--cr-radius-base);
+  padding: 0 24rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+}
+
+// 顶栏毛玻璃（白底半透）
+.cr-navbar--frosted {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(160%) blur(16rpx);
+  -webkit-backdrop-filter: saturate(160%) blur(16rpx);
+  border-bottom: 1rpx solid var(--cr-color-divider);
+}
+
+// 语义色辅助类
+.text-strong { color: var(--cr-color-text-strong); }
+.text-main   { color: var(--cr-color-text); }
+.text-sub    { color: var(--cr-color-subtext); }
+.text-primary{ color: var(--cr-color-primary-600); }
+
+.bg-primary  { background-color: var(--cr-color-primary-600); }
+.bg-surface  { background-color: var(--cr-color-surface); }
+.bg-weak     { background-color: var(--cr-color-primary-50); }
+
+// 分割线
+.cr-divider { height: 1rpx; background-color: var(--cr-color-divider); }
+
+// 图标默认中性，活跃态主色
+.cr-icon { color: var(--cr-color-subtext); }
+.cr-icon--active { color: var(--cr-color-primary-600); }
+

@@ -1,0 +1,22 @@
+/* H5平台样式覆盖 */
+/* #ifdef H5 */
+
+// 禁用uni-app默认的页面头部阴影
+.uni-page-head-shadow-grey::after {
+  display: none !important;
+}
+
+// 修复可能的背景图片路径问题
+.uni-page-head::after {
+  background-image: none !important;
+}
+
+// 清除所有可能引起shadow-grey错误的样式
+[class*="shadow-grey"] {
+  &::before,
+  &::after {
+    background-image: none !important;
+  }
+}
+
+/* #endif */

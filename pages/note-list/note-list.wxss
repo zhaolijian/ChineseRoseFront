@@ -1,4 +1,0 @@
-.page { padding: 16rpx; }
-.toolbar { margin-bottom: 16rpx; }
-.empty { margin-top: 80rpx; }
-.loading { margin-top: 24rpx; display: flex; justify-content: center; }
