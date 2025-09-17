@@ -1,11 +1,14 @@
 import type { StorageOptions } from '@/types'
+import { STORAGE_PREFIX } from '@/constants'
+import { logger } from './logger'
+import { createContext } from './logger-helpers'
 
 /**
  * 统一存储管理类
  * 支持加密存储、过期时间等功能
  */
 class StorageManager {
-  private prefix = 'chinese_rose_'
+  private prefix = STORAGE_PREFIX
   
   /**
    * 设置存储
@@ -49,7 +52,8 @@ class StorageManager {
       // #endif
       
     } catch (error) {
-      console.error('存储设置失败:', error)
+      const ctx = createContext()
+      logger.error(ctx, '[StorageManager.set] 存储设置失败', error)
       throw error
     }
   }
@@ -101,7 +105,8 @@ class StorageManager {
       
       return data.value
     } catch (error) {
-      console.error('存储获取失败:', error)
+      const ctx = createContext()
+      logger.error(ctx, '[StorageManager.get] 存储获取失败', error)
       return defaultValue
     }
   }
@@ -133,7 +138,8 @@ class StorageManager {
       })
       // #endif
     } catch (error) {
-      console.error('存储删除失败:', error)
+      const ctx = createContext()
+      logger.error(ctx, '[StorageManager.remove] 存储删除失败', error)
       throw error
     }
   }
@@ -180,7 +186,8 @@ class StorageManager {
       }
       // #endif
     } catch (error) {
-      console.error('存储清空失败:', error)
+      const ctx = createContext()
+      logger.error(ctx, '[StorageManager.clear] 存储清空失败', error)
       throw error
     }
   }
@@ -243,7 +250,8 @@ class StorageManager {
       
       return Promise.resolve({ keys: [], currentSize: 0, limitSize: 0 })
     } catch (error) {
-      console.error('获取存储信息失败:', error)
+      const ctx = createContext()
+      logger.error(ctx, '[StorageManager.getStorageInfo] 获取存储信息失败', error)
       return { keys: [], currentSize: 0, limitSize: 0 }
     }
   }
@@ -379,7 +387,7 @@ export const removeStorage = (key: string): Promise<void> => {
 // 同步版本的存储函数（适配uni-app原生API）
 export const getStorageSync = <T = any>(key: string, defaultValue: T | null = null): T | null => {
   try {
-    const fullKey = 'chinese_rose_' + key
+    const fullKey = STORAGE_PREFIX + key
     let rawData: string | null = null
     
     // #ifdef MP-WEIXIN
@@ -404,7 +412,8 @@ export const getStorageSync = <T = any>(key: string, defaultValue: T | null = nu
     }
     return data.value
   } catch (error) {
-    console.error('同步存储获取失败:', error)
+    const ctx = createContext()
+    logger.error(ctx, '[getStorageSync] 同步存储获取失败', error)
     return defaultValue
   }
 }
@@ -418,7 +427,7 @@ export const setStorageSync = (key: string, value: any): void => {
     }
     
     const finalData = JSON.stringify(data)
-    const fullKey = 'chinese_rose_' + key
+    const fullKey = STORAGE_PREFIX + key
     
     // #ifdef MP-WEIXIN
     uni.setStorageSync(fullKey, finalData)
@@ -432,13 +441,14 @@ export const setStorageSync = (key: string, value: any): void => {
     plus.storage.setItem(fullKey, finalData)
     // #endif
   } catch (error) {
-    console.error('同步存储设置失败:', error)
+    const ctx = createContext()
+    logger.error(ctx, '[setStorageSync] 同步存储设置失败', error)
   }
 }
 
 export const removeStorageSync = (key: string): void => {
   try {
-    const fullKey = 'chinese_rose_' + key
+    const fullKey = STORAGE_PREFIX + key
     
     // #ifdef MP-WEIXIN
     uni.removeStorageSync(fullKey)
@@ -452,7 +462,8 @@ export const removeStorageSync = (key: string): void => {
     plus.storage.removeItem(fullKey)
     // #endif
   } catch (error) {
-    console.error('同步存储删除失败:', error)
+    const ctx = createContext()
+    logger.error(ctx, '[removeStorageSync] 同步存储删除失败', error)
   }
 }
 

@@ -76,6 +76,7 @@ import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useNoteStore } from '@/stores/modules/note'
 import { useUserStore } from '@/stores/modules/user'
 import { safeHideTabBar } from '@/utils/tabbar'
+import { logger, createContext } from '@/utils'
 import AppNavBar from '@/components/common/AppNavBar.vue'
 import PageContainer from '@/components/common/PageContainer.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -114,44 +115,58 @@ const filterTabs = ref([
 
 // 生命周期
 onMounted(async () => {
+  const ctx = createContext()
+  logger.info(ctx, '[NotesPage] 页面挂载')
   await checkLoginAndLoadData()
 })
 
 onShow(async () => {
-  // 🔧 修复：使用统一的TabBar工具函数
+  const ctx = createContext()
+  logger.info(ctx, '[NotesPage] 页面显示')
+  
+  // 修复：使用统一的TabBar工具函数
   safeHideTabBar()
   // 页面显示时刷新数据
   await loadNotes()
 })
 
 onPullDownRefresh(async () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[NotesPage] 触发下拉刷新')
   await loadNotes(true)
   uni.stopPullDownRefresh()
 })
 
 onReachBottom(async () => {
+  const ctx = createContext()
   if (hasMore.value && !loading.value) {
+    logger.debug(ctx, '[NotesPage] 触底加载更多')
     await loadMoreNotes()
   }
 })
 
 // 方法
 const checkLoginAndLoadData = async () => {
+  const ctx = createContext()
+  
   try {
     pageLoading.value = true
+    logger.debug(ctx, '[checkLoginAndLoadData] 开始检查登录状态')
     
     // 检查登录状态
     if (!userStore.isLoggedIn) {
+      logger.info(ctx, '[checkLoginAndLoadData] 用户未登录，跳转到登录页')
       uni.navigateTo({
         url: '/pages/login/login'
       })
       return
     }
     
+    logger.debug(ctx, '[checkLoginAndLoadData] 用户已登录，加载笔记数据')
     // 加载笔记数据
     await loadNotes()
   } catch (error) {
-    console.error('初始化失败:', error)
+    logger.error(ctx, '[checkLoginAndLoadData] 初始化失败', error)
     uni.showToast({
       title: '加载失败',
       icon: 'error'
@@ -162,8 +177,11 @@ const checkLoginAndLoadData = async () => {
 }
 
 const loadNotes = async (refresh = false) => {
+  const ctx = createContext()
+  
   try {
     loading.value = true
+    logger.debug(ctx, '[loadNotes] 开始加载笔记', { refresh, filter: activeFilter.value })
     
     // TODO: 实现笔记数据加载
     // const result = await noteStore.fetchNotes(refresh ? 1 : noteStore.currentPage, activeFilter.value)
@@ -188,8 +206,9 @@ const loadNotes = async (refresh = false) => {
     }
     
     hasMore.value = false // 模拟无更多数据
+    logger.info(ctx, '[loadNotes] 加载笔记成功', { count: mockNotes.length })
   } catch (error) {
-    console.error('加载笔记失败:', error)
+    logger.error(ctx, '[loadNotes] 加载笔记失败', error)
     uni.showToast({
       title: '加载失败',
       icon: 'error'
@@ -205,23 +224,31 @@ const loadMoreNotes = async () => {
 }
 
 const onFilterChange = (index: number) => {
+  const ctx = createContext()
+  logger.debug(ctx, '[onFilterChange] 切换筛选', { filter: filterTabs.value[index].name })
   activeFilter.value = index
   loadNotes(true) // 重新加载数据
 }
 
 const goToNoteDetail = (note: Note) => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToNoteDetail] 跳转到笔记详情', { noteId: note.id, title: note.title })
   uni.navigateTo({
     url: `/pages-note/detail/detail?id=${note.id}`
   })
 }
 
 const goToAddNote = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToAddNote] 跳转到添加笔记页')
   uni.navigateTo({
     url: '/pages-note/add/add'
   })
 }
 
 const goToSearch = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToSearch] 跳转到搜索页', { type: 'note' })
   uni.navigateTo({
     url: '/pages/search/search?type=note'
   })

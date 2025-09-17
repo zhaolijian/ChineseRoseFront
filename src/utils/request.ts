@@ -1,5 +1,10 @@
 // 统一请求返回：成功直接返回 body.data，失败抛出错误（由拦截器处理）
 
+import { logger } from './logger'
+import { createRequestContext, clearRequestContext } from './logger-helpers'
+import type { LogContext } from './logger'
+import { DEFAULT_REQUEST_TIMEOUT, REDIRECT_THROTTLE_TIME, TOKEN_KEY, USER_INFO_KEY } from '@/constants'
+
 // 请求配置
 interface RequestConfig {
   url: string
@@ -10,6 +15,7 @@ interface RequestConfig {
   timeout?: number
   showLoading?: boolean
   showError?: boolean
+  logContext?: LogContext  // 日志上下文，可选
 }
 
 // 请求拦截器类型
@@ -22,7 +28,7 @@ let isRedirectingToLogin = false
 
 class RequestManager {
   private baseURL = ''
-  private timeout = 10000
+  private timeout = DEFAULT_REQUEST_TIMEOUT
   private requestInterceptors: RequestInterceptor[] = []
   private responseInterceptors: ResponseInterceptor[] = []
   private errorInterceptors: ErrorInterceptor[] = []
@@ -50,16 +56,27 @@ class RequestManager {
     this.baseURL = 'http://127.0.0.1:8080/api'
     // #endif
     
-    console.log('[Request] baseURL设置为:', this.baseURL)
+    const ctx = createRequestContext()
+    logger.info(ctx, `[setBaseURL] baseURL设置为: ${this.baseURL}`)
   }
 
   private setupDefaultInterceptors() {
-    // 请求拦截器：添加token
+    // 请求拦截器：添加token和traceId
     this.addRequestInterceptor((config) => {
+      // 创建或复用日志上下文
+      const ctx = config.logContext || createRequestContext()
+      config.logContext = ctx
+      
+      // 添加X-Trace-Id请求头
+      config.headers = {
+        ...config.headers,
+        'X-Trace-Id': ctx.traceId
+      }
+      
       // 🔧 修复：使用与storage模块一致的key获取token
       let token = ''
       try {
-        const rawData = uni.getStorageSync('chinese_rose_token')
+        const rawData = uni.getStorageSync(TOKEN_KEY)
         if (rawData) {
           const data = JSON.parse(rawData)
           // 检查是否过期
@@ -67,11 +84,11 @@ class RequestManager {
             token = data.value
           } else {
             // token过期，清除存储
-            uni.removeStorageSync('chinese_rose_token')
+            uni.removeStorageSync(TOKEN_KEY)
           }
         }
       } catch (error) {
-        console.error('[Request] 获取token失败:', error)
+        logger.error(ctx, '[setupDefaultInterceptors] 获取token失败', error)
       }
       
       if (token) {
@@ -79,11 +96,12 @@ class RequestManager {
           ...config.headers,
           'Authorization': `Bearer ${token}`
         }
-        console.log('[Request] 请求拦截器 - 已添加token')
+        logger.debug(ctx, '[addRequestInterceptor] 已添加token')
       } else {
-        console.log('[Request] 请求拦截器 - 无token')
+        logger.debug(ctx, '[addRequestInterceptor] 无token')
       }
-      console.log('[Request] 请求拦截器 - 配置:', config)
+      
+      logger.debug(ctx, `[addRequestInterceptor] 请求 ${config.method || 'GET'} ${config.url}`)
       return config
     })
 
@@ -91,29 +109,30 @@ class RequestManager {
     this.addResponseInterceptor((response) => {
       const { statusCode, data } = response
       
-      console.log('[Request] 响应拦截器 - 状态码:', statusCode, '数据:', data)
+      const ctx = (response.config as RequestConfig)?.logContext || createRequestContext()
+      logger.info(ctx, `[addResponseInterceptor] 响应状态码: ${statusCode}`)
 
       // 处理HTTP层面的401
       if (statusCode === 401) {
-        console.log('[Request] HTTP 401未授权，跳转登录')
+        logger.warn(ctx, '[addResponseInterceptor] HTTP 401未授权，跳转登录')
         this.redirectToLogin()
         return Promise.reject({ code: 401, message: '未授权' })
       }
       
       // 检查响应数据格式
       if (!data || typeof data.code === 'undefined') {
-        console.error('[Request] 响应数据格式异常:', data)
+        logger.error(ctx, '[addResponseInterceptor] 响应数据格式异常', data)
         uni.showToast({ title: '服务器响应格式异常', icon: 'none' })
         return Promise.reject({ code: -1, message: '响应格式异常' })
       }
       
       // 简化成功判断：仅 code === 0 表示成功
       if (data.code === 0) {
-        console.log('[Request] 请求成功，返回数据:', data.data)
+        logger.debug(ctx, '[addResponseInterceptor] 请求成功')
         return data.data
       } else {
         // 所有非0错误码都交给业务错误处理器
-        console.log('[Request] 业务错误，错误码:', data.code, '错误信息:', data.message)
+        logger.warn(ctx, `[addResponseInterceptor] 业务错误 - 错误码: ${data.code}, 信息: ${data.message}`)
         this.handleBusinessError(data)
         return Promise.reject(data)
       }
@@ -146,11 +165,12 @@ class RequestManager {
     const errorCode = data?.code || 0
     const errorMessage = data?.message || '未知错误'
     
-    console.log('[Request] 业务错误处理:', { errorCode, errorMessage })
+    const ctx = createRequestContext()
+    logger.warn(ctx, `[handleBusinessError] 业务错误 - 码: ${errorCode}, 信息: ${errorMessage}`)
     
     // 特殊处理：token过期，跳转登录
     if (errorCode === 10102) {
-      console.log('[Request] Token过期，跳转登录页面')
+      logger.info(ctx, '[handleBusinessError] Token过期，跳转登录页面')
       this.redirectToLogin()
       return
     }
@@ -165,8 +185,14 @@ class RequestManager {
 
   // 未授权跳转登录（带防抖）
   private redirectToLogin() {
-    if (isRedirectingToLogin) return
+    const ctx = createRequestContext()
+    
+    if (isRedirectingToLogin) {
+      logger.warn(ctx, '[redirectToLogin] 正在跳转中，忽略重复请求')
+      return
+    }
     isRedirectingToLogin = true
+    
     try {
       // 🔧 修复：清除用户相关的所有存储，使用正确的key
       uni.removeStorageSync('chinese_rose_token')
@@ -174,17 +200,18 @@ class RequestManager {
       uni.removeStorageSync('token') // 兼容旧key
       uni.removeStorageSync('user') // 兼容旧key
       uni.removeStorageSync('userInfo') // 兼容旧key
-      console.log('[Request] 已清除用户信息，跳转到登录页')
+      logger.info(ctx, '[redirectToLogin] 已清除用户信息，跳转到登录页')
       // 使用 reLaunch 清空页面栈，避免 navigateTo 频繁调用报超时
       uni.reLaunch({ url: '/pages/login/login' })
     } finally {
-      setTimeout(() => { isRedirectingToLogin = false }, 1200)
+      setTimeout(() => { isRedirectingToLogin = false }, REDIRECT_THROTTLE_TIME)
     }
   }
 
   // 处理网络错误
   private handleNetworkError(error: any) {
-    console.error('网络请求错误:', error)
+    const ctx = createRequestContext()
+    logger.error(ctx, '[handleNetworkError] 网络请求错误', error)
     
     let message = '网络错误'
     if (error.errMsg) {
@@ -228,9 +255,14 @@ class RequestManager {
         ? (finalConfig.params ?? finalConfig.data)
         : finalConfig.data
       
-      console.log('[Request] 最终请求URL:', url)
-      console.log('[Request] 请求方法:', finalConfig.method || 'GET')
-      console.log('[Request] 请求数据:', finalConfig.data)
+      const ctx = finalConfig.logContext || createRequestContext()
+      // 注入logContext到config以便响应拦截器使用
+      finalConfig.logContext = ctx
+      
+      logger.info(ctx, `[request] 开始请求 ${finalConfig.method || 'GET'} ${url}`, {
+        data: payloadData,
+        headers: finalConfig.headers
+      })
 
       // 发起请求（兼容不同端）
       const response = await new Promise<any>((resolve, reject) => {
@@ -337,7 +369,7 @@ class RequestManager {
       // 🔧 修复：使用与storage模块一致的key获取token
       let token = ''
       try {
-        const rawData = uni.getStorageSync('chinese_rose_token')
+        const rawData = uni.getStorageSync(TOKEN_KEY)
         if (rawData) {
           const data = JSON.parse(rawData)
           if (!data.expires || Date.now() <= data.expires) {
@@ -345,7 +377,8 @@ class RequestManager {
           }
         }
       } catch (error) {
-        console.error('[Request] 文件上传获取token失败:', error)
+        const ctx = createRequestContext()
+        logger.error(ctx, '[upload] 文件上传获取token失败', error)
       }
       
       uni.uploadFile({

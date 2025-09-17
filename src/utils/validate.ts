@@ -2,12 +2,13 @@
  * 表单验证工具
  */
 
+import { PHONE_REGEX, VERIFY_CODE_LENGTH } from '@/constants'
+
 /**
  * 验证手机号格式
  */
 export function isValidPhone(phone: string): boolean {
-  const phoneRegex = /^1[3-9]\d{9}$/
-  return phoneRegex.test(phone)
+  return PHONE_REGEX.test(phone)
 }
 
 /**
@@ -31,6 +32,6 @@ export function isValidPassword(password: string): boolean {
  * 验证验证码格式
  */
 export function isValidCode(code: string): boolean {
-  const codeRegex = /^\d{6}$/
+  const codeRegex = new RegExp(`^\\d{${VERIFY_CODE_LENGTH}}$`)
   return codeRegex.test(code)
 }

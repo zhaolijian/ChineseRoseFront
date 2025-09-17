@@ -132,6 +132,7 @@ import { useBookStore } from '@/stores/modules/book'
 import { useNoteStore } from '@/stores/modules/note'
 import { useMindmapStore } from '@/stores/modules/mindmap'
 import { safeHideTabBar } from '@/utils/tabbar'
+import { logger, createContext } from '@/utils'
 import AppNavBar from '@/components/common/AppNavBar.vue'
 import TabBar from '@/components/common/TabBar.vue'
 
@@ -171,25 +172,35 @@ const isLoggedIn = computed(() => userStore.isLoggedIn)
 
 // 生命周期
 onMounted(async () => {
+  const ctx = createContext()
+  logger.info(ctx, '[ProfilePage] 页面挂载')
   await loadUserData()
 })
 
 onShow(async () => {
-  // 🔧 修复：使用统一的TabBar工具函数
+  const ctx = createContext()
+  logger.info(ctx, '[ProfilePage] 页面显示')
+  
+  // 修复：使用统一的TabBar工具函数
   safeHideTabBar()
   // 页面显示时刷新数据
   if (isLoggedIn.value) {
+    logger.debug(ctx, '[ProfilePage] 用户已登录，刷新统计数据')
     await loadUserStats()
   }
 })
 
 // 方法
 const loadUserData = async () => {
+  const ctx = createContext()
+  
   try {
     pageLoading.value = true
+    logger.debug(ctx, '[loadUserData] 开始加载用户数据')
     
     // 检查登录状态
     if (!isLoggedIn.value) {
+      logger.info(ctx, '[loadUserData] 用户未登录，跳转到登录页')
       uni.navigateTo({
         url: '/pages/login/login'
       })
@@ -198,14 +209,17 @@ const loadUserData = async () => {
     
     // 加载用户信息
     userInfo.value = userStore.userInfo
+    logger.debug(ctx, '[loadUserData] 用户信息', { userId: userInfo.value.id })
     
     // 加载统计数据
     await loadUserStats()
     
     // 加载最后同步时间
     loadLastSyncTime()
+    
+    logger.info(ctx, '[loadUserData] 用户数据加载完成')
   } catch (error) {
-    console.error('加载用户数据失败:', error)
+    logger.error(ctx, '[loadUserData] 加载用户数据失败', error)
     uni.showToast({
       title: '加载失败',
       icon: 'error'
@@ -216,7 +230,11 @@ const loadUserData = async () => {
 }
 
 const loadUserStats = async () => {
+  const ctx = createContext()
+  
   try {
+    logger.debug(ctx, '[loadUserStats] 开始加载统计数据')
+    
     // TODO: 实现统计数据加载
     // const statsResult = await Promise.all([
     //   bookStore.getUserBookCount(),
@@ -230,8 +248,10 @@ const loadUserStats = async () => {
       noteCount: 15,
       mindmapCount: 2
     })
+    
+    logger.info(ctx, '[loadUserStats] 统计数据加载完成', stats)
   } catch (error) {
-    console.error('加载统计数据失败:', error)
+    logger.error(ctx, '[loadUserStats] 加载统计数据失败', error)
   }
 }
 
@@ -245,60 +265,80 @@ const loadLastSyncTime = () => {
 }
 
 const goToProfile = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToProfile] 跳转到编辑资料页')
   uni.navigateTo({
     url: '/pages-profile/edit/edit'
   })
 }
 
 const goToBooks = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToBooks] 切换到书架页')
   uni.switchTab({
     url: '/pages/index/index'
   })
 }
 
 const goToNotes = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToNotes] 切换到笔记页')
   uni.switchTab({
     url: '/pages/notes/index'
   })
 }
 
 const goToMindmaps = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToMindmaps] 切换到思维导图页')
   uni.switchTab({
     url: '/pages/mindmap/index'
   })
 }
 
 const goToSync = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToSync] 跳转到数据同步页')
   uni.navigateTo({
     url: '/pages-profile/sync/sync'
   })
 }
 
 const goToExport = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToExport] 跳转到数据导出页')
   uni.navigateTo({
     url: '/pages-profile/export/export'
   })
 }
 
 const goToImport = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToImport] 跳转到数据导入页')
   uni.navigateTo({
     url: '/pages-profile/import/import'
   })
 }
 
 const goToSettings = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToSettings] 跳转到设置页')
   uni.navigateTo({
     url: '/pages-profile/settings/settings'
   })
 }
 
 const goToFeedback = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToFeedback] 跳转到意见反馈页')
   uni.navigateTo({
     url: '/pages-profile/feedback/feedback'
   })
 }
 
 const goToAbout = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToAbout] 跳转到关于页面')
   uni.navigateTo({
     url: '/pages-profile/about/about'
   })
@@ -317,7 +357,11 @@ const logout = () => {
 }
 
 const performLogout = async () => {
+  const ctx = createContext()
+  
   try {
+    logger.info(ctx, '[performLogout] 开始退出登录')
+    
     // 清除用户数据
     await userStore.logout()
     
@@ -326,12 +370,14 @@ const performLogout = async () => {
       url: '/pages/login/login'
     })
     
+    logger.info(ctx, '[performLogout] 退出登录成功')
+    
     uni.showToast({
       title: '已退出登录',
       icon: 'success'
     })
   } catch (error) {
-    console.error('退出登录失败:', error)
+    logger.error(ctx, '[performLogout] 退出登录失败', error)
     uni.showToast({
       title: '退出失败',
       icon: 'error'

@@ -12,7 +12,7 @@
     <view class="logo-container">
       <image class="logo" src="/static/images/logo.png" mode="aspectFit" />
       <text class="app-name">阅记</text>
-      <text class="app-desc">您的纸质书笔记整理专家</text>
+      <text class="app-desc">阅有所记，学有所成</text>
     </view>
 
     <!-- 登录表单 -->
@@ -60,7 +60,7 @@
         class="login-btn"
         :class="{ disabled: !canLogin }"
         :disabled="!canLogin"
-        @click="handleLogin"
+        @click="handlePhoneLogin"
       >
         登录
       </button>
@@ -72,9 +72,13 @@
         <view class="line"></view>
       </view>
 
-      <button class="wx-login-btn" @click="handleWechatLogin">
+      <button 
+        class="wechat-login-btn" 
+        open-type="getPhoneNumber"
+        @getphonenumber="handleGetPhoneNumber"
+      >
         <u-icon name="weixin-circle-fill" size="24" color="#04C160"></u-icon>
-        <text class="wx-text">微信快捷登录</text>
+        <text class="wx-text">一键登录</text>
       </button>
 
       <!-- 用户协议 -->
@@ -90,9 +94,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/modules/user'
 import { isValidPhone } from '@/utils/validate'
+import { useCountdown } from '@/composables/useCountdown'
+import { logger, createContext } from '@/utils'
+import { VERIFY_CODE_COUNTDOWN, NAVIGATE_DELAY } from '@/constants'
 
 const userStore = useUserStore()
 
@@ -102,7 +109,9 @@ const statusBarHeight = ref(20)
 // 表单数据
 const phoneNumber = ref('')
 const verifyCode = ref('')
-const countdown = ref(0)
+
+// 使用倒计时 composable
+const { countdown, start: startCountdown, restore: restoreCountdown } = useCountdown()
 
 // 计算属性
 const isPhoneValid = computed(() => isValidPhone(phoneNumber.value))
@@ -113,13 +122,28 @@ onLoad(() => {
   // 获取系统信息
   const systemInfo = uni.getSystemInfoSync()
   statusBarHeight.value = systemInfo.statusBarHeight || 20
+  
+  // 恢复倒计时状态
+  restoreCountdown()
+})
+
+// 页面显示（从后台返回时触发）
+onShow(() => {
+  // 恢复倒计时状态，确保从后台返回时倒计时准确
+  restoreCountdown()
 })
 
 // 发送验证码
 const sendCode = async () => {
-  if (!isPhoneValid.value || countdown.value > 0) return
+  const ctx = createContext() // 函数开始时创建一次context
+  
+  if (!isPhoneValid.value || countdown.value > 0) {
+    logger.debug(ctx, '[sendCode] 手机号无效或倒计时未结束')
+    return
+  }
 
   try {
+    logger.info(ctx, `[sendCode] 开始发送验证码，手机号: ${phoneNumber.value}`)
     uni.showLoading({ title: '发送中...' })
     
     // TODO: 调用发送验证码API
@@ -135,14 +159,10 @@ const sendCode = async () => {
     })
 
     // 开始倒计时
-    countdown.value = 60
-    const timer = setInterval(() => {
-      countdown.value--
-      if (countdown.value <= 0) {
-        clearInterval(timer)
-      }
-    }, 1000)
+    startCountdown(VERIFY_CODE_COUNTDOWN)
+    logger.info(ctx, '[sendCode] 验证码发送成功，已启动倒计时')
   } catch (error) {
+    logger.error(ctx, '[sendCode] 发送验证码失败', error)
     uni.hideLoading()
     uni.showToast({
       title: '发送失败，请重试',
@@ -152,10 +172,16 @@ const sendCode = async () => {
 }
 
 // 手机号登录
-const handleLogin = async () => {
-  if (!canLogin.value) return
+const handlePhoneLogin = async () => {
+  const ctx = createContext() // 函数开始时创建一次context
+  
+  if (!canLogin.value) {
+    logger.debug(ctx, '[handlePhoneLogin] 登录条件不满足')
+    return
+  }
 
   try {
+    logger.info(ctx, '[handlePhoneLogin] 开始手机号登录')
     uni.showLoading({ title: '登录中...' })
 
     // 调用登录接口
@@ -164,9 +190,70 @@ const handleLogin = async () => {
       code: verifyCode.value
     }
     
+    logger.debug(ctx, '[handlePhoneLogin] 调用登录接口', { phone: phoneNumber.value })
     await userStore.phoneLogin(loginData)
 
     uni.hideLoading()
+    uni.showToast({
+      title: '登录成功',
+      icon: 'success'
+    })
+
+    logger.info(ctx, '[handlePhoneLogin] 登录成功，准备跳转到首页')
+    // 延迟跳转到首页
+    setTimeout(() => {
+      uni.reLaunch({
+        url: '/pages/index/index'
+      })
+    }, NAVIGATE_DELAY)
+  } catch (error: any) {
+    logger.error(ctx, '[handlePhoneLogin] 登录失败', error)
+    uni.hideLoading()
+    uni.showToast({
+      title: error.message || '登录失败，请重试',
+      icon: 'none'
+    })
+  }
+}
+
+// 处理微信手机号授权
+const handleGetPhoneNumber = async (e: any) => {
+  const ctx = createContext() // 函数开始时创建一次context
+  
+  // 检查授权结果
+  if (e.detail.errMsg !== 'getPhoneNumber:ok') {
+    // 用户拒绝授权
+    logger.warn(ctx, '[handleGetPhoneNumber] 用户拒绝授权手机号')
+    uni.showToast({
+      title: '需要授权手机号才能登录',
+      icon: 'none'
+    })
+    return
+  }
+
+  // 获取手机号码凭证
+  const phoneCode = e.detail.code
+  if (!phoneCode) {
+    logger.error(ctx, '[handleGetPhoneNumber] 获取手机号凭证失败')
+    uni.showToast({
+      title: '获取手机号失败，请重试',
+      icon: 'none'
+    })
+    return
+  }
+
+  try {
+    logger.info(ctx, '[handleGetPhoneNumber] 开始微信登录')
+    uni.showLoading({ 
+      title: '登录中...', 
+      mask: true 
+    })
+
+    // 调用微信登录
+    await userStore.wechatLogin(phoneCode)
+
+    uni.hideLoading()
+    logger.info(ctx, '[handleGetPhoneNumber] 微信登录成功')
     uni.showToast({
       title: '登录成功',
       icon: 'success'
@@ -177,36 +264,7 @@ const handleLogin = async () => {
       uni.reLaunch({
         url: '/pages/index/index'
       })
-    }, 1500)
-  } catch (error: any) {
-    uni.hideLoading()
-    uni.showToast({
-      title: error.message || '登录失败，请重试',
-      icon: 'none'
-    })
-  }
-}
-
-// 微信登录
-const handleWechatLogin = async () => {
-  // #ifdef MP-WEIXIN
-  try {
-    uni.showLoading({ title: '登录中...' })
-    
-    // 微信登录
-    await userStore.wechatLogin()
-    
-    uni.hideLoading()
-    uni.showToast({
-      title: '登录成功',
-      icon: 'success'
-    })
-
-    setTimeout(() => {
-      uni.reLaunch({
-        url: '/pages/index/index'
-      })
-    }, 1500)
+    }, NAVIGATE_DELAY)
   } catch (error: any) {
     uni.hideLoading()
     uni.showToast({
@@ -214,22 +272,11 @@ const handleWechatLogin = async () => {
       icon: 'none'
     })
   }
-  // #endif
-  
-  // #ifdef H5
-  uni.showToast({
-    title: 'H5暂不支持微信登录',
-    icon: 'none'
-  })
-  // #endif
 }
 
+
 // 打开协议
-const openAgreement = (type: 'user' | 'privacy') => {
-  const url = type === 'user' 
-    ? '/pages-user/agreement/user' 
-    : '/pages-user/agreement/privacy'
-  
+const openAgreement = (_type: 'user' | 'privacy') => {
   // TODO: 跳转到协议页面
   uni.showToast({
     title: '协议页面开发中',
@@ -403,7 +450,7 @@ const openAgreement = (type: 'user' | 'privacy') => {
   }
 }
 
-.wx-login-btn {
+.wechat-login-btn {
   display: flex;
   align-items: center;
   justify-content: center;

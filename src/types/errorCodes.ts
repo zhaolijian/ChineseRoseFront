@@ -31,6 +31,10 @@ export enum ErrorCode {
   ERR_TOKEN_MALFORMED = 10103,   // 令牌格式错误
   ERR_REFRESH_REQUIRED = 10104,  // 需要刷新令牌
   ERR_INSUFFICIENT_SCOPE = 10105, // 权限不足
+  ERR_UNI_LOGIN_FAILED = 10106,  // uni.login调用失败
+  ERR_WX_CODE_EMPTY = 10107,     // 微信登录code为空
+  ERR_PHONE_LOGIN_FAILED = 10108, // 手机号登录失败
+  ERR_OPERATION_IN_PROGRESS = 10109, // 操作正在进行中
 
   // 1002x - 参数验证错误
   ERR_INVALID_PARAM = 10201,     // 参数验证失败
@@ -38,6 +42,10 @@ export enum ErrorCode {
   ERR_INVALID_FORMAT = 10203,    // 参数格式错误
   ERR_PARAM_OUT_OF_RANGE = 10204, // 参数超出范围
   ERR_INVALID_REQUEST = 10205,   // 无效的请求格式
+  ERR_INVALID_PARAMS = 10206,    // 无效参数（通用）
+
+  // 1003x - 存储相关错误
+  ERR_STORAGE_FAILED = 10301,    // 存储操作失败
 
   // ================== 业务逻辑错误 (2xxxx) ==================
 
@@ -52,6 +60,7 @@ export enum ErrorCode {
   ERR_ACCOUNT_LOCKED = 20108,        // 账户已锁定
   ERR_VERIFY_CODE_INVALID = 20109,   // 验证码无效
   ERR_VERIFY_CODE_EXPIRED = 20110,   // 验证码已过期
+  ERR_ALREADY_LOGGED_IN = 20111,     // 用户已登录
 
   // 2002x - 书籍相关错误
   ERR_BOOK_NOT_FOUND = 20201,        // 书籍不存在
@@ -173,6 +182,14 @@ export const ERR_NOT_FOUND = ErrorCode.ERR_NOT_FOUND
 export const ERR_OPERATION_FAILED = ErrorCode.ERR_OPERATION_FAILED
 export const ERR_INVALID_PARAM = ErrorCode.ERR_INVALID_PARAM
 
+// 用户相关错误码
+export const ERR_USER_NOT_FOUND = ErrorCode.ERR_USER_NOT_FOUND
+export const ERR_PHONE_ALREADY_EXISTS = ErrorCode.ERR_PHONE_ALREADY_EXISTS
+export const ERR_INVALID_CREDENTIALS = ErrorCode.ERR_INVALID_CREDENTIALS
+export const ERR_VERIFY_CODE_INVALID = ErrorCode.ERR_VERIFY_CODE_INVALID
+export const ERR_VERIFY_CODE_EXPIRED = ErrorCode.ERR_VERIFY_CODE_EXPIRED
+export const ERR_ACCOUNT_LOCKED = ErrorCode.ERR_ACCOUNT_LOCKED
+
 // 注意：其他错误码请直接使用 ErrorCode 枚举访问，如：ErrorCode.ERR_BOOK_NOT_FOUND
 
 /**
@@ -181,64 +198,70 @@ export const ERR_INVALID_PARAM = ErrorCode.ERR_INVALID_PARAM
  */
 export const ERROR_MESSAGES = {
   // 认证相关
-  [ERR_UNAUTHORIZED]: '请先登录',
-  [ERR_TOKEN_EXPIRED]: '登录已过期，请重新登录',
-  [ERR_INVALID_TOKEN]: '登录状态异常，请重新登录',
-  [ERR_FORBIDDEN]: '您没有权限执行此操作',
-  
+  [ErrorCode.ERR_UNAUTHORIZED]: '请先登录',
+  [ErrorCode.ERR_TOKEN_EXPIRED]: '登录已过期，请重新登录',
+  [ErrorCode.ERR_INVALID_TOKEN]: '登录状态异常，请重新登录',
+  [ErrorCode.ERR_FORBIDDEN]: '您没有权限执行此操作',
+  [ErrorCode.ERR_UNI_LOGIN_FAILED]: '微信登录调用失败，请重试',
+  [ErrorCode.ERR_WX_CODE_EMPTY]: '获取微信授权码失败，请重试',
+  [ErrorCode.ERR_PHONE_LOGIN_FAILED]: '手机号登录失败，请重试',
+  [ErrorCode.ERR_OPERATION_IN_PROGRESS]: '操作正在进行中，请稍后',
+
   // 用户相关
-  [ERR_USER_NOT_FOUND]: '用户不存在',
-  [ERR_PHONE_ALREADY_EXISTS]: '手机号已被注册',
-  [ERR_INVALID_CREDENTIALS]: '账号或密码错误',
-  [ERR_VERIFY_CODE_INVALID]: '验证码错误',
-  [ERR_VERIFY_CODE_EXPIRED]: '验证码已过期，请重新获取',
-  [ERR_ACCOUNT_LOCKED]: '账户已被锁定，请联系客服',
+  [ErrorCode.ERR_USER_NOT_FOUND]: '用户不存在',
+  [ErrorCode.ERR_PHONE_ALREADY_EXISTS]: '手机号已被注册',
+  [ErrorCode.ERR_INVALID_CREDENTIALS]: '账号或密码错误',
+  [ErrorCode.ERR_VERIFY_CODE_INVALID]: '验证码错误',
+  [ErrorCode.ERR_VERIFY_CODE_EXPIRED]: '验证码已过期，请重新获取',
+  [ErrorCode.ERR_ACCOUNT_LOCKED]: '账户已被锁定，请联系客服',
+  [ErrorCode.ERR_ALREADY_LOGGED_IN]: '您已经登录，如需切换账号请先退出',
   
   // 书籍相关
-  [ERR_BOOK_NOT_FOUND]: '书籍不存在或已删除',
-  [ERR_BOOK_ALREADY_EXISTS]: '书籍已存在，不可重复添加',
-  [ERR_BOOK_QUOTA_EXCEEDED]: '书籍数量已达上限',
-  [ERR_ISBN_NOT_FOUND]: '未找到该ISBN对应的书籍信息',
-  [ERR_ISBN_INVALID]: 'ISBN格式不正确',
-  
+  [ErrorCode.ERR_BOOK_NOT_FOUND]: '书籍不存在或已删除',
+  [ErrorCode.ERR_BOOK_ALREADY_EXISTS]: '书籍已存在，不可重复添加',
+  [ErrorCode.ERR_BOOK_QUOTA_EXCEEDED]: '书籍数量已达上限',
+  [ErrorCode.ERR_ISBN_NOT_FOUND]: '未找到该ISBN对应的书籍信息',
+  [ErrorCode.ERR_ISBN_INVALID]: 'ISBN格式不正确',
+
   // 笔记相关
-  [ERR_NOTE_NOT_FOUND]: '笔记不存在或已删除',
-  [ERR_NOTE_QUOTA_EXCEEDED]: '笔记数量已达上限',
-  [ERR_NOTE_CONTENT_TOO_LONG]: '笔记内容过长，请精简后重试',
-  
+  [ErrorCode.ERR_NOTE_NOT_FOUND]: '笔记不存在或已删除',
+  [ErrorCode.ERR_NOTE_QUOTA_EXCEEDED]: '笔记数量已达上限',
+  [ErrorCode.ERR_NOTE_CONTENT_TOO_LONG]: '笔记内容过长，请精简后重试',
+
   // OCR相关
-  [ERR_OCR_FAILED]: 'OCR识别失败，请重试',
-  [ERR_OCR_UNSUPPORTED_FORMAT]: '不支持该图片格式',
-  [ERR_OCR_IMAGE_TOO_LARGE]: '图片过大，请压缩后重试',
-  [ERR_OCR_IMAGE_TOO_SMALL]: '图片过小，无法识别文字',
-  [ERR_OCR_NO_TEXT_FOUND]: '图片中未识别到文字',
-  [ERR_OCR_QUOTA_EXCEEDED]: 'OCR识别次数已用完，请明天再试',
-  [ERR_OCR_SERVICE_UNAVAIL]: 'OCR服务暂时不可用，请稍后重试',
-  
+  [ErrorCode.ERR_OCR_FAILED]: 'OCR识别失败，请重试',
+  [ErrorCode.ERR_OCR_UNSUPPORTED_FORMAT]: '不支持该图片格式',
+  [ErrorCode.ERR_OCR_IMAGE_TOO_LARGE]: '图片过大，请压缩后重试',
+  [ErrorCode.ERR_OCR_IMAGE_TOO_SMALL]: '图片过小，无法识别文字',
+  [ErrorCode.ERR_OCR_NO_TEXT_FOUND]: '图片中未识别到文字',
+  [ErrorCode.ERR_OCR_QUOTA_EXCEEDED]: 'OCR识别次数已用完，请明天再试',
+  [ErrorCode.ERR_OCR_SERVICE_UNAVAIL]: 'OCR服务暂时不可用，请稍后重试',
+
   // AI服务相关
-  [ERR_AI_FAILED]: 'AI处理失败，请重试',
-  [ERR_AI_QUOTA_EXCEEDED]: 'AI服务使用次数已达上限',
-  [ERR_AI_SERVICE_UNAVAIL]: 'AI服务暂时不可用，请稍后重试',
-  [ERR_AI_CONTENT_FILTERED]: '内容包含敏感信息，无法处理',
-  
+  [ErrorCode.ERR_AI_FAILED]: 'AI处理失败，请重试',
+  [ErrorCode.ERR_AI_QUOTA_EXCEEDED]: 'AI服务使用次数已达上限',
+  [ErrorCode.ERR_AI_SERVICE_UNAVAIL]: 'AI服务暂时不可用，请稍后重试',
+  [ErrorCode.ERR_AI_CONTENT_FILTERED]: '内容包含敏感信息，无法处理',
+
   // 存储相关
-  [ERR_STORAGE_UPLOAD_FAILED]: '文件上传失败，请检查网络后重试',
-  [ERR_STORAGE_DOWNLOAD_FAILED]: '文件下载失败，请检查网络后重试',
-  [ERR_STORAGE_FILE_NOT_FOUND]: '文件不存在或已删除',
-  [ERR_STORAGE_QUOTA_EXCEEDED]: '存储空间已满，请清理后重试',
-  [ERR_STORAGE_INVALID_FORMAT]: '文件格式不支持',
-  [ERR_STORAGE_FILE_TOO_LARGE]: '文件太大，请选择小于10M的文件',
-  
+  [ErrorCode.ERR_STORAGE_UPLOAD_FAILED]: '文件上传失败，请检查网络后重试',
+  [ErrorCode.ERR_STORAGE_DOWNLOAD_FAILED]: '文件下载失败，请检查网络后重试',
+  [ErrorCode.ERR_STORAGE_FILE_NOT_FOUND]: '文件不存在或已删除',
+  [ErrorCode.ERR_STORAGE_QUOTA_EXCEEDED]: '存储空间已满，请清理后重试',
+  [ErrorCode.ERR_STORAGE_INVALID_FORMAT]: '文件格式不支持',
+  [ErrorCode.ERR_STORAGE_FILE_TOO_LARGE]: '文件太大，请选择小于10M的文件',
+
   // 网络和服务器错误
-  [ERR_TOO_MANY_REQUESTS]: '请求过于频繁，请稍后再试',
-  [ERR_REQUEST_TIMEOUT]: '请求超时，请检查网络连接',
-  [ERR_SERVICE_UNAVAILABLE]: '服务暂时不可用，请稍后重试',
-  [ERR_MAINTENANCE_MODE]: '系统正在维护中，请稍后访问',
-  
+  [ErrorCode.ERR_TOO_MANY_REQUESTS]: '请求过于频繁，请稍后再试',
+  [ErrorCode.ERR_REQUEST_TIMEOUT]: '请求超时，请检查网络连接',
+  [ErrorCode.ERR_SERVICE_UNAVAILABLE]: '服务暂时不可用，请稍后重试',
+  [ErrorCode.ERR_MAINTENANCE_MODE]: '系统正在维护中，请稍后访问',
+
   // 通用错误
-  [ERR_INVALID_PARAM]: '参数错误，请检查输入信息',
-  [ERR_OPERATION_FAILED]: '操作失败，请重试',
-  [ERR_NETWORK_ERROR]: '网络连接失败，请检查网络设置',
+  [ErrorCode.ERR_INVALID_PARAM]: '参数错误，请检查输入信息',
+  [ErrorCode.ERR_INVALID_PARAMS]: '参数错误，请检查输入信息',
+  [ErrorCode.ERR_STORAGE_FAILED]: '数据保存失败，请重试',
+  [ErrorCode.ERR_OPERATION_FAILED]: '操作失败，请重试',
 } as const
 
 /**
@@ -281,7 +304,10 @@ export function isAuthError(code: number): boolean {
     ERR_TOKEN_EXPIRED,
     ERR_INVALID_TOKEN,
     ERR_TOKEN_MALFORMED,
-    ERR_REFRESH_REQUIRED
+    ERR_REFRESH_REQUIRED,
+    ErrorCode.ERR_UNI_LOGIN_FAILED,
+    ErrorCode.ERR_WX_CODE_EMPTY,
+    ErrorCode.ERR_PHONE_LOGIN_FAILED
   ].includes(code)
 }
 

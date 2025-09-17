@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useUserStore } from '@/stores/modules/user'
+import * as authAPI from '@/api/modules/auth'
 
 // Mock API模块
 vi.mock('@/api/modules/auth', () => ({
@@ -38,8 +39,18 @@ describe('微信登录功能 - TDD测试', () => {
 
   describe('🔴 Red阶段 - uni.login()基础调用测试', () => {
     it('应该能够成功调用 uni.login() 并获取code', async () => {
-      // 这个测试现在应该失败，因为我们还没有实现具体的登录逻辑
-      
+      // Mock API成功响应
+      const mockLoginResponse = {
+        token: 'mock_token_12345',
+        user: {
+          id: 1,
+          nickname: '测试用户',
+          phone: '13800138000',
+          avatar: 'mock_avatar_url'
+        }
+      }
+      vi.mocked(authAPI.wechatLogin).mockResolvedValue(mockLoginResponse)
+
       // Mock uni.login 成功响应
       const mockCode = 'mock_wx_code_12345'
       global.uni.login = vi.fn((options: any) => {

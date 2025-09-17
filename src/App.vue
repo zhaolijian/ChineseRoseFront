@@ -10,40 +10,55 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/modules/user'
+import { logger, createContext } from '@/utils'
 
 const userStore = useUserStore()
 
 onLaunch(() => {
-  console.log('App Launch')
+  const ctx = createContext()
+  logger.info(ctx, '[App] 应用启动')
   // 应用启动时的初始化逻辑
   initApp()
 })
 
 onShow(() => {
-  console.log('App Show')
+  const ctx = createContext()
+  logger.info(ctx, '[App] 应用显示')
   // 应用显示时的逻辑
 })
 
 onHide(() => {
-  console.log('App Hide')
+  const ctx = createContext()
+  logger.info(ctx, '[App] 应用隐藏')
   // 应用隐藏时的逻辑
 })
 
 const initApp = async () => {
+  const ctx = createContext()
+  
   try {
+    logger.debug(ctx, '[initApp] 开始初始化应用')
+    
     // 获取系统信息
     const systemInfo = await uni.getSystemInfo()
-    console.log('系统信息:', systemInfo)
+    logger.debug(ctx, '[initApp] 系统信息', {
+      platform: systemInfo.platform,
+      version: systemInfo.version,
+      screenWidth: systemInfo.screenWidth,
+      screenHeight: systemInfo.screenHeight
+    })
     
-    // 🔧 修复：初始化用户信息（使用await确保完成）
+    // 修复：初始化用户信息（使用await确保完成）
     await userStore.initUserInfo()
     const isLoggedIn = await userStore.checkLoginStatus()
-    console.log('用户登录状态:', isLoggedIn)
+    logger.info(ctx, '[initApp] 用户登录状态', { isLoggedIn })
     
     // 初始化其他必要的服务
     // TODO: 初始化推送、统计等服务
+    
+    logger.info(ctx, '[initApp] 应用初始化完成')
   } catch (error) {
-    console.error('应用初始化失败:', error)
+    logger.error(ctx, '[initApp] 应用初始化失败', error)
   }
 }
 </script>

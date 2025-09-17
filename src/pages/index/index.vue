@@ -112,6 +112,7 @@ import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useBookStore } from '@/stores/modules/book'
 import { useUserStore } from '@/stores/modules/user'
 import { safeHideTabBar } from '@/utils/tabbar'
+import { logger, createContext } from '@/utils'
 import AppNavBar from '@/components/common/AppNavBar.vue'
 import PageContainer from '@/components/common/PageContainer.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -164,49 +165,66 @@ const rules = {
 
 // 生命周期
 onMounted(async () => {
+  const ctx = createContext()
+  logger.info(ctx, '[BookshelfPage] 页面挂载')
   await checkLoginAndLoadData()
 })
 
 onShow(async () => {
-  // 🔧 修复：使用统一的TabBar工具函数
+  const ctx = createContext()
+  logger.info(ctx, '[BookshelfPage] 页面显示')
+  
+  // 修复：使用统一的TabBar工具函数
   safeHideTabBar()
   
   // 页面显示时按需加载：未登录不请求，已登录才加载
   if (userStore.isLoggedIn) {
+    logger.debug(ctx, '[BookshelfPage] 用户已登录，加载书籍数据')
     await loadBooks()
+  } else {
+    logger.debug(ctx, '[BookshelfPage] 用户未登录，跳过加载')
   }
 })
 
 onPullDownRefresh(async () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[BookshelfPage] 触发下拉刷新')
   await loadBooks(true)
   uni.stopPullDownRefresh()
 })
 
 onReachBottom(async () => {
+  const ctx = createContext()
   if (hasMore.value && !loading.value) {
+    logger.debug(ctx, '[BookshelfPage] 触底加载更多')
     await loadMoreBooks()
   }
 })
 
 // 方法
 const checkLoginAndLoadData = async () => {
+  const ctx = createContext()
+  
   try {
     pageLoading.value = true
+    logger.debug(ctx, '[checkLoginAndLoadData] 开始检查登录状态')
     
-    // 🔧 优化：先检查登录状态，再根据结果决定是否跳转
+    // 优化：先检查登录状态，再根据结果决定是否跳转
     const isLoggedIn = await userStore.checkLoginStatus()
     
     if (!isLoggedIn) {
+      logger.info(ctx, '[checkLoginAndLoadData] 用户未登录，跳转到登录页')
       uni.navigateTo({
         url: '/pages/login/login'
       })
       return
     }
     
+    logger.debug(ctx, '[checkLoginAndLoadData] 用户已登录，加载书籍数据')
     // 加载书籍数据
     await loadBooks()
   } catch (error) {
-    console.error('初始化失败:', error)
+    logger.error(ctx, '[checkLoginAndLoadData] 初始化失败', error)
     uni.showToast({
       title: '加载失败',
       icon: 'error'
@@ -217,8 +235,11 @@ const checkLoginAndLoadData = async () => {
 }
 
 const loadBooks = async (refresh = false) => {
+  const ctx = createContext()
+  
   try {
     loading.value = true
+    logger.debug(ctx, '[loadBooks] 开始加载书籍', { refresh })
     
     const result = await bookStore.fetchBooks(refresh ? 1 : bookStore.currentPage)
     
@@ -229,8 +250,9 @@ const loadBooks = async (refresh = false) => {
     }
     
     hasMore.value = result.hasMore
+    logger.info(ctx, '[loadBooks] 加载书籍成功', { count: result.books.length, hasMore: result.hasMore })
   } catch (error) {
-    console.error('加载书籍失败:', error)
+    logger.error(ctx, '[loadBooks] 加载书籍失败', error)
     uni.showToast({
       title: '加载失败',
       icon: 'error'
@@ -247,18 +269,24 @@ const loadMoreBooks = async () => {
 }
 
 const goToBookDetail = (book: Book) => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToBookDetail] 跳转到书籍详情', { bookId: book.id, title: book.title })
   uni.navigateTo({
     url: `/pages-book/detail/detail?id=${book.id}`
   })
 }
 
 const goToSearch = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToSearch] 跳转到搜索页')
   uni.navigateTo({
     url: '/pages/search/search'
   })
 }
 
 const addByISBN = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[addByISBN] ISBN扫描功能待开发')
   // TODO: 实现ISBN扫描功能
   uni.showToast({
     title: '功能开发中',
@@ -267,15 +295,21 @@ const addByISBN = () => {
 }
 
 const addManually = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[addManually] 打开手动添加表单')
   showManualForm.value = true
 }
 
 const submitBook = async () => {
+  const ctx = createContext()
+  
   try {
     loading.value = true
+    logger.debug(ctx, '[submitBook] 开始提交书籍', bookForm)
     
     // 表单验证
     if (!bookForm.title.trim()) {
+      logger.warn(ctx, '[submitBook] 表单验证失败：书名为空')
       uni.showToast({
         title: '请输入书名',
         icon: 'error'
@@ -289,6 +323,8 @@ const submitBook = async () => {
       author: bookForm.author.trim() || undefined,
       isbn: bookForm.isbn.trim() || undefined
     })
+    
+    logger.info(ctx, '[submitBook] 书籍添加成功', { bookId: newBook.id, title: newBook.title })
     
     // 添加到列表
     books.value.unshift(newBook)
@@ -309,7 +345,7 @@ const submitBook = async () => {
       icon: 'success'
     })
   } catch (error) {
-    console.error('添加书籍失败:', error)
+    logger.error(ctx, '[submitBook] 添加书籍失败', error)
     uni.showToast({
       title: '添加失败',
       icon: 'error'
