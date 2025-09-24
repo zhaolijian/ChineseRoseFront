@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getStorage, setStorage, removeStorage } from '@/utils/storage'
 import { logger, createContext } from '@/utils'
-import { wechatLogin as apiWechatLogin, phoneLogin, sendSMSCode as apiSendSMSCode, getUserInfo, updateUserInfo as apiUpdateUserInfo, logout as apiLogout } from '@/api/modules/auth'
+import { wechatCodeLogin as apiWechatCodeLogin, smsLogin as apiSmsLogin, sendSMSCode as apiSendSMSCode, getUserInfo, updateUserInfo as apiUpdateUserInfo, logout as apiLogout, wechatPhoneLogin } from '@/api/modules/auth'
 import type { WeChatLoginData, PhoneLoginData, LoginResponse, UserInfo } from '@/api/modules/auth'
 import type { ApiResponse } from '@/types'
 import { ErrorCode, getFriendlyErrorMessage, isNetworkError } from '@/types/errorCodes'
@@ -263,7 +263,7 @@ export const useUserStore = defineStore('user', () => {
     try {
       logger.info(ctx, '[loginWithWeChat] 开始微信登录')
       
-      const data = await apiWechatLogin({
+      const data = await apiWechatCodeLogin({
         code: params.code,
         nickname: params.userInfo.nickName,
         avatar: params.userInfo.avatarUrl,
@@ -300,11 +300,17 @@ export const useUserStore = defineStore('user', () => {
     logger.debug(ctx, '[preLoginCheck] 当前未登录，可以进行登录')
   }
 
-  // TDD优化版微信登录 - 支持测试和用户体验
-  const wechatLogin = async (): Promise<void> => {
+  // 微信手机号快捷登录
+  const wechatLogin = async (params: { code: string; encryptedData: string; iv: string }): Promise<void> => {
     const ctx = createContext()
     
-    logger.info(ctx, '[wechatLogin] 开始登录流程')
+    logger.info(ctx, '[wechatLogin] 开始微信手机号快捷登录流程')
+
+    // 参数验证
+    if (!params.code || !params.encryptedData || !params.iv) {
+      logger.error(ctx, '[wechatLogin] 登录参数不完整', params)
+      throw new BusinessError(ErrorCode.ERR_INVALID_PARAMS, '获取手机号失败，请重试')
+    }
 
     // 原子性检查并设置登录锁 - 防重复登录
     if (loginLock) {
@@ -319,58 +325,26 @@ export const useUserStore = defineStore('user', () => {
       await preLoginCheck()
 
       // 显示loading状态
-      uni.showLoading({ title: '登录中...' })
+      uni.showLoading({ title: '登录中...', mask: true })
 
-      // 以下是原来的登录逻辑
-      // 步骤1: 调用uni.login()获取code
-      logger.debug(ctx, '[wechatLogin] 步骤1: 获取微信登录code')
-      
-      const loginRes = await new Promise<UniApp.LoginRes>((resolve, reject) => {
-        uni.login({
-          provider: 'weixin',
-          success: (res) => {
-            logger.debug(ctx, '[wechatLogin] uni.login 调用成功', res)
-            resolve(res)
-          },
-          fail: (error) => {
-            logger.error(ctx, '[wechatLogin] uni.login 调用失败', error)
-            reject(new BusinessError(ErrorCode.ERR_UNI_LOGIN_FAILED))
-          }
-        })
-      })
-      
-      if (!loginRes.code) {
-        logger.error(ctx, '[wechatLogin] 获取的code为空')
-        throw new BusinessError(ErrorCode.ERR_WX_CODE_EMPTY)
-      }
-      
-      // 步骤2: 调用后端API进行登录
-      logger.debug(ctx, '[wechatLogin] 步骤2: 调用后端登录接口')
+      // 调用后端微信手机号登录接口
+      logger.debug(ctx, '[wechatLogin] 调用后端微信手机号登录接口', params)
 
-      const loginData = {
-        code: loginRes.code,
-        nickname: '调试用户',
-        avatar: '',
-        gender: 0
-      }
+      const apiResult = await wechatPhoneLogin(params)
 
-      logger.debug(ctx, '[wechatLogin] 发送登录请求', loginData)
-
-      const apiResult = await apiWechatLogin(loginData)
-
-      logger.info(ctx, '[wechatLogin] 后端登录成功', { userId: apiResult.user.id })
+      logger.info(ctx, '[wechatLogin] 微信手机号登录成功', { userId: apiResult.user.id })
 
       // 保存登录信息
       await saveUserInfo(apiResult.token, apiResult.user)
 
       logger.debug(ctx, '[wechatLogin] 用户信息已保存')
-      logger.info(ctx, '[wechatLogin] 完整流程成功!')
+      logger.info(ctx, '[wechatLogin] 微信手机号快捷登录流程成功!')
 
       // 隐藏loading
       uni.hideLoading()
 
     } catch (error: any) {
-      logger.error(ctx, '[wechatLogin] 流程失败', error)
+      logger.error(ctx, '[wechatLogin] 微信手机号登录失败', error)
 
       // 隐藏loading
       uni.hideLoading()
@@ -429,7 +403,7 @@ export const useUserStore = defineStore('user', () => {
 
       logger.info(ctx, '[loginWithPhone] 开始手机号登录', { phone: params.phone })
       
-      const data = await phoneLogin(params)
+      const data = await apiSmsLogin(params)
       await saveUserInfo(data.token, data.user)
       
       logger.info(ctx, '[loginWithPhone] 手机号登录成功', { userId: data.user.id })
