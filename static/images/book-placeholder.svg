@@ -1,0 +1,9 @@
+<svg width="120" height="160" viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="160" rx="4" fill="#f0f0f0"/>
+  <g transform="translate(60, 80)">
+    <!-- 书本图标 -->
+    <path d="M-25 -20 L-25 20 L25 20 L25 -20 L20 -20 L20 15 L-20 15 L-20 -15 L20 -15 L20 -20 Z" fill="#cccccc"/>
+    <path d="M-20 -10 L15 -10 M-20 -5 L15 -5 M-20 0 L15 0 M-20 5 L10 5" stroke="#cccccc" stroke-width="2" fill="none"/>
+  </g>
+  <text x="60" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#999999">暂无封面</text>
+</svg>
