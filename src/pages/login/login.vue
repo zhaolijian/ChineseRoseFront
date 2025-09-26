@@ -100,6 +100,7 @@ import { isValidPhone } from '@/utils/validate'
 import { useCountdown } from '@/composables/useCountdown'
 import { logger, createContext } from '@/utils'
 import { VERIFY_CODE_COUNTDOWN, NAVIGATE_DELAY } from '@/constants'
+import { sendSMSCode } from '@/api/modules/auth'
 
 const userStore = useUserStore()
 
@@ -146,26 +147,23 @@ const sendCode = async () => {
     logger.info(ctx, `[sendCode] 开始发送验证码，手机号: ${phoneNumber.value}`)
     uni.showLoading({ title: '发送中...' })
     
-    // TODO: 调用发送验证码API
-    // const result = await authApi.sendSmsCode({ phone: phoneNumber.value })
-    
-    // 模拟发送成功
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 调用发送验证码API
+    const result = await sendSMSCode(phoneNumber.value)
     
     uni.hideLoading()
     uni.showToast({
-      title: '验证码已发送',
+      title: result.message || '验证码已发送',
       icon: 'success'
     })
 
     // 开始倒计时
     startCountdown(VERIFY_CODE_COUNTDOWN)
     logger.info(ctx, '[sendCode] 验证码发送成功，已启动倒计时')
-  } catch (error) {
+  } catch (error: any) {
     logger.error(ctx, '[sendCode] 发送验证码失败', error)
     uni.hideLoading()
     uni.showToast({
-      title: '发送失败，请重试',
+      title: error.message || '发送失败，请重试',
       icon: 'none'
     })
   }
@@ -191,7 +189,11 @@ const handlePhoneLogin = async () => {
     }
     
     logger.debug(ctx, '[handlePhoneLogin] 调用登录接口', { phone: phoneNumber.value })
-    await userStore.phoneLogin(loginData)
+    const result = await userStore.loginWithPhone(loginData)
+    
+    if (!result.success) {
+      throw new Error(result.message || '登录失败')
+    }
 
     uni.hideLoading()
     uni.showToast({
@@ -231,10 +233,10 @@ const handleGetPhoneNumber = async (e: any) => {
     return
   }
 
-  // 获取手机号码凭证
-  const phoneCode = e.detail.code
-  if (!phoneCode) {
-    logger.error(ctx, '[handleGetPhoneNumber] 获取手机号凭证失败')
+  // 获取加密数据
+  const { encryptedData, iv } = e.detail
+  if (!encryptedData || !iv) {
+    logger.error(ctx, '[handleGetPhoneNumber] 获取手机号加密数据失败', e.detail)
     uni.showToast({
       title: '获取手机号失败，请重试',
       icon: 'none'
@@ -243,17 +245,32 @@ const handleGetPhoneNumber = async (e: any) => {
   }
 
   try {
-    logger.info(ctx, '[handleGetPhoneNumber] 开始微信登录')
+    logger.info(ctx, '[handleGetPhoneNumber] 开始获取微信code')
     uni.showLoading({ 
       title: '登录中...', 
       mask: true 
     })
 
-    // 调用微信登录
-    await userStore.wechatLogin(phoneCode)
+    // 先调用 wx.login 获取 code
+    const loginRes = await uni.login({
+      provider: 'weixin'
+    })
+    
+    if (!loginRes.code) {
+      throw new Error('获取微信code失败')
+    }
+    
+    logger.debug(ctx, '[handleGetPhoneNumber] 成功获取微信code，准备调用后端接口')
+
+    // 调用微信手机号一键登录
+    await userStore.wechatLogin({
+      code: loginRes.code,
+      encryptedData,
+      iv
+    })
 
     uni.hideLoading()
-    logger.info(ctx, '[handleGetPhoneNumber] 微信登录成功')
+    logger.info(ctx, '[handleGetPhoneNumber] 微信手机号一键登录成功')
     uni.showToast({
       title: '登录成功',
       icon: 'success'
@@ -266,6 +283,7 @@ const handleGetPhoneNumber = async (e: any) => {
       })
     }, NAVIGATE_DELAY)
   } catch (error: any) {
+    logger.error(ctx, '[handleGetPhoneNumber] 微信手机号登录失败', error)
     uni.hideLoading()
     uni.showToast({
       title: error.message || '登录失败',
@@ -276,10 +294,11 @@ const handleGetPhoneNumber = async (e: any) => {
 
 
 // 打开协议
-const openAgreement = (_type: 'user' | 'privacy') => {
-  // TODO: 跳转到协议页面
+const openAgreement = (type: 'user' | 'privacy') => {
+  // TODO: 实现用户协议和隐私政策页面 - 记录在TECH_DEBT.md [2025-09-19] [项目:chinese-rose-front]
+  const target = type === 'user' ? '用户协议' : '隐私政策'
   uni.showToast({
-    title: '协议页面开发中',
+    title: `${target}开发中`,
     icon: 'none'
   })
 }
@@ -288,7 +307,7 @@ const openAgreement = (_type: 'user' | 'privacy') => {
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
   position: relative;
   
   &::before {
@@ -376,7 +395,7 @@ const openAgreement = (_type: 'user' | 'privacy') => {
   
   &:focus-within {
     background: #fff;
-    box-shadow: 0 0 0 2rpx var(--cr-color-primary);
+    box-shadow: 0 0 0 2rpx var(--cr-color-primary-600);
   }
 }
 
@@ -390,12 +409,12 @@ const openAgreement = (_type: 'user' | 'privacy') => {
 }
 
 .placeholder {
-  color: var(--cr-color-text-placeholder);
+  color: var(--cr-color-subtext);
 }
 
 .code-btn {
   padding: 12rpx 24rpx;
-  background: var(--cr-color-primary);
+  background: var(--cr-color-primary-600);
   color: #fff;
   font-size: 28rpx;
   border-radius: 12rpx;
@@ -403,32 +422,32 @@ const openAgreement = (_type: 'user' | 'privacy') => {
   white-space: nowrap;
   
   &.disabled {
-    background: var(--cr-color-bg-darker);
-    color: var(--cr-color-text-tertiary);
+    background: var(--cr-color-bg);
+    color: var(--cr-color-subtext);
   }
 }
 
 .login-btn {
   width: 100%;
   height: 96rpx;
-  background: linear-gradient(135deg, var(--cr-color-primary), var(--cr-color-primary-dark));
+  background: linear-gradient(135deg, var(--cr-color-primary-600), var(--cr-color-primary-700));
   color: #fff;
   font-size: 36rpx;
   font-weight: 500;
   border-radius: 16rpx;
   border: none;
   margin-top: 48rpx;
-  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(46, 125, 50, 0.3);
   
   &.disabled {
-    background: var(--cr-color-bg-darker);
-    color: var(--cr-color-text-tertiary);
+    background: var(--cr-color-bg);
+    color: var(--cr-color-subtext);
     box-shadow: none;
   }
   
   &:active:not(.disabled) {
     transform: translateY(2rpx);
-    box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4rpx 16rpx rgba(46, 125, 50, 0.3);
   }
 }
 
@@ -446,7 +465,7 @@ const openAgreement = (_type: 'user' | 'privacy') => {
   .text {
     margin: 0 24rpx;
     font-size: 28rpx;
-    color: var(--cr-color-text-tertiary);
+    color: var(--cr-color-subtext);
   }
 }
 
@@ -480,11 +499,11 @@ const openAgreement = (_type: 'user' | 'privacy') => {
 }
 
 .agreement-text {
-  color: var(--cr-color-text-tertiary);
+  color: var(--cr-color-subtext);
 }
 
 .agreement-link {
-  color: var(--cr-color-primary);
+  color: var(--cr-color-primary-600);
   margin: 0 4rpx;
 }
 </style>

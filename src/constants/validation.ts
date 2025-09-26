@@ -51,3 +51,38 @@ export const BOOK_NAME_MAX_LENGTH = 100
  * 标签最大长度
  */
 export const TAG_MAX_LENGTH = 20
+
+/**
+ * ISBN正则表达式（支持10位和13位，可包含连字符）
+ */
+export const ISBN_REGEX = /^(?:\d{9}[\dXx]|\d{13}|\d{3}-?\d{1,5}-?\d{1,7}-?\d{1,7}-?[\dXx])$/
+
+/**
+ * 书籍页数最小值
+ */
+export const BOOK_PAGES_MIN = 1
+
+/**
+ * 书籍页数最大值
+ */
+export const BOOK_PAGES_MAX = 10000
+
+/**
+ * 出版年份最小值
+ */
+export const PUBLISH_YEAR_MIN = 1900
+
+/**
+ * 作者名称最大长度
+ */
+export const AUTHOR_NAME_MAX_LENGTH = 50
+
+/**
+ * 出版社名称最大长度
+ */
+export const PUBLISHER_NAME_MAX_LENGTH = 100
+
+/**
+ * 书籍描述最大长度
+ */
+export const BOOK_DESCRIPTION_MAX_LENGTH = 500

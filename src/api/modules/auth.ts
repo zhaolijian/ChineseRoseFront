@@ -29,38 +29,36 @@ export interface LoginResponse {
   }
 }
 
-// 用户信息
+// 用户信息 - 匹配后端响应结构
 export interface UserInfo {
   id: number
   phone?: string
   nickname?: string
-  avatar?: string
+  avatar_url?: string  // 后端字段名为 avatar_url，不是 avatar
   openid?: string
-  createdAt?: string
-  updatedAt?: string
+  created_at?: string  // 后端字段名为 created_at，不是 createdAt
+  updated_at?: string
 }
 
 /**
- * 微信登录
+ * 微信code登录（仅获取openid，不含手机号）
  */
-export const wechatLogin = (data: WeChatLoginData): Promise<LoginResponse> => {
-  // 后端：POST /api/v1/auth/login 仅需 code，昵称头像可后续绑定
-  return request.post<LoginResponse>('/v1/auth/login', { code: data.code })
+export const wechatCodeLogin = (data: WeChatLoginData): Promise<LoginResponse> => {
+  return request.post<LoginResponse>('/v1/auth/wechat/code', { code: data.code })
 }
 
 /**
- * 手机号登录
+ * 短信验证码登录
  */
-export const phoneLogin = (data: PhoneLoginData): Promise<LoginResponse> => {
-  // 后端暂未提供手机号直登，保留接口占位
-  return request.post<LoginResponse>('/v1/auth/phone/login', data)
+export const smsLogin = (data: PhoneLoginData): Promise<LoginResponse> => {
+  return request.post<LoginResponse>('/v1/auth/phone/sms', data)
 }
 
 /**
  * 发送短信验证码
  */
-export const sendSMSCode = (phone: string): Promise<{ sent: boolean }> => {
-  return request.post<{ sent: boolean }>('/v1/auth/code/send', { phone })
+export const sendSMSCode = (phone: string): Promise<{ message: string }> => {
+  return request.post<{ message: string }>('/v1/auth/code/sms', { phone })
 }
 
 /**
@@ -89,4 +87,20 @@ export const logout = (): Promise<void> => {
  */
 export const refreshToken = (): Promise<{ token: string }> => {
   return request.post<{ token: string }>('/v1/auth/refresh-token')
+}
+
+/**
+ * 微信手机号快捷登录参数
+ */
+export interface WechatPhoneLoginData {
+  code: string          // wx.login获取的code
+  encryptedData: string // getPhoneNumber获取的加密数据
+  iv: string           // getPhoneNumber获取的初始向量
+}
+
+/**
+ * 微信手机号快捷登录
+ */
+export const wechatPhoneLogin = (data: WechatPhoneLoginData): Promise<LoginResponse> => {
+  return request.post<LoginResponse>('/v1/auth/wechat/phone', data)
 }

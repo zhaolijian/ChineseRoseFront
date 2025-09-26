@@ -5,7 +5,7 @@ import { logger, createContext } from '@/utils'
 import { wechatCodeLogin as apiWechatCodeLogin, smsLogin as apiSmsLogin, sendSMSCode as apiSendSMSCode, getUserInfo, updateUserInfo as apiUpdateUserInfo, logout as apiLogout, wechatPhoneLogin } from '@/api/modules/auth'
 import type { WeChatLoginData, PhoneLoginData, LoginResponse, UserInfo } from '@/api/modules/auth'
 import type { ApiResponse } from '@/types'
-import { ErrorCode, getFriendlyErrorMessage, isNetworkError } from '@/types/errorCodes'
+import { ErrorCode, getFriendlyErrorMessage } from '@/types/errorCodes'
 
 // 标准错误类 - 自动绑定错误码和友好消息
 class BusinessError extends Error {
@@ -359,7 +359,6 @@ export const useUserStore = defineStore('user', () => {
       }
 
       // 处理其他类型的错误
-      const errorMessage = '登录失败，请重试'
       let errorCode = ErrorCode.ERR_OPERATION_FAILED
 
       if (error.message?.includes('Network Error') ||

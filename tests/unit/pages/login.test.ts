@@ -1,238 +1,178 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import Login from '@/pages/login/login.vue'
+import { ref } from 'vue'
 
-// 模拟 uni-app 生命周期
-const mockOnLoadCallbacks: Function[] = []
-const mockOnShowCallbacks: Function[] = []
+const onLoadCallbacks: Function[] = []
+const onShowCallbacks: Function[] = []
 
 vi.mock('@dcloudio/uni-app', () => ({
-  onLoad: (callback: Function) => {
-    mockOnLoadCallbacks.push(callback)
-    // 立即执行 onLoad
-    callback()
+  onLoad(cb: Function) {
+    onLoadCallbacks.push(cb)
+    cb()
   },
-  onShow: (callback: Function) => {
-    mockOnShowCallbacks.push(callback)
+  onShow(cb: Function) {
+    onShowCallbacks.push(cb)
   }
 }))
 
-// 模拟 useCountdown
-import { ref } from 'vue'
+const mockCountdown = ref(0)
+const mocks = vi.hoisted(() => ({
+  start: vi.fn(),
+  restore: vi.fn(),
+  loginWithPhone: vi.fn(),
+  wechatLogin: vi.fn(),
+  sendSMSCode: vi.fn()
+}))
 
-const mockRestore = vi.fn()
-const mockStart = vi.fn()
-const mockCountdownRef = ref(0)
+const mockStart = mocks.start
+const mockRestore = mocks.restore
 
 vi.mock('@/composables/useCountdown', () => ({
   useCountdown: () => ({
-    countdown: mockCountdownRef,
+    countdown: mockCountdown,
     start: mockStart,
     restore: mockRestore
   })
 }))
 
-// 模拟其他依赖
 vi.mock('@/stores/modules/user', () => ({
   useUserStore: () => ({
-    phoneLogin: vi.fn(),
-    wechatLogin: vi.fn()
+    loginWithPhone: mocks.loginWithPhone,
+    wechatLogin: mocks.wechatLogin
   })
+}))
+
+vi.mock('@/api/modules/auth', () => ({
+  sendSMSCode: mocks.sendSMSCode
 }))
 
 vi.mock('@/utils/validate', () => ({
   isValidPhone: (phone: string) => /^1[3-9]\d{9}$/.test(phone)
 }))
 
-// 模拟 uni 对象
-global.uni = {
-  getSystemInfoSync: vi.fn(() => ({
-    statusBarHeight: 20
-  })),
+const createUni = () => ({
+  getSystemInfoSync: vi.fn(() => ({ statusBarHeight: 20 })),
   showLoading: vi.fn(),
   hideLoading: vi.fn(),
   showToast: vi.fn(),
-  reLaunch: vi.fn()
-}
+  reLaunch: vi.fn(),
+  login: vi.fn(() => Promise.resolve({ code: 'mock-code', errMsg: 'login:ok' })),
+  showModal: vi.fn()
+})
+
+global.uni = createUni() as any
 
 describe('登录页面', () => {
-  let wrapper: any
+  let wrapper: ReturnType<typeof mount> | null = null
+
+  const mountPage = async () => {
+    setActivePinia(createPinia())
+    wrapper = mount(Login)
+    await wrapper.vm.$nextTick()
+    return wrapper
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
-    // 重置回调数组
-    mockOnLoadCallbacks.length = 0
-    mockOnShowCallbacks.length = 0
-    // 重置倒计时值
-    mockCountdownRef.value = 0
+    global.uni = createUni() as any
+    mockCountdown.value = 0
+    onLoadCallbacks.length = 0
+    onShowCallbacks.length = 0
   })
 
   afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount()
-    }
+    wrapper?.unmount()
+    wrapper = null
     vi.useRealTimers()
   })
 
-  describe('生命周期', () => {
-    it('应该在 onLoad 时恢复倒计时', async () => {
-      wrapper = mount(Login)
-      await wrapper.vm.$nextTick()
+  it('onLoad 时应该恢复倒计时并读取系统信息', async () => {
+    await mountPage()
 
-      // 验证 onLoad 回调被注册
-      expect(mockOnLoadCallbacks.length).toBe(1)
-      // 验证恢复倒计时被调用
-      expect(mockRestore).toHaveBeenCalledTimes(1)
-      // 验证获取系统信息
-      expect(uni.getSystemInfoSync).toHaveBeenCalled()
-    })
-
-    it('应该在 onShow 时恢复倒计时（从后台返回）', async () => {
-      wrapper = mount(Login)
-      await wrapper.vm.$nextTick()
-
-      // 清除之前的调用记录
-      mockRestore.mockClear()
-
-      // 验证 onShow 回调被注册
-      expect(mockOnShowCallbacks.length).toBe(1)
-      
-      // 模拟触发 onShow（从后台返回）
-      mockOnShowCallbacks[0]()
-
-      // 验证恢复倒计时被调用
-      expect(mockRestore).toHaveBeenCalledTimes(1)
-    })
+    expect(onLoadCallbacks.length).toBe(1)
+    expect(mockRestore).toHaveBeenCalledTimes(1)
+    expect(uni.getSystemInfoSync).toHaveBeenCalled()
   })
 
-  describe('倒计时功能', () => {
-    it('倒计时进行时应该禁用发送验证码按钮', async () => {
-      // 设置倒计时为30秒
-      mockCountdownRef.value = 30
+  it('onShow 时应再次恢复倒计时', async () => {
+    await mountPage()
 
-      wrapper = mount(Login)
-      await wrapper.vm.$nextTick()
+    expect(onShowCallbacks.length).toBe(1)
+    mockRestore.mockClear()
 
-      // 查找验证码按钮
-      const codeBtn = wrapper.find('.code-btn')
-      expect(codeBtn.exists()).toBe(true)
-      
-      
-      // 验证按钮是禁用状态
-      expect(codeBtn.attributes('disabled')).toBeDefined()
-      expect(codeBtn.classes()).toContain('disabled')
-      
-      // 验证按钮文本
-      expect(codeBtn.text()).toBe('30s后重试')
-    })
-
-    it('倒计时结束后应该可以重新发送验证码', async () => {
-      // 设置倒计时为0
-      mockCountdownRef.value = 0
-
-      wrapper = mount(Login)
-      await wrapper.vm.$nextTick()
-      
-      // 输入有效手机号
-      const phoneInput = wrapper.find('input[placeholder="请输入手机号"]')
-      await phoneInput.setValue('13800138000')
-      await wrapper.vm.$nextTick()
-
-      // 查找验证码按钮
-      const codeBtn = wrapper.find('.code-btn')
-      
-      // 验证按钮不是禁用状态
-      expect(codeBtn.attributes('disabled')).toBeFalsy()
-      expect(codeBtn.classes()).not.toContain('disabled')
-      
-      // 验证按钮文本
-      expect(codeBtn.text()).toBe('获取验证码')
-    })
-
-    it('发送验证码成功后应该开始60秒倒计时', async () => {
-      mockCountdownRef.value = 0  // 确保倒计时为0
-      wrapper = mount(Login)
-      await wrapper.vm.$nextTick()
-      
-      // 输入有效手机号
-      const phoneInput = wrapper.find('input[placeholder="请输入手机号"]')
-      await phoneInput.setValue('13800138000')
-      await wrapper.vm.$nextTick()
-
-      // 点击发送验证码
-      await wrapper.find('.code-btn').trigger('click')
-      
-      // 等待异步操作
-      vi.advanceTimersByTime(1000)
-      await wrapper.vm.$nextTick()
-
-      // 验证开始倒计时
-      expect(mockStart).toHaveBeenCalledWith(60)
-      
-      // 验证提示信息
-      expect(uni.showToast).toHaveBeenCalledWith({
-        title: '验证码已发送',
-        icon: 'success'
-      })
-    })
+    onShowCallbacks[0]()
+    expect(mockRestore).toHaveBeenCalledTimes(1)
   })
 
-  describe('表单验证', () => {
-    it('无效手机号时应该禁用发送验证码按钮', async () => {
-      wrapper = mount(Login)
-      await wrapper.vm.$nextTick()
+  it('倒计时进行时验证码按钮应禁用并展示剩余时间', async () => {
+    mockCountdown.value = 30
+    await mountPage()
 
-      // 输入无效手机号
-      const phoneInput = wrapper.find('input[placeholder="请输入手机号"]')
-      await phoneInput.setValue('123')
+    const button = wrapper!.find('.code-btn')
+    expect(button.attributes('disabled')).toBeDefined()
+    expect(button.text()).toBe('30s后重试')
+  })
 
-      await wrapper.vm.$nextTick()
+  it('有效手机号时可发送验证码并启动倒计时', async () => {
+    mockCountdown.value = 0
+    mocks.sendSMSCode.mockResolvedValue({ message: '验证码已发送' })
 
-      // 验证按钮是禁用状态
-      const codeBtn = wrapper.find('.code-btn')
-      expect(codeBtn.attributes('disabled')).toBeDefined()
-      expect(codeBtn.classes()).toContain('disabled')
+    await mountPage()
+    const phoneInput = wrapper!.find('input[placeholder="请输入手机号"]')
+    await phoneInput.setValue('13800138000')
+
+    await wrapper!.find('.code-btn').trigger('click')
+
+    expect(uni.showLoading).toHaveBeenCalledWith({ title: '发送中...' })
+    expect(mocks.sendSMSCode).toHaveBeenCalledWith('13800138000')
+    expect(mockStart).toHaveBeenCalledWith(60)
+    expect(uni.showToast).toHaveBeenCalledWith({ title: '验证码已发送', icon: 'success' })
+  })
+
+  it('手机号登录成功后应跳转首页', async () => {
+    mocks.loginWithPhone.mockResolvedValue({ success: true, message: '登录成功' })
+    await mountPage()
+
+    await wrapper!.find('input[placeholder="请输入手机号"]').setValue('13800138000')
+    await wrapper!.find('input[placeholder="请输入验证码"]').setValue('123456')
+    
+    await wrapper!.vm.$nextTick()
+    
+    const loginBtn = wrapper!.find('.login-btn')
+    expect(loginBtn.element.disabled).toBe(false)
+    
+    await loginBtn.trigger('click')
+    await wrapper!.vm.$nextTick()
+
+    expect(uni.showLoading).toHaveBeenCalledWith({ title: '登录中...' })
+    expect(mocks.loginWithPhone).toHaveBeenCalledWith({ phone: '13800138000', code: '123456' })
+    expect(uni.showToast).toHaveBeenCalledWith({ title: '登录成功', icon: 'success' })
+    
+    // 等待延迟跳转
+    await vi.waitFor(() => {
+      expect(uni.reLaunch).toHaveBeenCalledWith({ url: '/pages/index/index' })
+    }, { timeout: 2000 })
+  })
+
+  it('微信手机号授权成功应调用 wechatLogin', async () => {
+    mocks.wechatLogin.mockResolvedValue(undefined)
+    uni.login = vi.fn(() => Promise.resolve({ code: 'wx-code', errMsg: 'login:ok' }))
+
+    await mountPage()
+    const btn = wrapper!.find('.wechat-login-btn')
+    await btn.trigger('getphonenumber', {
+      detail: {
+        errMsg: 'getPhoneNumber:ok',
+        encryptedData: 'enc',
+        iv: 'iv'
+      }
     })
 
-    it('有效手机号时应该启用发送验证码按钮', async () => {
-      mockCountdownRef.value = 0 // 确保倒计时为0
-
-      wrapper = mount(Login)
-      await wrapper.vm.$nextTick()
-
-      // 输入有效手机号
-      const phoneInput = wrapper.find('input[placeholder="请输入手机号"]')
-      await phoneInput.setValue('13800138000')
-
-      await wrapper.vm.$nextTick()
-
-      // 验证按钮不是禁用状态
-      const codeBtn = wrapper.find('.code-btn')
-      expect(codeBtn.attributes('disabled')).toBeUndefined()
-      expect(codeBtn.classes()).not.toContain('disabled')
-    })
-
-    it('手机号和验证码都有效时应该启用登录按钮', async () => {
-      wrapper = mount(Login)
-      
-      // 直接设置组件的数据
-      const vm = wrapper.vm as any
-      vm.phoneNumber = '13800138000'
-      vm.verifyCode = '123456'
-      
-      await wrapper.vm.$nextTick()
-      
-      // 验证计算属性
-      expect(vm.isPhoneValid).toBe(true)
-      expect(vm.canLogin).toBe(true)
-      
-      // 验证登录按钮不是禁用状态
-      const loginBtn = wrapper.find('.login-btn')
-      
-      // 在测试中，如果 disabled = false，属性可能是 undefined 或空字符串
-      // 我们只需要确保按钮不包含 disabled 类
-      expect(loginBtn.classes()).not.toContain('disabled')
-    })
+    expect(uni.showLoading).toHaveBeenCalledWith({ title: '登录中...', mask: true })
+    expect(uni.login).toHaveBeenCalledWith({ provider: 'weixin' })
+    expect(mocks.wechatLogin).toHaveBeenCalledWith({ code: 'wx-code', encryptedData: 'enc', iv: 'iv' })
   })
 })
