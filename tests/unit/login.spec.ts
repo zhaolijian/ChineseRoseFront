@@ -97,13 +97,13 @@ describe('登录页面', () => {
       // 验证手机号输入框
       const phoneInput = wrapper.find('input[placeholder="请输入手机号"]')
       expect(phoneInput.exists()).toBe(true)
-      expect(phoneInput.attributes('type')).toBe('number')
+      expect(phoneInput.attributes('type')).toBe('tel')
       expect(phoneInput.attributes('maxlength')).toBe('11')
       
       // 验证验证码输入框
       const codeInput = wrapper.find('input[placeholder="请输入验证码"]')
       expect(codeInput.exists()).toBe(true)
-      expect(codeInput.attributes('type')).toBe('number')
+      expect(codeInput.attributes('type')).toBe('text')
       expect(codeInput.attributes('maxlength')).toBe('6')
       
       // 验证获取验证码按钮

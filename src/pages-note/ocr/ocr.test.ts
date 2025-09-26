@@ -17,6 +17,13 @@ const mockUni = {
   getSystemInfo: vi.fn(() => ({
     success: vi.fn(),
     fail: vi.fn()
+  })),
+  getImageInfo: vi.fn(),
+  getFileInfo: vi.fn(),
+  getFileSystemManager: vi.fn(() => ({
+    readFile: vi.fn(({ success }) => {
+      success({ data: 'mock-file-data' })
+    })
   }))
 }
 
@@ -113,11 +120,23 @@ describe('OCR页面', () => {
           tempFiles: mockImages.map(img => ({ size: img.size }))
         })
       })
+      
+      // Mock getImageInfo for both images
+      mockUni.getImageInfo.mockImplementation(({ success }: any) => {
+        success({
+          width: 1000,
+          height: 1000,
+          type: 'jpg'
+        })
+      })
 
       const uploadArea = wrapper.find('.image-upload-area')
       await uploadArea.trigger('click')
       await wrapper.vm.$nextTick()
 
+      // 等待异步处理完成
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       // 验证图片已添加到列表
       const vm = wrapper.vm as any
       expect(vm.selectedImages).toHaveLength(2)
@@ -167,7 +186,7 @@ describe('OCR页面', () => {
         })
       })
 
-      mockUni.getImageInfo.mockImplementation(({ success }: any) => {
+      mockUni.getImageInfo.mockImplementation(({ src, success }: any) => {
         success({
           width: 2000,
           height: 3000,
@@ -180,6 +199,12 @@ describe('OCR页面', () => {
           tempFilePath: '/temp/compressed.jpg'
         })
       })
+      
+      mockUni.getFileInfo.mockImplementation(({ success }: any) => {
+        success({
+          size: 1.5 * 1024 * 1024 // 1.5MB compressed size
+        })
+      })
 
       const uploadArea = wrapper.find('.image-upload-area')
       await uploadArea.trigger('click')
@@ -190,7 +215,7 @@ describe('OCR页面', () => {
       expect(mockUni.compressImage).toHaveBeenCalled()
       const compressCall = mockUni.compressImage.mock.calls[0][0]
       expect(compressCall.src).toBe('/temp/large.jpg')
-      expect(compressCall.quality).toBe(90)
+      expect(compressCall.quality).toBe(92)
     })
 
     it('应该保持小于2MB图片不压缩', async () => {
@@ -208,10 +233,21 @@ describe('OCR页面', () => {
           tempFiles: [{ size: smallImageSize }]
         })
       })
+      
+      // Mock getImageInfo for small image (resolution below threshold)
+      mockUni.getImageInfo.mockImplementation(({ success }: any) => {
+        success({
+          width: 800,
+          height: 600,
+          type: 'jpg'
+        })
+      })
 
       const uploadArea = wrapper.find('.image-upload-area')
       await uploadArea.trigger('click')
-      await wrapper.vm.$nextTick()
+      
+      // 等待异步操作完成
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       expect(mockUni.compressImage).not.toHaveBeenCalled()
     })

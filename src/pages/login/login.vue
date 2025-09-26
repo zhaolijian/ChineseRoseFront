@@ -24,7 +24,7 @@
           <input 
             v-model="phoneNumber" 
             class="input"
-            type="number"
+            type="tel"
             maxlength="11"
             placeholder="请输入手机号"
             placeholder-class="placeholder"
@@ -39,7 +39,7 @@
           <input 
             v-model="verifyCode" 
             class="input"
-            type="number"
+            type="text"
             maxlength="6"
             placeholder="请输入验证码"
             placeholder-class="placeholder"

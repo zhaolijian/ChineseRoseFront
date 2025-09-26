@@ -127,7 +127,7 @@ describe('登录页面', () => {
     await wrapper!.find('.code-btn').trigger('click')
 
     expect(uni.showLoading).toHaveBeenCalledWith({ title: '发送中...' })
-    expect(mocks.sendSMSCode).toHaveBeenCalledWith(13800138000)
+    expect(mocks.sendSMSCode).toHaveBeenCalledWith('13800138000')
     expect(mockStart).toHaveBeenCalledWith(60)
     expect(uni.showToast).toHaveBeenCalledWith({ title: '验证码已发送', icon: 'success' })
   })
@@ -148,7 +148,7 @@ describe('登录页面', () => {
     await wrapper!.vm.$nextTick()
 
     expect(uni.showLoading).toHaveBeenCalledWith({ title: '登录中...' })
-    expect(mocks.loginWithPhone).toHaveBeenCalledWith({ phone: 13800138000, code: '123456' })
+    expect(mocks.loginWithPhone).toHaveBeenCalledWith({ phone: '13800138000', code: '123456' })
     expect(uni.showToast).toHaveBeenCalledWith({ title: '登录成功', icon: 'success' })
     
     // 等待延迟跳转
