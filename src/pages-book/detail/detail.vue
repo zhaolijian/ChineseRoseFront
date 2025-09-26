@@ -1,10 +1,23 @@
 <template>
   <view class="book-detail-page">
+    <!-- 导航栏 -->
+    <AppNavBar title="书籍详情" :showBack="true">
+      <template #right>
+        <u-icon 
+          name="trash" 
+          size="20" 
+          color="#ff4444"
+          data-testid="delete-button"
+          @click="handleDeleteBook" 
+        />
+      </template>
+    </AppNavBar>
+    
     <!-- 书籍信息 -->
     <view class="book-header">
       <view class="book-cover">
         <u-image
-          :src="book?.cover || '/static/images/book-placeholder.png'"
+          :src="book?.coverUrl || '/static/images/book-placeholder.png'"
           mode="aspectFit"
           width="120px"
           height="160px"
@@ -171,6 +184,8 @@
 import { ref, onMounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useBookStore } from '@/stores/modules/book'
+import { deleteBook } from '@/api/modules/book'
+import AppNavBar from '@/components/common/AppNavBar.vue'
 
 // 类型定义
 interface Book {
@@ -178,7 +193,7 @@ interface Book {
   title: string
   author?: string
   isbn?: string
-  cover?: string
+  coverUrl?: string
   noteCount?: number
   progress?: number
   createdAt?: string
@@ -336,6 +351,48 @@ const formatDate = (dateStr?: string): string => {
   } else {
     return date.toLocaleDateString()
   }
+}
+
+// 删除书籍
+const handleDeleteBook = () => {
+  uni.showModal({
+    title: '确认删除书籍',
+    content: '删除后，该书籍下的笔记仍会保留在笔记列表中',
+    confirmText: '确认删除',
+    confirmColor: '#ee0a24',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          uni.showLoading({
+            title: '删除中...',
+            mask: true
+          })
+          
+          await deleteBook(bookId.value)
+          
+          uni.hideLoading()
+          
+          uni.showToast({
+            title: '删除成功',
+            icon: 'success'
+          })
+          
+          // 延迟返回，让用户看到成功提示
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 1500)
+          
+        } catch (error) {
+          uni.hideLoading()
+          console.error('删除书籍失败:', error)
+          uni.showToast({
+            title: '删除失败',
+            icon: 'error'
+          })
+        }
+      }
+    }
+  })
 }
 </script>
 

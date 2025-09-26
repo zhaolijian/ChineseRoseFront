@@ -24,13 +24,13 @@ export interface BookListParams {
   sortOrder?: 'asc' | 'desc'
 }
 
-// 书籍列表响应
+// 书籍列表响应 - 匹配后端响应结构
 export interface BookListResponse {
-  books: Book[]
+  list: Book[]  // 后端字段名为 list，不是 books
   total: number
   page: number
   pageSize: number
-  hasMore: boolean
+  hasMore?: boolean  // 前端计算字段，可选
 }
 
 // 创建书籍参数
@@ -94,7 +94,7 @@ export const deleteBook = (id: number): Promise<void> => {
  */
 export const searchBookByISBN = (isbn: string): Promise<Book> => {
   // 后端契约：GET /api/v1/books/isbn?isbn=xxx
-  return request.get<Book>(`/v1/books/isbn`, { isbn })
+  return request.get<Book>('/v1/books/isbn', { isbn })
 }
 
 /**

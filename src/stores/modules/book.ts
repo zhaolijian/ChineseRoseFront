@@ -8,12 +8,16 @@ export interface Book {
   title: string
   author?: string
   isbn?: string
-  cover?: string
+  publisher?: string
+  publishDate?: string
+  coverUrl?: string
   description?: string
   noteCount?: number
   status?: 'reading' | 'finished' | 'wishlist'
   progress?: number
   tags?: string[]
+  pages?: number
+  publishYear?: number
   createdAt?: string
   updatedAt?: string
 }
@@ -22,9 +26,13 @@ export interface CreateBookParams {
   title: string
   author?: string
   isbn?: string
-  cover?: string
+  publisher?: string
+  publishDate?: string
+  coverUrl?: string
   description?: string
   status?: 'reading' | 'finished' | 'wishlist'
+  pages?: number
+  publishYear?: number
 }
 
 export interface UpdateBookParams extends Partial<CreateBookParams> {
