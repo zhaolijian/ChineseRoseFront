@@ -34,6 +34,7 @@ describe('书籍删除功能', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useFakeTimers()
     
     // 确保全局 uni 对象被正确设置
     ;(global as any).uni = {
@@ -90,6 +91,10 @@ describe('书籍删除功能', () => {
       progress: 50
     }
   })
+  
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   describe('删除按钮', () => {
     it('应该在导航栏右侧显示删除按钮', () => {
@@ -99,7 +104,7 @@ describe('书籍删除功能', () => {
     
     it('删除按钮应该使用红色图标', () => {
       const deleteIcon = wrapper.find('[data-testid="delete-button"]')
-      expect(deleteIcon.attributes('color')).toBe('#ff4444')
+      expect(deleteIcon.attributes('color')).toBe('#ee0a24')
     })
   })
 
@@ -109,10 +114,10 @@ describe('书籍删除功能', () => {
       await deleteIcon.trigger('click')
       
       expect(mockShowModal).toHaveBeenCalledWith({
-        title: '确认删除',
-        content: '删除后，该书籍下的笔记仍会保留在笔记列表中。确定要删除这本书吗？',
-        confirmText: '确定删除',
-        confirmColor: '#ff4444',
+        title: '确认删除书籍',
+        content: '删除后，该书籍下的笔记仍会保留在笔记列表中',
+        confirmText: '确认删除',
+        confirmColor: '#ee0a24',
         success: expect.any(Function)
       })
     })
@@ -130,8 +135,8 @@ describe('书籍删除功能', () => {
       await deleteIcon.trigger('click')
       
       const modalCall = mockShowModal.mock.calls[0][0]
-      expect(modalCall.confirmColor).toBe('#ff4444')
-      expect(modalCall.confirmText).toBe('确定删除')
+      expect(modalCall.confirmColor).toBe('#ee0a24')
+      expect(modalCall.confirmText).toBe('确认删除')
     })
   })
 
@@ -171,19 +176,18 @@ describe('书籍删除功能', () => {
       await deleteIcon.trigger('click')
       
       // 等待API调用完成
-      await vi.waitFor(() => {
-        expect(mockHideLoading).toHaveBeenCalled()
-      })
+      await wrapper.vm.$nextTick()
+      await vi.runAllTimersAsync()
       
+      expect(mockHideLoading).toHaveBeenCalled()
       expect(mockShowToast).toHaveBeenCalledWith({
         title: '删除成功',
         icon: 'success'
       })
       
-      // 等待1.5秒延迟
-      await vi.waitFor(() => {
-        expect(mockNavigateBack).toHaveBeenCalled()
-      }, { timeout: 2000 })
+      // 运行延迟后验证返回
+      vi.advanceTimersByTime(1500)
+      expect(mockNavigateBack).toHaveBeenCalled()
     })
     
     it('删除失败应该显示错误提示', async () => {
@@ -199,9 +203,8 @@ describe('书籍删除功能', () => {
       await deleteIcon.trigger('click')
       
       // 等待API调用失败
-      await vi.waitFor(() => {
-        expect(mockHideLoading).toHaveBeenCalled()
-      })
+      await wrapper.vm.$nextTick()
+      await vi.runAllTimersAsync()
       
       expect(mockShowToast).toHaveBeenCalledWith({
         title: '删除失败',

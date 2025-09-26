@@ -60,7 +60,9 @@ describe('AddBookPage', () => {
             template: '<input :placeholder="placeholder" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
             props: ['placeholder', 'modelValue']
           },
-          'u-form': true,
+          'u-form': {
+            template: '<form><slot /></form>'
+          },
           'u-form-item': {
             template: '<div class="u-form-item"><slot /></div>'
           },
@@ -71,7 +73,8 @@ describe('AddBookPage', () => {
             template: '<textarea :placeholder="placeholder" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
             props: ['placeholder', 'modelValue']
           },
-          'AppNavBar': true
+          'AppNavBar': true,
+          'IsbnScanner': true
         }
       }
     })

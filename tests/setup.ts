@@ -7,12 +7,21 @@ global.uni = {
   showLoading: vi.fn(),
   hideLoading: vi.fn(),
   showToast: vi.fn(),
+  showModal: vi.fn(),
   reLaunch: vi.fn(),
+  navigateTo: vi.fn(),
   getSystemInfoSync: vi.fn(() => ({ statusBarHeight: 20 })),
   getStorageSync: vi.fn(),
   setStorageSync: vi.fn(),
   removeStorageSync: vi.fn(),
-  clearStorageSync: vi.fn()
+  clearStorageSync: vi.fn(),
+  // 页面交互相关
+  stopPullDownRefresh: vi.fn(),
+  startPullDownRefresh: vi.fn(),
+  // 媒体与OCR相关
+  chooseImage: vi.fn(),
+  compressImage: vi.fn(),
+  ocrNavigator: vi.fn()
 }
 
 // Mock process.env
