@@ -204,7 +204,7 @@ describe('书籍删除功能', () => {
       
       // 运行延迟后验证返回
       vi.advanceTimersByTime(1500)
-      expect(mockNavigateBack).toHaveBeenCalled()
+      expect(uni.navigateBack).toHaveBeenCalled()
     })
     
     it('删除失败应该显示错误提示', async () => {
@@ -229,7 +229,7 @@ describe('书籍删除功能', () => {
       })
       
       // 确保不会调用返回
-      expect(mockNavigateBack).not.toHaveBeenCalled()
+      expect(uni.navigateBack).not.toHaveBeenCalled()
     })
     
     it('用户取消删除不应该执行任何操作', async () => {
@@ -249,7 +249,7 @@ describe('书籍删除功能', () => {
       expect(mockShowLoading).not.toHaveBeenCalled()
       expect(mockDeleteBook).not.toHaveBeenCalled()
       expect(mockShowToast).not.toHaveBeenCalled()
-      expect(mockNavigateBack).not.toHaveBeenCalled()
+      expect(uni.navigateBack).not.toHaveBeenCalled()
     })
   })
   
