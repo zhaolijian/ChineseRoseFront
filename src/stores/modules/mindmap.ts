@@ -49,9 +49,9 @@ export const useMindmapStore = defineStore('mindmap', () => {
       })
 
       if (page === 1) {
-        mindmaps.value = [...response.mindmaps]
+        mindmaps.value = [...response.list]
       } else {
-        mindmaps.value.push(...response.mindmaps)
+        mindmaps.value.push(...response.list)
       }
 
       currentPage.value = response.page
@@ -167,9 +167,9 @@ export const useMindmapStore = defineStore('mindmap', () => {
     try {
       loading.value = true
       const response = await apiSearchMindmaps(trimmed, params)
-      searchResults.value = response.mindmaps
-      logger.debug(ctx, '[MindmapStore] 搜索成功', { keyword: trimmed, count: response.mindmaps.length })
-      return response.mindmaps
+      searchResults.value = response.list
+      logger.debug(ctx, '[MindmapStore] 搜索成功', { keyword: trimmed, count: response.list.length })
+      return response.list
     } catch (error) {
       logger.error(ctx, '[MindmapStore] 搜索失败', error)
       throw error

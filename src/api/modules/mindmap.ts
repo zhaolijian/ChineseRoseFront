@@ -34,7 +34,7 @@ export interface MindmapListParams {
 }
 
 export interface MindmapListResponse {
-  mindmaps: Mindmap[]
+  list: Mindmap[]  // 后端字段名为 list，保持与其他模块一致
   total: number
   page: number
   pageSize: number

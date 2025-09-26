@@ -47,9 +47,9 @@ export const useNoteStore = defineStore('note', () => {
       })
 
       if (page === 1) {
-        notes.value = [...response.notes]
+        notes.value = [...response.list]
       } else {
-        notes.value.push(...response.notes)
+        notes.value.push(...response.list)
       }
 
       currentPage.value = response.page
@@ -165,9 +165,9 @@ export const useNoteStore = defineStore('note', () => {
     try {
       loading.value = true
       const response = await apiSearchNotes(trimmed, params)
-      searchResults.value = response.notes
-      logger.debug(ctx, '[NoteStore] 搜索笔记成功', { keyword: trimmed, count: response.notes.length })
-      return response.notes
+      searchResults.value = response.list
+      logger.debug(ctx, '[NoteStore] 搜索笔记成功', { keyword: trimmed, count: response.list.length })
+      return response.list
     } catch (error) {
       logger.error(ctx, '[NoteStore] 搜索笔记失败', error)
       throw error
@@ -185,7 +185,7 @@ export const useNoteStore = defineStore('note', () => {
         pageSize: pageSize.value,
         ...params
       })
-      notes.value = response.notes
+      notes.value = response.list
       total.value = response.total
       hasMore.value = response.hasMore
       logger.debug(ctx, '[NoteStore] 按书籍获取笔记成功', { bookId })
