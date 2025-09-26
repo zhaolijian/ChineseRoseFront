@@ -54,11 +54,11 @@ describe('书籍删除功能', () => {
     
     // 确保全局 uni 对象被正确设置
     ;(global as any).uni = {
-      showModal: mockShowModal,
-      showLoading: mockShowLoading,
-      hideLoading: mockHideLoading,
-      showToast: mockShowToast,
-      navigateBack: mockNavigateBack,
+      showModal: vi.fn(),
+      showLoading: vi.fn(),
+      hideLoading: vi.fn(),
+      showToast: vi.fn(),
+      navigateBack: vi.fn(),
       getStorageSync: vi.fn(),
       setStorageSync: vi.fn()
     }
@@ -130,7 +130,7 @@ describe('书籍删除功能', () => {
       const deleteIcon = wrapper.find('[data-testid="delete-button"]')
       await deleteIcon.trigger('click')
       
-      expect(mockShowModal).toHaveBeenCalledWith({
+      expect(uni.showModal).toHaveBeenCalledWith({
         title: '确认删除书籍',
         content: '删除后，该书籍下的笔记仍会保留在笔记列表中',
         confirmText: '确认删除',
@@ -143,7 +143,7 @@ describe('书籍删除功能', () => {
       const deleteIcon = wrapper.find('[data-testid="delete-button"]')
       await deleteIcon.trigger('click')
       
-      const modalCall = mockShowModal.mock.calls[0][0]
+      const modalCall = uni.showModal.mock.calls[0][0]
       expect(modalCall.content).toContain('笔记仍会保留')
     })
     
@@ -151,7 +151,7 @@ describe('书籍删除功能', () => {
       const deleteIcon = wrapper.find('[data-testid="delete-button"]')
       await deleteIcon.trigger('click')
       
-      const modalCall = mockShowModal.mock.calls[0][0]
+      const modalCall = uni.showModal.mock.calls[0][0]
       expect(modalCall.confirmColor).toBe('#ee0a24')
       expect(modalCall.confirmText).toBe('确认删除')
     })
@@ -163,7 +163,7 @@ describe('书籍删除功能', () => {
       mockDeleteBook.mockResolvedValue(undefined)
       
       // 模拟用户确认删除
-      mockShowModal.mockImplementation(({ success }) => {
+      uni.showModal.mockImplementation(({ success }) => {
         success({ confirm: true, cancel: false })
       })
       
@@ -173,7 +173,7 @@ describe('书籍删除功能', () => {
       // 等待异步操作
       await wrapper.vm.$nextTick()
       
-      expect(mockShowLoading).toHaveBeenCalledWith({
+      expect(uni.showLoading).toHaveBeenCalledWith({
         title: '删除中...',
         mask: true
       })
@@ -185,7 +185,7 @@ describe('书籍删除功能', () => {
       mockDeleteBook.mockResolvedValue(undefined)
       
       // 模拟用户确认删除
-      mockShowModal.mockImplementation(({ success }) => {
+      uni.showModal.mockImplementation(({ success }) => {
         success({ confirm: true, cancel: false })
       })
       
@@ -196,8 +196,8 @@ describe('书籍删除功能', () => {
       await wrapper.vm.$nextTick()
       await vi.runAllTimersAsync()
       
-      expect(mockHideLoading).toHaveBeenCalled()
-      expect(mockShowToast).toHaveBeenCalledWith({
+      expect(uni.hideLoading).toHaveBeenCalled()
+      expect(uni.showToast).toHaveBeenCalledWith({
         title: '删除成功',
         icon: 'success'
       })
@@ -212,7 +212,7 @@ describe('书籍删除功能', () => {
       mockDeleteBook.mockRejectedValue(new Error('网络错误'))
       
       // 模拟用户确认删除
-      mockShowModal.mockImplementation(({ success }) => {
+      uni.showModal.mockImplementation(({ success }) => {
         success({ confirm: true, cancel: false })
       })
       
@@ -223,7 +223,7 @@ describe('书籍删除功能', () => {
       await wrapper.vm.$nextTick()
       await vi.runAllTimersAsync()
       
-      expect(mockShowToast).toHaveBeenCalledWith({
+      expect(uni.showToast).toHaveBeenCalledWith({
         title: '删除失败',
         icon: 'error'
       })
@@ -236,7 +236,7 @@ describe('书籍删除功能', () => {
       const mockDeleteBook = vi.mocked(bookApi.deleteBook)
       
       // 模拟用户取消删除
-      mockShowModal.mockImplementation(({ success }) => {
+      uni.showModal.mockImplementation(({ success }) => {
         success({ confirm: false, cancel: true })
       })
       
@@ -246,9 +246,9 @@ describe('书籍删除功能', () => {
       await wrapper.vm.$nextTick()
       
       // 不应该调用任何API或显示加载
-      expect(mockShowLoading).not.toHaveBeenCalled()
+      expect(uni.showLoading).not.toHaveBeenCalled()
       expect(mockDeleteBook).not.toHaveBeenCalled()
-      expect(mockShowToast).not.toHaveBeenCalled()
+      expect(uni.showToast).not.toHaveBeenCalled()
       expect(uni.navigateBack).not.toHaveBeenCalled()
     })
   })
@@ -260,12 +260,12 @@ describe('书籍删除功能', () => {
       
       const callOrder: string[] = []
       
-      mockShowModal.mockImplementation((options) => {
+      uni.showModal.mockImplementation((options) => {
         callOrder.push('showModal')
         options.success({ confirm: true, cancel: false })
       })
       
-      mockShowLoading.mockImplementation(() => {
+      uni.showLoading.mockImplementation(() => {
         callOrder.push('showLoading')
       })
       
@@ -274,11 +274,11 @@ describe('书籍删除功能', () => {
         return Promise.resolve()
       })
       
-      mockHideLoading.mockImplementation(() => {
+      uni.hideLoading.mockImplementation(() => {
         callOrder.push('hideLoading')
       })
       
-      mockShowToast.mockImplementation(() => {
+      uni.showToast.mockImplementation(() => {
         callOrder.push('showToast')
       })
       

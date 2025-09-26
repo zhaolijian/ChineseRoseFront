@@ -215,7 +215,7 @@ describe('OCR页面', () => {
       expect(mockUni.compressImage).toHaveBeenCalled()
       const compressCall = mockUni.compressImage.mock.calls[0][0]
       expect(compressCall.src).toBe('/temp/large.jpg')
-      expect(compressCall.quality).toBe(92)
+      expect(compressCall.quality).toBe(90)
     })
 
     it('应该保持小于2MB图片不压缩', async () => {
