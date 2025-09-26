@@ -29,6 +29,23 @@ vi.mock('@/api/modules/book', () => ({
   deleteBook: vi.fn()
 }))
 
+// Mock Store
+vi.mock('@/stores/modules/book', () => ({
+  useBookStore: vi.fn(() => ({
+    fetchBookDetail: vi.fn().mockResolvedValue({
+      id: 1,
+      title: '测试书籍',
+      author: '测试作者',
+      noteCount: 5,
+      progress: 50
+    }),
+    fetchBookNotes: vi.fn().mockResolvedValue({
+      notes: [],
+      total: 0
+    })
+  }))
+}))
+
 describe('书籍删除功能', () => {
   let wrapper: any
 
@@ -62,6 +79,8 @@ describe('书籍删除功能', () => {
                   progress: 50
                 }]
               }
+            },
+            stubActions: false
             }
           })
         ],

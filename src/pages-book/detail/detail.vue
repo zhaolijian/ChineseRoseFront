@@ -6,7 +6,7 @@
         <u-icon 
           name="trash" 
           size="20" 
-          color="#ff4444"
+          color="#ee0a24"
           data-testid="delete-button"
           @click="handleDeleteBook" 
         />
