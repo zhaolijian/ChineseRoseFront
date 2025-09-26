@@ -23,13 +23,13 @@ export interface NoteListParams {
   sortOrder?: 'asc' | 'desc'
 }
 
-// 笔记列表响应
+// 笔记列表响应 - 匹配后端响应结构
 export interface NoteListResponse {
-  notes: Note[]
+  list: Note[]  // 后端字段名为 list，不是 notes
   total: number
   page: number
   pageSize: number
-  hasMore: boolean
+  hasMore?: boolean  // 前端计算字段，可选
 }
 
 // 创建笔记参数

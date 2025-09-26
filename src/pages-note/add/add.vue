@@ -26,7 +26,7 @@
         <view class="book-selector" @click="showBookPicker = true">
           <view v-if="selectedBook" class="selected-book">
             <u-image
-              :src="selectedBook.cover || '/static/images/book-placeholder.png'"
+              :src="selectedBook.coverUrl || '/static/images/book-placeholder.png'"
               width="40px"
               height="54px"
               radius="4"
@@ -234,7 +234,7 @@
             @click="selectBook(book)"
           >
             <u-image
-              :src="book.cover || '/static/images/book-placeholder.png'"
+              :src="book.coverUrl || '/static/images/book-placeholder.png'"
               width="40px"
               height="54px"
               radius="4"
@@ -267,15 +267,15 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useBookStore } from '@/stores/modules/book'
-import AppNavBar from '@/components/common/AppNavBar.vue'
-import PageContainer from '@/components/common/PageContainer.vue'
+import { useNoteStore } from '@/stores/modules/note'
+import { logger, createContext } from '@/utils'
 
 // 类型定义
 interface Book {
   id: number
   title: string
   author?: string
-  cover?: string
+  coverUrl?: string
 }
 
 interface NoteForm {
@@ -297,6 +297,7 @@ interface NoteType {
 
 // Store
 const bookStore = useBookStore()
+const noteStore = useNoteStore()
 
 // 响应式数据
 const noteForm = reactive<NoteForm>({
@@ -341,6 +342,32 @@ onLoad((options: any) => {
     noteForm.bookId = bookId
     // 从书籍列表中找到对应的书籍
     loadInitialBook(bookId)
+  }
+
+  // 处理OCR传递的文本内容
+  if (options.ocrText) {
+    try {
+      const ocrText = decodeURIComponent(options.ocrText)
+      noteForm.content = ocrText
+
+      // 自动生成笔记标题（取前20个字符）
+      if (!noteForm.title.trim() && ocrText.length > 0) {
+        const autoTitle = ocrText.trim().substring(0, 20).replace(/\n/g, ' ')
+        noteForm.title = autoTitle + (ocrText.length > 20 ? '...' : '')
+      }
+
+      // 显示提示
+      uni.showToast({
+        title: 'OCR内容已导入',
+        icon: 'success'
+      })
+    } catch (error) {
+      console.error('解析OCR文本失败:', error)
+      uni.showToast({
+        title: 'OCR内容导入失败',
+        icon: 'none'
+      })
+    }
   }
 })
 
@@ -416,10 +443,9 @@ const previewImage = (index: number) => {
 }
 
 const startOCR = () => {
-  // TODO: 实现OCR功能
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none'
+  // 跳转到OCR识别页面
+  uni.navigateTo({
+    url: '/pages-note/ocr/ocr'
   })
 }
 
@@ -432,6 +458,8 @@ const startRecord = () => {
 }
 
 const saveNote = async () => {
+  const ctx = createContext()
+
   if (!canSave.value) {
     uni.showToast({
       title: '请填写完整信息',
@@ -442,31 +470,37 @@ const saveNote = async () => {
 
   try {
     loading.value = true
-    
-    // TODO: 实现保存笔记的API
-    // const noteData = {
-    //   title: noteForm.title.trim(),
-    //   content: noteForm.content.trim(),
-    //   bookId: noteForm.bookId,
-    //   noteType: noteForm.noteType,
-    //   pageNumber: noteForm.pageNumber ? parseInt(noteForm.pageNumber) : undefined,
-    //   chapterName: noteForm.chapterName.trim() || undefined,
-    //   tags: noteForm.tags,
-    //   images: noteForm.images
-    // }
-    // 
-    // await noteStore.createNote(noteData)
-    
+
+    // 构建笔记数据
+    const noteData = {
+      title: noteForm.title.trim(),
+      content: noteForm.content.trim(),
+      bookId: noteForm.bookId,
+      pageNumber: noteForm.pageNumber ? parseInt(noteForm.pageNumber) : undefined,
+      chapter: noteForm.chapterName.trim() || undefined
+    }
+
+    logger.info(ctx, '[NoteAdd] 开始保存笔记', {
+      title: noteData.title,
+      bookId: noteData.bookId,
+      contentLength: noteData.content.length
+    })
+
+    // 调用store创建笔记
+    await noteStore.createNote(noteData)
+
+    logger.info(ctx, '[NoteAdd] 笔记保存成功')
+
     uni.showToast({
       title: '保存成功',
       icon: 'success'
     })
-    
+
     setTimeout(() => {
       uni.navigateBack()
     }, 1500)
   } catch (error) {
-    console.error('保存笔记失败:', error)
+    logger.error(ctx, '[NoteAdd] 保存笔记失败', error)
     uni.showToast({
       title: '保存失败',
       icon: 'error'

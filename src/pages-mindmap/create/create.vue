@@ -192,6 +192,9 @@ interface FormData {
 const bookStore = useBookStore()
 const noteStore = useNoteStore()
 const mindmapStore = useMindmapStore()
+// TODO: 接入真实的笔记/思维导图接口后移除以下占位语句
+void noteStore
+void mindmapStore
 
 // 响应式数据
 const loading = ref(false)
@@ -326,6 +329,7 @@ const saveMindmap = async () => {
     
     // TODO: 实现创建思维导图
     // const result = await mindmapStore.createMindmap(mindmapData)
+    console.debug('[createMindmap] 待提交数据', mindmapData)
     
     uni.showToast({
       title: '创建成功',

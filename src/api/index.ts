@@ -2,14 +2,17 @@
 export * from './modules/auth'
 export * from './modules/book'
 export * from './modules/note'
+export * from './modules/ocr'
 
 // 为了向后兼容，也提供命名空间导出
 import * as authApi from './modules/auth'
 import * as bookApi from './modules/book'
 import * as noteApi from './modules/note'
+import * as ocrApi from './modules/ocr'
 
 export {
   authApi,
   bookApi,
-  noteApi
+  noteApi,
+  ocrApi
 }

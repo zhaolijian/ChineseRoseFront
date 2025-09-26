@@ -1,9 +1,11 @@
 <template>
   <view class="bookshelf-page">
     <AppNavBar title="书架" :showBack="false">
+      <template #left>
+        <u-icon name="plus" size="20" color="#2E7D32" @click="goToAddBook" />
+      </template>
       <template #right>
-        <u-icon name="search" size="20" class="cr-icon" @click="goToSearch" />
-        <u-icon name="plus-circle" size="20" class="cr-icon" @click="showAddBook = true" style="margin-left: 16rpx;" />
+        <u-icon name="scan" size="20" color="#2E7D32" @click="handleScanISBN" />
       </template>
     </AppNavBar>
 
@@ -21,7 +23,7 @@
         <view v-for="book in books" :key="book.id" class="book-item cr-card cr-card--padded" @click="goToBookDetail(book)">
           <view class="book-cover">
             <u-image 
-              :src="book.cover || '/static/images/book-placeholder.png'"
+              :src="book.coverUrl || '/static/images/book-placeholder.svg'"
               mode="aspectFit"
               width="100%"
               height="140px"
@@ -40,16 +42,11 @@
     </PageContainer>
     <TabBar />
 
-    <!-- 悬浮添加按钮 -->
-    <view class="fab-button" @click="showAddBook = true">
-      <u-icon name="plus" size="24" color="#fff"></u-icon>
-    </view>
-
     <!-- 添加书籍弹窗 -->
     <u-popup 
       v-model="showAddBook" 
       mode="bottom" 
-      height="60%"
+      height="30%"
       round="20"
       closeable
     >
@@ -69,32 +66,6 @@
             <text class="method-text">手动添加</text>
           </view>
         </view>
-
-        <!-- 手动添加表单 -->
-        <view v-if="showManualForm" class="manual-form">
-          <u-form ref="form" :model="bookForm" :rules="rules">
-            <u-form-item label="书名" prop="title" required>
-              <u-input v-model="bookForm.title" placeholder="请输入书名"></u-input>
-            </u-form-item>
-            
-            <u-form-item label="作者" prop="author">
-              <u-input v-model="bookForm.author" placeholder="请输入作者"></u-input>
-            </u-form-item>
-            
-            <u-form-item label="ISBN" prop="isbn">
-              <u-input v-model="bookForm.isbn" placeholder="请输入ISBN（可选）"></u-input>
-            </u-form-item>
-          </u-form>
-          
-          <view class="form-actions">
-            <u-button 
-              type="primary" 
-              text="添加书籍"
-              :loading="loading"
-              @click="submitBook"
-            ></u-button>
-          </view>
-        </view>
       </view>
     </u-popup>
 
@@ -103,11 +74,19 @@
       :loading="pageLoading"
       bg-color="#f5f7fa"
     ></u-loading-page>
+
+    <!-- 书籍预览弹窗 -->
+    <BookPreview
+      v-model="showBookPreview"
+      :book="previewBook"
+      @rescan="handleRescan"
+      @added="handleBookAdded"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useBookStore } from '@/stores/modules/book'
 import { useUserStore } from '@/stores/modules/user'
@@ -118,6 +97,8 @@ import PageContainer from '@/components/common/PageContainer.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import TabBar from '@/components/common/TabBar.vue'
 import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue'
+import BookPreview from '@/components/business/BookPreview.vue'
+import { searchBookByISBN } from '@/api/modules/book'
 
 // 类型定义
 interface Book {
@@ -125,17 +106,12 @@ interface Book {
   title: string
   author?: string
   isbn?: string
-  cover?: string
+  coverUrl?: string
   noteCount?: number
   createdAt?: string
   updatedAt?: string
 }
 
-interface BookForm {
-  title: string
-  author: string
-  isbn: string
-}
 
 // Store
 const bookStore = useBookStore()
@@ -144,24 +120,13 @@ const userStore = useUserStore()
 // 响应式数据
 const books = ref<Book[]>([])
 const showAddBook = ref(false)
-const showManualForm = ref(false)
 const loading = ref(false)
 const pageLoading = ref(false)
 const hasMore = ref(true)
-
-// 表单数据
-const bookForm = reactive<BookForm>({
-  title: '',
-  author: '',
-  isbn: ''
-})
-
-// 表单验证规则
-const rules = {
-  title: [
-    { required: true, message: '请输入书名', trigger: 'blur' }
-  ]
-}
+const showBookPreview = ref(false)
+const previewBook = ref<any>({})
+const scanLoading = ref(false)
+const hasInitialLoaded = ref(false)
 
 // 生命周期
 onMounted(async () => {
@@ -180,7 +145,9 @@ onShow(async () => {
   // 页面显示时按需加载：未登录不请求，已登录才加载
   if (userStore.isLoggedIn) {
     logger.debug(ctx, '[BookshelfPage] 用户已登录，加载书籍数据')
-    await loadBooks()
+    if (hasInitialLoaded.value) {
+      await loadBooks(true)
+    }
   } else {
     logger.debug(ctx, '[BookshelfPage] 用户未登录，跳过加载')
   }
@@ -222,7 +189,8 @@ const checkLoginAndLoadData = async () => {
     
     logger.debug(ctx, '[checkLoginAndLoadData] 用户已登录，加载书籍数据')
     // 加载书籍数据
-    await loadBooks()
+    await loadBooks(true)
+    hasInitialLoaded.value = true
   } catch (error) {
     logger.error(ctx, '[checkLoginAndLoadData] 初始化失败', error)
     uni.showToast({
@@ -241,12 +209,13 @@ const loadBooks = async (refresh = false) => {
     loading.value = true
     logger.debug(ctx, '[loadBooks] 开始加载书籍', { refresh })
     
-    const result = await bookStore.fetchBooks(refresh ? 1 : bookStore.currentPage)
-    
-    if (refresh) {
-      books.value = result.books
+    const targetPage = refresh || books.value.length === 0 ? 1 : bookStore.currentPage + 1
+    const result = await bookStore.fetchBooks(targetPage)
+
+    if (targetPage === 1) {
+      books.value = [...result.books]
     } else {
-      books.value.push(...result.books)
+      books.value = [...books.value, ...result.books]
     }
     
     hasMore.value = result.hasMore
@@ -264,7 +233,7 @@ const loadBooks = async (refresh = false) => {
 
 const loadMoreBooks = async () => {
   if (!hasMore.value) return
-  
+
   await loadBooks()
 }
 
@@ -276,83 +245,127 @@ const goToBookDetail = (book: Book) => {
   })
 }
 
-const goToSearch = () => {
+const goToAddBook = () => {
   const ctx = createContext()
-  logger.debug(ctx, '[goToSearch] 跳转到搜索页')
+  logger.debug(ctx, '[goToAddBook] 跳转到添加书籍页面')
   uni.navigateTo({
-    url: '/pages/search/search'
+    url: '/pages-book/add/add'
   })
 }
 
 const addByISBN = () => {
   const ctx = createContext()
-  logger.debug(ctx, '[addByISBN] ISBN扫描功能待开发')
-  // TODO: 实现ISBN扫描功能
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none'
-  })
+  logger.debug(ctx, '[addByISBN] 调用扫码功能')
+  showAddBook.value = false
+  handleScanISBN()
+}
+
+// ISBN扫码处理
+const handleScanISBN = async () => {
+  const ctx = createContext()
+  
+  try {
+    logger.debug(ctx, '[handleScanISBN] 开始扫码')
+    
+    // 调用uni-app扫码API
+    const scanResult = await uni.scanCode({
+      onlyFromCamera: false,
+      scanType: ['barCode'] // ISBN通常是条形码
+    })
+    
+    if (!scanResult.result) {
+      logger.warn(ctx, '[handleScanISBN] 扫码结果为空')
+      return
+    }
+    
+    const isbn = scanResult.result
+    logger.info(ctx, '[handleScanISBN] 扫码成功', { isbn })
+    
+    // 显示加载提示
+    uni.showLoading({
+      title: '正在查询书籍信息...',
+      mask: true
+    })
+    
+    scanLoading.value = true
+    
+    try {
+      // 调用后端ISBN查询接口
+      const bookInfo = await searchBookByISBN(isbn)
+      
+      logger.info(ctx, '[handleScanISBN] 书籍信息查询成功', { bookInfo })
+      
+      // 显示书籍预览
+      previewBook.value = bookInfo
+      showBookPreview.value = true
+      
+    } catch (error: any) {
+      logger.error(ctx, '[handleScanISBN] 查询书籍信息失败', error)
+      
+      // 查询失败，询问是否手动创建
+      uni.showModal({
+        title: '未找到书籍信息',
+        content: '无法获取该ISBN的书籍信息，是否手动创建？',
+        confirmText: '手动创建',
+        cancelText: '重新扫描',
+        success: (res) => {
+          if (res.confirm) {
+            // 跳转到手动添加页面，带上ISBN
+            uni.navigateTo({
+              url: `/pages-book/add/add?isbn=${isbn}`
+            })
+          } else {
+            // 重新扫描
+            handleScanISBN()
+          }
+        }
+      })
+    } finally {
+      uni.hideLoading()
+      scanLoading.value = false
+    }
+    
+  } catch (error: any) {
+    const ctx = createContext()
+    
+    if (error.errMsg?.includes('cancel')) {
+      logger.debug(ctx, '[handleScanISBN] 用户取消扫码')
+      // 用户取消扫码，静默处理
+      return
+    }
+    
+    logger.error(ctx, '[handleScanISBN] 扫码失败', error)
+    uni.showToast({
+      title: '扫码失败，请重试',
+      icon: 'none'
+    })
+  }
+}
+
+// 处理重新扫描
+const handleRescan = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[handleRescan] 重新扫描')
+  showBookPreview.value = false
+  handleScanISBN()
+}
+
+// 处理书籍添加成功
+const handleBookAdded = async (book: Book) => {
+  const ctx = createContext()
+  logger.info(ctx, '[handleBookAdded] 书籍添加成功', { bookId: book.id })
+  
+  // 刷新书架列表
+  await loadBooks(true)
 }
 
 const addManually = () => {
   const ctx = createContext()
-  logger.debug(ctx, '[addManually] 打开手动添加表单')
-  showManualForm.value = true
-}
-
-const submitBook = async () => {
-  const ctx = createContext()
-  
-  try {
-    loading.value = true
-    logger.debug(ctx, '[submitBook] 开始提交书籍', bookForm)
-    
-    // 表单验证
-    if (!bookForm.title.trim()) {
-      logger.warn(ctx, '[submitBook] 表单验证失败：书名为空')
-      uni.showToast({
-        title: '请输入书名',
-        icon: 'error'
-      })
-      return
-    }
-    
-    // 添加书籍
-    const newBook = await bookStore.createBook({
-      title: bookForm.title.trim(),
-      author: bookForm.author.trim() || undefined,
-      isbn: bookForm.isbn.trim() || undefined
-    })
-    
-    logger.info(ctx, '[submitBook] 书籍添加成功', { bookId: newBook.id, title: newBook.title })
-    
-    // 添加到列表
-    books.value.unshift(newBook)
-    
-    // 重置表单
-    Object.assign(bookForm, {
-      title: '',
-      author: '',
-      isbn: ''
-    })
-    
-    // 关闭弹窗
-    showAddBook.value = false
-    showManualForm.value = false
-    
-    uni.showToast({
-      title: '添加成功',
-      icon: 'success'
-    })
-  } catch (error) {
-    logger.error(ctx, '[submitBook] 添加书籍失败', error)
-    uni.showToast({
-      title: '添加失败',
-      icon: 'error'
-    })
-  } finally {
-    loading.value = false
-  }
+  logger.debug(ctx, '[addManually] 跳转到手动添加页面')
+  showAddBook.value = false
+  uni.navigateTo({
+    url: '/pages-book/add/add'
+  })
 }
 </script>
 
@@ -457,32 +470,8 @@ const submitBook = async () => {
     }
   }
   
-  .manual-form {
-    .form-actions {
-      margin-top: 30px;
-    }
-  }
 }
 
-.fab-button {
-  position: fixed;
-  left: 50%;
-  bottom: 100px; // 避开tabbar
-  transform: translateX(-50%); // 水平居中
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
-  background: var(--cr-color-primary-600);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--cr-shadow-md);
-  z-index: 100;
-  
-  &:active {
-    transform: translateX(-50%) scale(0.95);
-  }
-}
 
 /* 微信小程序特定样式 */
 /* #ifdef MP-WEIXIN */

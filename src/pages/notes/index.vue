@@ -60,18 +60,13 @@
     </PageContainer>
     <TabBar />
 
-    <!-- 悬浮添加按钮 -->
-    <view class="fab-button" @click="goToAddNote">
-      <u-icon name="plus" size="24" color="#fff"></u-icon>
-    </view>
-
     <!-- 加载提示 -->
     <u-loading-page :loading="pageLoading" bg-color="#f5f7fa" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useNoteStore } from '@/stores/modules/note'
 import { useUserStore } from '@/stores/modules/user'
@@ -97,6 +92,7 @@ interface Note {
 
 // Store
 const noteStore = useNoteStore()
+void noteStore
 const userStore = useUserStore()
 
 // 响应式数据
@@ -363,25 +359,6 @@ const formatDate = (dateString: string) => {
   }
 }
 
-.fab-button {
-  position: fixed;
-  left: 50%;
-  bottom: 100px; // 避开tabbar
-  transform: translateX(-50%); // 水平居中
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
-  background: var(--cr-color-primary-600);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--cr-shadow-md);
-  z-index: 100;
-  
-  &:active {
-    transform: translateX(-50%) scale(0.95);
-  }
-}
 
 /* 微信小程序特定样式 */
 /* #ifdef MP-WEIXIN */

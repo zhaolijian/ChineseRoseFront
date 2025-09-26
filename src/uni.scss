@@ -6,7 +6,7 @@
 @import 'uview-plus/theme.scss';
 
 // —— uView Plus 主题主色 ——
-$u-primary: #00a82d; // Emerald 600 主色 - 与设计稿一致
+$u-primary: #2E7D32; // 绿色主题 - 更新为指定色值
 $u-success: #16A34A;
 $u-warning: #F59E0B;
 $u-error:   #DC2626;
@@ -22,10 +22,10 @@ $u-bg-color:       #F9FAFB; // 背景
 // —— 设计令牌（CSS变量）——
 :root {
   /* 主色阶 */
-  --cr-color-primary-700: #047857;
-  --cr-color-primary-600: #00a82d; /* 主色 - 与设计稿完全一致 */
-  --cr-color-primary-500: #10B981; /* hover/弱强调 */
-  --cr-color-primary-50:  #ECFDF5; /* 浅背景 */
+  --cr-color-primary-700: #1B5E20; /* 深绿色 */
+  --cr-color-primary-600: #2E7D32; /* 主色 - 统一主题色 */
+  --cr-color-primary-500: #388E3C; /* hover/弱强调 */
+  --cr-color-primary-50:  #E8F5E9; /* 浅背景 */
 
   /* 语义色 */
   --cr-color-success: #16A34A;

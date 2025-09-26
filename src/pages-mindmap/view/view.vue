@@ -225,6 +225,7 @@ const loadAllMindMaps = async () => {
 }
 
 const loadBookMindMap = async (bookId: number) => {
+  void bookId
   // TODO: 实现获取书籍思维导图的API
   // const mindmap = await mindmapStore.fetchMindMapByBook(bookId)
   // currentMindMap.value = mindmap

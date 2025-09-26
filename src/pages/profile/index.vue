@@ -38,11 +38,6 @@
           <text class="stat-number">{{ stats.noteCount || 0 }}</text>
           <text class="stat-label">条笔记</text>
         </view>
-        <view class="stat-divider"></view>
-        <view class="stat-item" @click="goToMindmaps">
-          <text class="stat-number">{{ stats.mindmapCount || 0 }}</text>
-          <text class="stat-label">个思维导图</text>
-        </view>
       </view>
     </view>
 
@@ -130,7 +125,6 @@ import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/modules/user'
 import { useBookStore } from '@/stores/modules/book'
 import { useNoteStore } from '@/stores/modules/note'
-import { useMindmapStore } from '@/stores/modules/mindmap'
 import { safeHideTabBar } from '@/utils/tabbar'
 import { logger, createContext } from '@/utils'
 import AppNavBar from '@/components/common/AppNavBar.vue'
@@ -147,22 +141,21 @@ interface UserInfo {
 interface Stats {
   bookCount: number
   noteCount: number
-  mindmapCount: number
 }
 
 // Store
 const userStore = useUserStore()
 const bookStore = useBookStore()
 const noteStore = useNoteStore()
-const mindmapStore = useMindmapStore()
+void bookStore
+void noteStore
 
 // 响应式数据
 const pageLoading = ref(false)
 const userInfo = ref<UserInfo>({})
 const stats = reactive<Stats>({
   bookCount: 0,
-  noteCount: 0,
-  mindmapCount: 0
+  noteCount: 0
 })
 const lastSyncTime = ref('')
 const version = ref('1.0.0')
@@ -245,8 +238,7 @@ const loadUserStats = async () => {
     // 模拟数据
     Object.assign(stats, {
       bookCount: 3,
-      noteCount: 15,
-      mindmapCount: 2
+      noteCount: 15
     })
     
     logger.info(ctx, '[loadUserStats] 统计数据加载完成', stats)
@@ -288,13 +280,6 @@ const goToNotes = () => {
   })
 }
 
-const goToMindmaps = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToMindmaps] 切换到思维导图页')
-  uni.switchTab({
-    url: '/pages/mindmap/index'
-  })
-}
 
 const goToSync = () => {
   const ctx = createContext()
@@ -487,7 +472,7 @@ const performLogout = async () => {
     width: 1px;
     height: 30px;
     background: #f0f0f0;
-    margin: 0 20px;
+    margin: 0 30px;
   }
 }
 

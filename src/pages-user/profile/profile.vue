@@ -207,7 +207,7 @@ const changeAvatar = () => {
     count: 1,
     sizeType: ['compressed'],
     sourceType: ['camera', 'album'],
-    success: async (res) => {
+    success: async () => {
       try {
         // TODO: 实现头像上传
         // const avatarUrl = await uploadAvatar(res.tempFilePaths[0])

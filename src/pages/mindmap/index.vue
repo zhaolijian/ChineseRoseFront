@@ -128,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useMindmapStore } from '@/stores/modules/mindmap'
 import { useUserStore } from '@/stores/modules/user'
@@ -155,6 +155,8 @@ interface Mindmap {
 // Store
 const mindmapStore = useMindmapStore()
 const userStore = useUserStore()
+// TODO: 接入真实思维导图接口后移除
+void mindmapStore
 
 // 响应式数据
 const mindmaps = ref<Mindmap[]>([])
