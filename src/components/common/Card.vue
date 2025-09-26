@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+const { title, subtitle, padded } = defineProps<{
   title?: string
   subtitle?: string
   padded?: boolean
@@ -42,4 +42,3 @@ const props = defineProps<{
   <view>主体内容</view>
 </Card>
 -->
-

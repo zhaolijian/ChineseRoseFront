@@ -8,13 +8,20 @@ vi.mock('@dcloudio/uni-app', () => ({
 }))
 
 describe('Logger', () => {
+  const originalEnv = process.env.NODE_ENV
+
   beforeEach(() => {
+    process.env.NODE_ENV = 'development'
     vi.clearAllMocks()
     // Mock console methods
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'debug').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalEnv
   })
 
   describe('日志级别测试', () => {

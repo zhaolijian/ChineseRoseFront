@@ -7,18 +7,16 @@ vi.mock('@/stores/modules/user', () => ({
   useUserStore: vi.fn()
 }))
 
-// Mock uni
-vi.mock('@dcloudio/uni-app', () => ({
-  uni: {
-    getSystemInfoSync: vi.fn()
-  }
-}))
-
 describe('Logger Helpers', () => {
+  const getMockUni = () => (globalThis as any).uni as { getSystemInfoSync: ReturnType<typeof vi.fn> }
+
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2024-01-01 12:00:00'))
+    ;(global as any).uni = {
+      getSystemInfoSync: vi.fn(() => ({ platform: 'android' }))
+    }
   })
 
   afterEach(() => {
@@ -75,7 +73,7 @@ describe('Logger Helpers', () => {
       }
       
       vi.mocked(useUserStore).mockReturnValue(mockUserStore as any)
-      vi.mocked(uni.getSystemInfoSync).mockReturnValue({
+      vi.mocked(getMockUni().getSystemInfoSync).mockReturnValue({
         platform: 'android'
       } as any)
       
@@ -95,7 +93,7 @@ describe('Logger Helpers', () => {
       }
       
       vi.mocked(useUserStore).mockReturnValue(mockUserStore as any)
-      vi.mocked(uni.getSystemInfoSync).mockReturnValue({
+      vi.mocked(getMockUni().getSystemInfoSync).mockReturnValue({
         platform: 'ios'
       } as any)
       
@@ -109,7 +107,7 @@ describe('Logger Helpers', () => {
       vi.mocked(useUserStore).mockImplementation(() => {
         throw new Error('Store error')
       })
-      vi.mocked(uni.getSystemInfoSync).mockReturnValue({
+      vi.mocked(getMockUni().getSystemInfoSync).mockReturnValue({
         platform: 'h5'
       } as any)
       
@@ -120,8 +118,7 @@ describe('Logger Helpers', () => {
     })
 
     it('应该处理获取平台信息异常', () => {
-      vi.mocked(getStorageSync).mockReturnValue(null)
-      vi.mocked(uni.getSystemInfoSync).mockImplementation(() => {
+      vi.mocked(getMockUni().getSystemInfoSync).mockImplementation(() => {
         throw new Error('System info error')
       })
       
@@ -138,7 +135,7 @@ describe('Logger Helpers', () => {
       }
       
       vi.mocked(useUserStore).mockReturnValue(mockUserStore as any)
-      vi.mocked(uni.getSystemInfoSync).mockReturnValue({
+      vi.mocked(getMockUni().getSystemInfoSync).mockReturnValue({
         // platform字段缺失
       } as any)
       

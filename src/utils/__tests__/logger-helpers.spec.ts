@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createContext, generateTraceId, hashUserId } from '../logger-helpers'
 import { useUserStore } from '@/stores/modules/user'
-import type { LogContext } from '../logger'
 
 // Mock uni.getSystemInfoSync
+const mockGetSystemInfoSync = vi.fn(() => ({ platform: 'ios' }))
+
 vi.mock('@dcloudio/uni-app', () => ({
-  getSystemInfoSync: vi.fn(() => ({ platform: 'ios' }))
+  getSystemInfoSync: mockGetSystemInfoSync
 }))
 
 // Mock user store
@@ -16,7 +17,7 @@ vi.mock('@/stores/modules/user', () => ({
 // Mock crypto-js
 vi.mock('crypto-js', () => ({
   default: {
-    MD5: vi.fn((str: string) => ({
+    MD5: vi.fn(() => ({
       toString: () => '0123456789abcdef0123456789abcdef' // 32位固定hash
     }))
   }
@@ -25,6 +26,9 @@ vi.mock('crypto-js', () => ({
 describe('Logger Helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    ;(global as any).uni = {
+      getSystemInfoSync: mockGetSystemInfoSync
+    }
   })
 
   describe('generateTraceId', () => {

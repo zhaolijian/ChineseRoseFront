@@ -195,11 +195,14 @@ class RequestManager {
     
     try {
       // 🔧 修复：清除用户相关的所有存储，使用正确的key
+      uni.removeStorageSync(TOKEN_KEY)
+      uni.removeStorageSync(USER_INFO_KEY)
       uni.removeStorageSync('chinese_rose_token')
       uni.removeStorageSync('chinese_rose_userInfo')
       uni.removeStorageSync('token') // 兼容旧key
       uni.removeStorageSync('user') // 兼容旧key
       uni.removeStorageSync('userInfo') // 兼容旧key
+      clearRequestContext()
       logger.info(ctx, '[redirectToLogin] 已清除用户信息，跳转到登录页')
       // 使用 reLaunch 清空页面栈，避免 navigateTo 频繁调用报超时
       uni.reLaunch({ url: '/pages/login/login' })
@@ -321,6 +324,8 @@ class RequestManager {
       }
 
       throw error
+    } finally {
+      clearRequestContext()
     }
   }
 

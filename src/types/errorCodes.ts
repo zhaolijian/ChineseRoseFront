@@ -87,6 +87,10 @@ export enum ErrorCode {
   ERR_OCR_NO_TEXT_FOUND = 20405,     // OCR未识别到文字
   ERR_OCR_QUOTA_EXCEEDED = 20406,    // OCR配额已超限
   ERR_OCR_SERVICE_UNAVAIL = 20407,   // OCR服务不可用
+  ERR_OCR_TIMEOUT = 20408,           // OCR识别超时
+  ERR_OCR_VK_NOT_SUPPORTED = 20409,  // 设备不支持VisionKit OCR
+  ERR_OCR_IMAGE_PROCESS_ERROR = 20410, // OCR图片处理失败
+  ERR_OCR_RECOGNITION_FAILED = 20411, // OCR文字识别失败
 
   // 2005x - AI服务相关错误
   ERR_AI_FAILED = 20501,             // AI处理失败
@@ -236,6 +240,10 @@ export const ERROR_MESSAGES = {
   [ErrorCode.ERR_OCR_NO_TEXT_FOUND]: '图片中未识别到文字',
   [ErrorCode.ERR_OCR_QUOTA_EXCEEDED]: 'OCR识别次数已用完，请明天再试',
   [ErrorCode.ERR_OCR_SERVICE_UNAVAIL]: 'OCR服务暂时不可用，请稍后重试',
+  [ErrorCode.ERR_OCR_TIMEOUT]: 'OCR识别超时，网络可能不稳定，请重试',
+  [ErrorCode.ERR_OCR_VK_NOT_SUPPORTED]: '当前设备不支持OCR功能，建议手动输入文字内容',
+  [ErrorCode.ERR_OCR_IMAGE_PROCESS_ERROR]: '图片处理失败，可能图片格式不支持，请重试',
+  [ErrorCode.ERR_OCR_RECOGNITION_FAILED]: '文字识别失败，图片可能模糊或文字不清晰，请重试',
 
   // AI服务相关
   [ErrorCode.ERR_AI_FAILED]: 'AI处理失败，请重试',

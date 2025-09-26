@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { logger, LogLevel } from '../logger'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { logger } from '../logger'
 import type { LogContext } from '../logger'
 
 describe('Logger', () => {
+  const originalEnv = process.env.NODE_ENV
   const mockContext: LogContext = {
     traceId: 'test-trace-123',
     userId: 'hashed-user-id',
@@ -11,73 +12,61 @@ describe('Logger', () => {
   }
 
   beforeEach(() => {
+    process.env.NODE_ENV = 'development'
     vi.clearAllMocks()
     // 模拟console方法
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'debug').mockImplementation(() => {})
+    vi.spyOn(Date, 'now').mockReturnValue(1_696_000_000_000)
+  })
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalEnv
+    vi.restoreAllMocks()
   })
 
   describe('日志级别测试', () => {
     it('应该正确输出error级别日志', () => {
       logger.error(mockContext, '[testMethod] 错误信息')
-      
-      expect(console.error).toHaveBeenCalledWith(
-        expect.stringContaining('[ERROR]'),
-        '[testMethod] 错误信息',
-        expect.objectContaining({
-          traceId: mockContext.traceId,
-          userId: mockContext.userId,
-          platform: mockContext.platform
-        }),
-        undefined
-      )
+
+      const [prefix, context, extra] = (console.error as any).mock.calls[0]
+      expect(prefix).toContain('[ERROR]')
+      expect(prefix).toContain('[test-trace-123]')
+      expect(prefix).toContain('[testMethod] 错误信息')
+      expect(context).toEqual(expect.objectContaining(mockContext))
+      expect(extra).toBeUndefined()
     })
 
     it('应该正确输出warn级别日志', () => {
       logger.warn(mockContext, '[testMethod] 警告信息')
-      
-      expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('[WARN]'),
-        '[testMethod] 警告信息',
-        expect.objectContaining({
-          traceId: mockContext.traceId,
-          userId: mockContext.userId,
-          platform: mockContext.platform
-        }),
-        undefined
-      )
+
+      const [prefix, context, extra] = (console.warn as any).mock.calls[0]
+      expect(prefix).toContain('[WARN]')
+      expect(prefix).toContain('[testMethod] 警告信息')
+      expect(context).toEqual(expect.objectContaining(mockContext))
+      expect(extra).toBeUndefined()
     })
 
     it('应该正确输出info级别日志', () => {
       logger.info(mockContext, '[testMethod] 信息')
-      
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('[INFO]'),
-        '[testMethod] 信息',
-        expect.objectContaining({
-          traceId: mockContext.traceId,
-          userId: mockContext.userId,
-          platform: mockContext.platform
-        }),
-        undefined
-      )
+
+      const [prefix, context, extra] = (console.log as any).mock.calls[0]
+      expect(prefix).toContain('[INFO]')
+      expect(prefix).toContain('[testMethod] 信息')
+      expect(context).toEqual(expect.objectContaining(mockContext))
+      expect(extra).toBeUndefined()
     })
 
     it('应该正确输出debug级别日志', () => {
       logger.debug(mockContext, '[testMethod] 调试信息')
-      
-      expect(console.debug).toHaveBeenCalledWith(
-        expect.stringContaining('[DEBUG]'),
-        '[testMethod] 调试信息',
-        expect.objectContaining({
-          traceId: mockContext.traceId,
-          userId: mockContext.userId,
-          platform: mockContext.platform
-        }),
-        undefined
-      )
+
+      const [prefix, context, extra] = (console.debug as any).mock.calls[0]
+      expect(prefix).toContain('[DEBUG]')
+      expect(prefix).toContain('[testMethod] 调试信息')
+      expect(context).toEqual(expect.objectContaining(mockContext))
+      expect(extra).toBeUndefined()
     })
   })
 
@@ -86,8 +75,8 @@ describe('Logger', () => {
       logger.info(mockContext, '[testMethod] 测试')
       
       const callArgs = (console.log as any).mock.calls[0]
-      const loggedContext = callArgs[2]
-      
+      const loggedContext = callArgs[1]
+
       expect(loggedContext).toHaveProperty('traceId')
       expect(loggedContext).toHaveProperty('userId')
       expect(loggedContext).toHaveProperty('timestamp')
@@ -103,7 +92,7 @@ describe('Logger', () => {
       logger.info(contextWithEmptyUser, '[testMethod] 未登录用户')
       
       const callArgs = (console.log as any).mock.calls[0]
-      const loggedContext = callArgs[2]
+      const loggedContext = callArgs[1]
       
       expect(loggedContext.userId).toBe('')
     })
@@ -124,9 +113,9 @@ describe('Logger', () => {
       logger.info(mockContext, '[testMethod] 这是日志内容')
       
       const callArgs = (console.log as any).mock.calls[0]
-      const message = callArgs[1]
+      const prefix = callArgs[0]
       
-      expect(message).toBe('[testMethod] 这是日志内容')
+      expect(prefix).toContain('[testMethod] 这是日志内容')
     })
   })
 

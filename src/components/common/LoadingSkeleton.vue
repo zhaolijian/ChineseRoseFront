@@ -5,17 +5,11 @@
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
-  variant?: 'list' | 'card'
+const { rows = 3, title = true, avatar = false } = defineProps<{
   rows?: number
   title?: boolean
   avatar?: boolean
-}>(), {
-  variant: 'list',
-  rows: 3,
-  title: true,
-  avatar: false
-})
+}>()
 
 // 当前封装直接透传，variant 预留用于后续布局差异（如卡片骨架）
 </script>
@@ -25,4 +19,3 @@ const props = withDefaults(defineProps<{
 <!-- 最小用法示例：
 <LoadingSkeleton variant="list" :rows="4" />
 -->
-

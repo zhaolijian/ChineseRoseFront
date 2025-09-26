@@ -66,7 +66,7 @@ class StorageManager {
       let rawData: string | null = null
       
       // #ifdef MP-WEIXIN
-      rawData = await new Promise((resolve, reject) => {
+      rawData = await new Promise((resolve) => {
         wx.getStorage({
           key: this.prefix + key,
           success: (res) => resolve(res.data),
@@ -355,7 +355,7 @@ class StorageManager {
 
   // App端存储实现
   private async saveToAppStorage(fileName: string, content: string): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       // 这里应该使用plus.io.requestFileSystem
       // 简化处理
       plus.storage.setItem(`file_${fileName}`, content)
