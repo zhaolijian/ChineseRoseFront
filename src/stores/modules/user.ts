@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getStorage, setStorage, removeStorage } from '@/utils/storage'
 import { logger, createContext } from '@/utils'
-import { wechatCodeLogin as apiWechatCodeLogin, smsLogin as apiSmsLogin, sendSMSCode as apiSendSMSCode, getUserInfo, updateUserInfo as apiUpdateUserInfo, logout as apiLogout, wechatPhoneLogin } from '@/api/modules/auth'
+import { base64Decode } from '@/utils/base64'
+import { wechatCodeLogin as apiWechatCodeLogin, smsLogin as apiSmsLogin, sendSMSCode as apiSendSMSCode, getUserInfo, updateUserInfo as apiUpdateUserInfo, logout as apiLogout, wechatQuickLogin as apiWechatQuickLogin } from '@/api/modules/auth'
 import type { WeChatLoginData, PhoneLoginData, LoginResponse, UserInfo } from '@/api/modules/auth'
 import type { ApiResponse } from '@/types'
 import { ErrorCode, getFriendlyErrorMessage } from '@/types/errorCodes'
@@ -106,7 +107,7 @@ export const useUserStore = defineStore('user', () => {
 
       try {
         // 解析JWT header验证基本结构
-        const header = JSON.parse(atob(parts[0]))
+        const header = JSON.parse(base64Decode(parts[0]))
         if (!header.alg || !header.typ) {
           logger.debug(ctx, '[validateToken] JWT header格式无效')
           return false
@@ -119,7 +120,7 @@ export const useUserStore = defineStore('user', () => {
         }
 
         // 解析JWT payload验证业务字段
-        const payload = JSON.parse(atob(parts[1]))
+        const payload = JSON.parse(base64Decode(parts[1]))
 
         // 检查必需的业务字段（基于我们的Claims结构）
         if (!payload.user_id || typeof payload.user_id !== 'number') {
@@ -300,61 +301,48 @@ export const useUserStore = defineStore('user', () => {
     logger.debug(ctx, '[preLoginCheck] 当前未登录，可以进行登录')
   }
 
-  // 微信手机号快捷登录
-  const wechatLogin = async (params: { code: string; encryptedData: string; iv: string }): Promise<void> => {
+  // 微信手机号快捷登录（2025最佳实践 - 双code方式）
+  const wechatQuickLogin = async (loginCode: string, phoneCode: string): Promise<void> => {
     const ctx = createContext()
-    
-    logger.info(ctx, '[wechatLogin] 开始微信手机号快捷登录流程')
+
+    logger.info(ctx, '[wechatQuickLogin] 开始微信一键登录流程（双code方式）')
 
     // 参数验证
-    if (!params.code || !params.encryptedData || !params.iv) {
-      logger.error(ctx, '[wechatLogin] 登录参数不完整', params)
-      throw new BusinessError(ErrorCode.ERR_INVALID_PARAMS, '获取手机号失败，请重试')
+    if (!loginCode || !phoneCode) {
+      logger.error(ctx, '[wechatQuickLogin] 登录参数不完整', { loginCode: !!loginCode, phoneCode: !!phoneCode })
+      throw new BusinessError(ErrorCode.ERR_INVALID_PARAMS, '获取登录信息失败，请重试')
     }
 
     // 原子性检查并设置登录锁 - 防重复登录
     if (loginLock) {
-      logger.warn(ctx, '[wechatLogin] 登录正在进行中，拒绝重复请求')
+      logger.warn(ctx, '[wechatQuickLogin] 登录正在进行中，拒绝重复请求')
       throw new BusinessError(ErrorCode.ERR_OPERATION_IN_PROGRESS)
     }
     loginLock = true // 立即设置锁，避免竞态条件
-    logger.debug(ctx, '[wechatLogin] 已设置登录锁')
+    logger.debug(ctx, '[wechatQuickLogin] 已设置登录锁')
 
     try {
       // 登录前状态检查 - 防止重复登录
       await preLoginCheck()
 
-      // 显示loading状态
-      uni.showLoading({ title: '登录中...', mask: true })
+      // 调用后端微信一键登录接口（双code方式）
+      logger.debug(ctx, '[wechatQuickLogin] 调用后端微信一键登录接口')
 
-      // 调用后端微信手机号登录接口
-      logger.debug(ctx, '[wechatLogin] 调用后端微信手机号登录接口', params)
+      const apiResult = await apiWechatQuickLogin(loginCode, phoneCode)
 
-      const apiResult = await wechatPhoneLogin(params)
-
-      logger.info(ctx, '[wechatLogin] 微信手机号登录成功', { userId: apiResult.user.id })
+      logger.info(ctx, '[wechatQuickLogin] 微信一键登录成功', { userId: apiResult.user.id })
 
       // 保存登录信息
       await saveUserInfo(apiResult.token, apiResult.user)
 
-      logger.debug(ctx, '[wechatLogin] 用户信息已保存')
-      logger.info(ctx, '[wechatLogin] 微信手机号快捷登录流程成功!')
-
-      // 隐藏loading
-      uni.hideLoading()
+      logger.debug(ctx, '[wechatQuickLogin] 用户信息已保存')
+      logger.info(ctx, '[wechatQuickLogin] 微信一键登录流程成功!')
 
     } catch (error: any) {
-      logger.error(ctx, '[wechatLogin] 微信手机号登录失败', error)
-
-      // 隐藏loading
-      uni.hideLoading()
+      logger.error(ctx, '[wechatQuickLogin] 微信一键登录失败', error)
 
       // 如果是 BusinessError，直接使用其错误码和消息
       if (error instanceof BusinessError) {
-        uni.showToast({
-          title: error.message,
-          icon: 'none'
-        })
         throw error
       }
 
@@ -371,19 +359,43 @@ export const useUserStore = defineStore('user', () => {
       }
 
       const businessError = new BusinessError(errorCode)
-      uni.showToast({
-        title: businessError.message,
-        icon: 'none'
-      })
-
       throw businessError
     } finally {
       // 释放登录锁 - 无论成功还是失败都要释放
       loginLock = false
-      logger.debug(ctx, '[wechatLogin] 已释放登录锁')
+      logger.debug(ctx, '[wechatQuickLogin] 已释放登录锁')
     }
   }
-  
+
+
+  // 开发环境模拟登录，避免本地调试受限
+  const devBypassLogin = async (phone: string): Promise<ApiResponse> => {
+    if (!import.meta.env.DEV) {
+      throw new BusinessError(ErrorCode.ERR_FORBIDDEN, '仅允许在开发环境使用测试登录')
+    }
+    const ctx = createContext()
+    const sanitizedPhone = (phone && phone.trim()) || '19900000000'
+    const nowIso = new Date().toISOString()
+    const mockUser: UserInfo = {
+      id: 999999,
+      phone: sanitizedPhone,
+      nickname: '开发模式账号',
+      avatar_url: '/static/images/default-avatar.png',
+      created_at: nowIso,
+      updated_at: nowIso
+    }
+    const devToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo5OTk5OTksImV4cCI6MTg5MzQ1NjAwMCwiaWF0IjoxNzAwMDAwMDAwLCJuYmYiOjE3MDAwMDAwMDB9.devsignature'
+
+    await saveUserInfo(devToken, mockUser)
+    logger.info(ctx, '[devBypassLogin] 开发环境模拟登录成功', { phone: sanitizedPhone })
+    return {
+      code: 0,
+      message: '开发模式登录成功',
+      data: { token: devToken, user: mockUser },
+      success: true
+    }
+  }
+
   // 手机号登录
   const loginWithPhone = async (params: PhoneLoginData): Promise<ApiResponse> => {
     const ctx = createContext()
@@ -618,8 +630,9 @@ export const useUserStore = defineStore('user', () => {
     // 方法
     initUserInfo,
     loginWithWeChat,
-    wechatLogin, // 调试版微信登录
+    wechatQuickLogin, // 微信一键登录（2025最佳实践）
     loginWithPhone,
+    devBypassLogin,
     sendSMSCode,
     fetchUserInfo,
     updateUserInfo,

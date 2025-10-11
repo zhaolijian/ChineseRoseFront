@@ -85,6 +85,7 @@
 import { ref, watch } from 'vue'
 import { createBook } from '@/api/modules/book'
 import { logger, createContext } from '@/utils'
+import { ensureLoggedIn } from '@/utils/auth-guard'
 import type { Book } from '@/api/modules/book'
 
 // 扩展Book类型以包含description
@@ -136,11 +137,18 @@ const handleRescan = () => {
 
 const handleAddToShelf = async () => {
   const ctx = createContext()
-  
+
+  // ADR-007 P0守卫：添加到书架需要登录
+  const canProceed = await ensureLoggedIn('添加书籍')
+  if (!canProceed) {
+    show.value = false
+    return
+  }
+
   try {
     loading.value = true
     logger.info(ctx, '[BookPreview] 开始添加书籍到书架', { isbn: props.book.isbn })
-    
+
     // 准备创建书籍的数据
     const createData = {
       title: props.book.title,
@@ -151,7 +159,7 @@ const handleAddToShelf = async () => {
       coverUrl: props.book.coverUrl,
       source: 'isbn_api' as const
     }
-    
+
     const newBook = await createBook(createData)
     
     logger.info(ctx, '[BookPreview] 书籍添加成功', { bookId: newBook.id })

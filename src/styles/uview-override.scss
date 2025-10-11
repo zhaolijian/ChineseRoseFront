@@ -1,0 +1,337 @@
+// uview-override.scss - uView组件样式覆盖
+// 基于设计令牌系统定制uView组件
+
+@import './design-tokens.scss';
+@import './effects.scss';
+
+// ===========================
+// 1. 全局覆盖
+// ===========================
+
+// 统一圆角风格
+.u-border-top-left-radius,
+.u-border-top-right-radius {
+  border-radius: map-get($cr-radius, base) map-get($cr-radius, base) 0 0 !important;
+}
+
+.u-border-bottom-left-radius,
+.u-border-bottom-right-radius {
+  border-radius: 0 0 map-get($cr-radius, base) map-get($cr-radius, base) !important;
+}
+
+// ===========================
+// 2. Button 组件
+// ===========================
+
+.u-button {
+  &--primary {
+    background: map-get($cr-gradient, primary) !important;
+    border: none !important;
+    @include cr-shadow('sm', rgba(0, 168, 45, 0.2));
+    
+    &:active {
+      opacity: 0.9;
+      @include cr-shadow('xs', rgba(0, 168, 45, 0.2));
+    }
+    
+    // 禁用态
+    &--disabled {
+      opacity: 0.6;
+      box-shadow: none !important;
+    }
+  }
+  
+  &--plain {
+    &--primary {
+      color: map-get($cr-colors, primary) !important;
+      border-color: map-get($cr-colors, primary) !important;
+      background: transparent !important;
+      
+      &:active {
+        background: map-get($cr-colors, primary-bg) !important;
+      }
+    }
+  }
+  
+  // 统一圆角
+  &--square {
+    border-radius: map-get($cr-component-radius, button) !important;
+  }
+  
+  &--circle {
+    border-radius: map-get($cr-radius, full) !important;
+  }
+}
+
+// ===========================
+// 3. Cell 组件
+// ===========================
+
+.u-cell {
+  padding: map-get($cr-spacing, lg) map-get($cr-spacing, xl) !important;
+  
+  &-group {
+    @include cr-card(false);
+    overflow: hidden;
+  }
+  
+  &__body {
+    padding: 0 !important;
+  }
+  
+  &__title {
+    color: map-get($cr-colors, text-primary) !important;
+    font-weight: map-get($cr-font-weight, medium);
+  }
+  
+  &__value {
+    color: map-get($cr-colors, text-secondary) !important;
+  }
+  
+  // 点击效果
+  &--clickable {
+    &:active {
+      background-color: map-get($cr-colors, bg-page) !important;
+    }
+  }
+}
+
+// ===========================
+// 4. Badge 组件
+// ===========================
+
+.u-badge {
+  &--primary {
+    background: map-get($cr-colors, primary) !important;
+    @include cr-shadow('xs', rgba(0, 168, 45, 0.3));
+  }
+  
+  &--error {
+    @include cr-shadow('xs', rgba(255, 77, 79, 0.3));
+  }
+  
+  // 点状徽标增强
+  &--dot {
+    width: 16rpx !important;
+    height: 16rpx !important;
+    @include cr-shadow('sm');
+  }
+}
+
+// ===========================
+// 5. Avatar 组件
+// ===========================
+
+.u-avatar {
+  @include cr-shadow('sm');
+  
+  // 大头像增强阴影
+  &--lg {
+    @include cr-shadow('base');
+  }
+  
+  // VIP头像边框
+  &--vip {
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: -4rpx;
+      left: -4rpx;
+      right: -4rpx;
+      bottom: -4rpx;
+      border-radius: inherit;
+      background: map-get(map-get($cr-badge, colors), vip);
+      z-index: -1;
+    }
+  }
+}
+
+// ===========================
+// 6. Card 组件
+// ===========================
+
+.u-card {
+  @include cr-card(false);
+  overflow: hidden;
+  
+  &__head {
+    padding: map-get($cr-spacing, lg) !important;
+    background: map-get($cr-colors, bg-page);
+  }
+  
+  &__body {
+    padding: map-get($cr-spacing, lg) !important;
+  }
+  
+  &__foot {
+    padding: map-get($cr-spacing, lg) !important;
+    background: map-get($cr-colors, bg-page);
+  }
+}
+
+// ===========================
+// 7. Tag 组件
+// ===========================
+
+.u-tag {
+  border-radius: map-get($cr-component-radius, tag) !important;
+  font-weight: map-get($cr-font-weight, medium);
+  
+  &--primary {
+    background: map-get($cr-colors, primary-bg) !important;
+    color: map-get($cr-colors, primary) !important;
+    border-color: transparent !important;
+  }
+  
+  &--plain {
+    &--primary {
+      background: transparent !important;
+      border-color: map-get($cr-colors, primary) !important;
+    }
+  }
+}
+
+// ===========================
+// 8. Icon 组件
+// ===========================
+
+.u-icon {
+  &--primary {
+    color: map-get($cr-colors, primary) !important;
+  }
+}
+
+// ===========================
+// 9. Modal/Popup 组件
+// ===========================
+
+.u-popup {
+  &__content {
+    @include cr-card();
+    
+    /* #ifndef MP */
+    @include cr-glass('md', 0.95);
+    /* #endif */
+  }
+}
+
+.u-modal {
+  &__content {
+    border-radius: map-get($cr-radius, lg) !important;
+    @include cr-shadow('lg');
+  }
+}
+
+// ===========================
+// 10. Input 组件
+// ===========================
+
+.u-input {
+  &__input {
+    &:focus {
+      @include cr-input-focus();
+    }
+  }
+  
+  &--border {
+    border-color: map-get($cr-colors, border-base) !important;
+    border-radius: map-get($cr-component-radius, input) !important;
+    
+    &:focus-within {
+      @include cr-input-focus();
+    }
+  }
+}
+
+// ===========================
+// 11. Navbar 组件
+// ===========================
+
+.u-navbar {
+  /* #ifndef MP */
+  @include cr-glass('base', 0.9);
+  /* #endif */
+  
+  @include cr-shadow('sm');
+  
+  &__content {
+    &__title {
+      font-weight: map-get($cr-font-weight, semibold) !important;
+      color: map-get($cr-colors, text-primary) !important;
+    }
+  }
+}
+
+// ===========================
+// 12. Tabs 组件
+// ===========================
+
+.u-tabs {
+  &__wrapper {
+    @include cr-shadow('xs');
+    background: map-get($cr-colors, bg-container) !important;
+  }
+  
+  &__item {
+    &--active {
+      color: map-get($cr-colors, primary) !important;
+      font-weight: map-get($cr-font-weight, semibold);
+    }
+  }
+  
+  &__line {
+    background: map-get($cr-colors, primary) !important;
+    height: 6rpx !important;
+    border-radius: map-get($cr-radius, full) !important;
+    bottom: 4rpx !important;
+  }
+}
+
+// ===========================
+// 13. List 组件
+// ===========================
+
+.u-list {
+  &-item {
+    @include cr-card();
+    margin-bottom: map-get($cr-spacing, md);
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// ===========================
+// 14. Loading 组件
+// ===========================
+
+.u-loading {
+  &--primary {
+    .u-loading__spinner {
+      border-color: map-get($cr-colors, primary-bg) !important;
+      border-top-color: map-get($cr-colors, primary) !important;
+    }
+  }
+}
+
+// ===========================
+// 15. Toast 组件
+// ===========================
+
+.u-toast {
+  &__content {
+    /* #ifndef MP */
+    @include cr-glass('md', 0.9);
+    /* #endif */
+    
+    /* #ifdef MP */
+    background: rgba(0, 0, 0, 0.8) !important;
+    /* #endif */
+    
+    @include cr-shadow('lg');
+    border-radius: map-get($cr-radius, lg) !important;
+  }
+}

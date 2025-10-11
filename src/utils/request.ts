@@ -4,6 +4,8 @@ import { logger } from './logger'
 import { createRequestContext, clearRequestContext } from './logger-helpers'
 import type { LogContext } from './logger'
 import { DEFAULT_REQUEST_TIMEOUT, REDIRECT_THROTTLE_TIME, TOKEN_KEY, USER_INFO_KEY } from '@/constants'
+import { handleError } from './error-handler'
+import { isAuthError } from '@/types/errorCodes'
 
 // 请求配置
 interface RequestConfig {
@@ -41,23 +43,67 @@ class RequestManager {
   private setBaseURL() {
     // H5 走同域代理；小程序直连后端（注意合法域名）
     // 可通过环境变量覆盖：VITE_API_BASE
-    const envBase = (import.meta as any).env?.VITE_API_BASE
-    if (envBase) {
-      this.baseURL = envBase
+    const env = (import.meta as any).env ?? {}
+    const envBase = env.VITE_API_BASE as string | undefined
+
+    const ctx = createRequestContext()
+    logger.debug(ctx, '[setBaseURL] 环境变量检查', {
+      VITE_API_BASE: envBase,
+      MODE: env.MODE,
+      DEV: env.DEV
+    })
+
+    // 小程序开发环境（微信开发者工具、调试版）需要走HTTP本地/内网地址，否则会因HTTPS证书缺失导致 TLS 错误
+    // 提供环境变量覆盖：VITE_API_BASE_MP_DEV；若未配置，默认回退到 http://127.0.0.1:8080/api
+    // 该代码在其它平台会被 tree-shaking 掉（#ifdef）
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const mpDevFallback = (env.VITE_API_BASE_MP_DEV || env.VITE_API_BASE_DEV || 'http://127.0.0.1:8080/api') as string
+
+    // #ifdef MP-WEIXIN
+    let isWechatDevtools = false
+    try {
+      const systemInfo = uni.getSystemInfoSync?.()
+      if (systemInfo?.platform === 'devtools') {
+        isWechatDevtools = true
+        logger.debug(ctx, '[setBaseURL] 检测到微信开发者工具 platform=devtools')
+      }
+      const accountInfo = uni.getAccountInfoSync?.()
+      const envVersion = accountInfo?.miniProgram?.envVersion
+      if (envVersion === 'develop' || envVersion === 'trial') {
+        isWechatDevtools = true
+        logger.debug(ctx, `[setBaseURL] envVersion=${envVersion}，视为调试环境`)
+      }
+    } catch (error) {
+      logger.warn(ctx, '[setBaseURL] 检测小程序运行环境失败', error)
+    }
+
+    if (isWechatDevtools) {
+      this.baseURL = mpDevFallback || envBase || 'http://127.0.0.1:8080/api'
+      logger.warn(ctx, `[setBaseURL] 微信调试环境强制使用调试基址: ${this.baseURL}`)
       return
     }
+    // #endif
+
+    if (envBase) {
+      this.baseURL = envBase
+      logger.info(ctx, `[setBaseURL] 使用环境变量配置: ${this.baseURL}`)
+      return
+    }
+
     // #ifdef H5
     this.baseURL = '/api'
+    logger.info(ctx, '[setBaseURL] H5模式使用代理: /api')
     // #endif
     // #ifdef MP-WEIXIN
-    this.baseURL = 'http://127.0.0.1:8080/api' // 开发期：可在开发者工具勾选"忽略合法域名校验"；生产请改为 https://your.domain/api
+    this.baseURL = 'http://127.0.0.1:8080/api'
+    logger.info(ctx, '[setBaseURL] 小程序默认地址: http://127.0.0.1:8080/api')
     // #endif
     // #ifndef H5 && !MP-WEIXIN
     this.baseURL = 'http://127.0.0.1:8080/api'
+    logger.info(ctx, '[setBaseURL] 其他平台默认地址: http://127.0.0.1:8080/api')
     // #endif
-    
-    const ctx = createRequestContext()
-    logger.info(ctx, `[setBaseURL] baseURL设置为: ${this.baseURL}`)
+
+    logger.info(ctx, `[setBaseURL] 最终baseURL: ${this.baseURL}`)
   }
 
   private setupDefaultInterceptors() {
@@ -108,24 +154,25 @@ class RequestManager {
     // 响应拦截器：统一处理响应 - 简化版本
     this.addResponseInterceptor((response) => {
       const { statusCode, data } = response
-      
+
       const ctx = (response.config as RequestConfig)?.logContext || createRequestContext()
       logger.info(ctx, `[addResponseInterceptor] 响应状态码: ${statusCode}`)
 
-      // 处理HTTP层面的401
-      if (statusCode === 401) {
-        logger.warn(ctx, '[addResponseInterceptor] HTTP 401未授权，跳转登录')
+      // 处理HTTP层面的401和403 - 认证失败（ADR-007: 懒验证机制）
+      // 只在API调用遇到401/403时才清除登录状态，其他错误（网络、5xx）不改变登录状态
+      if (statusCode === 401 || statusCode === 403) {
+        logger.warn(ctx, `[addResponseInterceptor] HTTP ${statusCode} 认证失败，清除登录状态并跳转登录`)
         this.redirectToLogin()
-        return Promise.reject({ code: 401, message: '未授权' })
+        return Promise.reject({ code: statusCode, message: statusCode === 401 ? '登录已过期，请重新登录' : '访问被拒绝' })
       }
-      
+
       // 检查响应数据格式
       if (!data || typeof data.code === 'undefined') {
         logger.error(ctx, '[addResponseInterceptor] 响应数据格式异常', data)
         uni.showToast({ title: '服务器响应格式异常', icon: 'none' })
         return Promise.reject({ code: -1, message: '响应格式异常' })
       }
-      
+
       // 简化成功判断：仅 code === 0 表示成功
       if (data.code === 0) {
         logger.debug(ctx, '[addResponseInterceptor] 请求成功')
@@ -160,39 +207,30 @@ class RequestManager {
     this.errorInterceptors.push(interceptor)
   }
 
-  // 处理业务错误 - 简化版本，与后端保持1对1对应
+  // 处理业务错误 - 使用统一的错误处理器
   private handleBusinessError(data: any) {
     const errorCode = data?.code || 0
-    const errorMessage = data?.message || '未知错误'
     
     const ctx = createRequestContext()
-    logger.warn(ctx, `[handleBusinessError] 业务错误 - 码: ${errorCode}, 信息: ${errorMessage}`)
+    logger.warn(ctx, `[handleBusinessError] 业务错误`, data)
     
-    // 特殊处理：token过期，跳转登录
-    if (errorCode === 10102) {
-      logger.info(ctx, '[handleBusinessError] Token过期，跳转登录页面')
-      this.redirectToLogin()
-      return
-    }
-    
-    // 其他所有非0错误码：显示错误消息
-    uni.showToast({
-      title: errorMessage,
-      icon: 'none',
-      duration: 2000
+    // 使用统一的错误处理器
+    handleError(data, {
+      showToast: true,
+      needLogin: isAuthError(errorCode)
     })
   }
 
   // 未授权跳转登录（带防抖）
   private redirectToLogin() {
     const ctx = createRequestContext()
-    
+
     if (isRedirectingToLogin) {
       logger.warn(ctx, '[redirectToLogin] 正在跳转中，忽略重复请求')
       return
     }
     isRedirectingToLogin = true
-    
+
     try {
       // 🔧 修复：清除用户相关的所有存储，使用正确的key
       uni.removeStorageSync(TOKEN_KEY)
@@ -203,6 +241,21 @@ class RequestManager {
       uni.removeStorageSync('user') // 兼容旧key
       uni.removeStorageSync('userInfo') // 兼容旧key
       clearRequestContext()
+
+      // 清除Pinia store的内存状态
+      try {
+        // 动态导入避免循环依赖
+        import('@/stores/modules/user').then(module => {
+          const { useUserStore } = module
+          const userStore = useUserStore()
+          userStore.token = ''
+          userStore.userInfo = null
+          logger.debug(ctx, '[redirectToLogin] 已清除store状态')
+        })
+      } catch (error) {
+        logger.warn(ctx, '[redirectToLogin] 清除store状态失败（非致命错误）', error)
+      }
+
       logger.info(ctx, '[redirectToLogin] 已清除用户信息，跳转到登录页')
       // 使用 reLaunch 清空页面栈，避免 navigateTo 频繁调用报超时
       uni.reLaunch({ url: '/pages/login/login' })
@@ -211,23 +264,23 @@ class RequestManager {
     }
   }
 
-  // 处理网络错误
+  // 处理网络错误 - 使用统一的错误处理器
   private handleNetworkError(error: any) {
     const ctx = createRequestContext()
     logger.error(ctx, '[handleNetworkError] 网络请求错误', error)
     
-    let message = '网络错误'
-    if (error.errMsg) {
-      if (error.errMsg.includes('timeout')) {
-        message = '请求超时'
-      } else if (error.errMsg.includes('network')) {
-        message = '网络连接失败'
+    // 使用统一的错误处理器，支持重试
+    handleError(error, {
+      showToast: true,
+      canRetry: true,
+      retryCallback: () => {
+        // 重试最后一次请求
+        const pages = getCurrentPages()
+        const currentPage = pages[pages.length - 1]
+        if (currentPage && currentPage.onLoad) {
+          currentPage.onLoad(currentPage.options)
+        }
       }
-    }
-    
-    uni.showToast({
-      title: message,
-      icon: 'none'
     })
   }
 

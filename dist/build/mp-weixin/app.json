@@ -1,0 +1,92 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/login/phone-login",
+    "pages/notes/index",
+    "pages/mindmap/index",
+    "pages/profile/index"
+  ],
+  "subPackages": [
+    {
+      "root": "pages-book",
+      "pages": [
+        "detail/detail",
+        "add/add"
+      ]
+    },
+    {
+      "root": "pages-note",
+      "pages": [
+        "add/add",
+        "edit/edit",
+        "list/list",
+        "ocr/ocr"
+      ]
+    },
+    {
+      "root": "pages-mindmap",
+      "pages": [
+        "create/create",
+        "view/view"
+      ]
+    },
+    {
+      "root": "pages-user",
+      "pages": [
+        "profile/profile"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarTitleText": "阅记",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F9FAFB",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#2E7D32",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "书架",
+        "iconPath": "static/images/tabbar/bookshelf.png",
+        "selectedIconPath": "static/images/tabbar/bookshelf-active.png"
+      },
+      {
+        "pagePath": "pages/notes/index",
+        "text": "笔记",
+        "iconPath": "static/images/tabbar/note.png",
+        "selectedIconPath": "static/images/tabbar/note-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "static/images/tabbar/profile.png",
+        "selectedIconPath": "static/images/tabbar/profile-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于小程序位置接口的效果展示"
+    },
+    "scope.camera": {
+      "desc": "用于拍照识别纸质书笔记"
+    },
+    "scope.album": {
+      "desc": "用于选择图片识别纸质书笔记"
+    },
+    "scope.writePhotosAlbum": {
+      "desc": "用于保存识别结果和思维导图"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "lazyCodeLoading": "requiredComponents",
+  "usingComponents": {}
+}

@@ -38,3 +38,5 @@ uploads/
 
 # 错误报告
 error-report.txt
+# Test coverage
+coverage/

@@ -1,0 +1,324 @@
+// 书架页面设计令牌 - 100%还原Figma Make设计
+// 数据来源：https://www.figma.com/make/WpRJCjULqwmrE5OhPHT9Ql
+// 页面：BooksPage.tsx
+// 更新日期：2025-10-10
+
+// ===========================
+// Figma Make 颜色系统（从globals.css和BooksPage提取）
+// ===========================
+
+$bookshelf-colors: (
+  // 主色：品牌绿色（继承globals.css:12 --primary）
+  primary: #00a82d,
+
+  // 深主色：用于按钮hover状态（主色的90%明度）
+  primary-dark: #008523,
+
+  // 浅主色：用于背景和标签（主色的10%透明度）
+  primary-light: rgba(0, 168, 45, 0.1),
+
+  // 前景色：深灰色文字（globals.css:10 --foreground）
+  foreground: #333333,
+
+  // 背景色：浅灰色背景（globals.css:9 --background）
+  background: #fafafa,
+
+  // 卡片背景：纯白色
+  card-background: #ffffff,
+
+  // 边框色：主色半透明（globals.css:16 --border）
+  border: rgba(0, 168, 45, 0.12),
+
+  // 分隔线：中性灰
+  divider: #f0f0f0,
+
+  // 次要文字色（globals.css:15 --muted-foreground）
+  muted-foreground: #666666,
+
+  // 标题文字色（BooksPage.tsx）
+  title: #111827,
+
+  // 辅助文字色（作者、笔记数等）
+  secondary-text: #6b7280,
+
+  // 浅灰文字（占位符等）
+  gray-text: #999999,
+
+  // 成功色（添加书籍成功提示）
+  success: #00a82d,
+
+  // 警告色（删除提示）
+  danger: #ff6b6b,
+
+  // 阴影色（卡片阴影）
+  shadow: rgba(0, 0, 0, 0.06)
+);
+
+// ===========================
+// Figma Make 字体系统（精确转换）
+// ===========================
+
+$bookshelf-font-sizes: (
+  // text-xs: 0.75rem → 24rpx（笔记数、标签）
+  xs: 24rpx,
+
+  // text-sm: 0.875rem → 28rpx（作者名、辅助信息）
+  sm: 28rpx,
+
+  // text-base: 1rem → 32rpx（书名）
+  base: 32rpx,
+
+  // text-lg: 1.125rem → 36rpx（页面标题）
+  lg: 36rpx,
+
+  // text-xl: 1.25rem → 40rpx（空状态标题）
+  xl: 40rpx
+);
+
+$bookshelf-font-weights: (
+  normal: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700
+);
+
+$bookshelf-line-heights: (
+  tight: 1.2,
+  normal: 1.4,
+  relaxed: 1.6,
+  loose: 1.8
+);
+
+// ===========================
+// Figma Make 间距系统（Tailwind → rpx精确转换）
+// ===========================
+
+$bookshelf-spacing: (
+  // space-1: 4px → 8rpx
+  xs: 8rpx,
+
+  // space-2: 8px → 16rpx（卡片内边距、小间距）
+  sm: 16rpx,
+
+  // space-3: 12px → 24rpx（元素间距）
+  md: 24rpx,
+
+  // space-4: 16px → 32rpx（卡片padding、列表间距）
+  lg: 32rpx,
+
+  // space-5: 20px → 40rpx
+  xl: 40rpx,
+
+  // space-6: 24px → 48rpx（section间距）
+  xxl: 48rpx,
+
+  // space-8: 32px → 64rpx（页面padding）
+  xxxl: 64rpx,
+
+  // space-10: 40px → 80rpx（空状态顶部间距）
+  huge: 80rpx
+);
+
+// ===========================
+// Figma Make 圆角系统
+// ===========================
+
+$bookshelf-radius: (
+  // rounded-sm: 2px → 4rpx（标签）
+  sm: 4rpx,
+
+  // rounded: 4px → 8rpx（封面小圆角）
+  md: 8rpx,
+
+  // rounded-lg: 8px → 16rpx（卡片圆角）
+  lg: 16rpx,
+
+  // rounded-xl: 12px → 24rpx（弹窗圆角）
+  xl: 24rpx,
+
+  // rounded-full: 50%（FAB按钮）
+  full: 50%
+);
+
+// ===========================
+// Figma Make 组件尺寸（精确测量）
+// ===========================
+
+$bookshelf-sizes: (
+  // 书籍封面宽度（网格布局，2列）
+  book-cover-width: 220rpx,
+
+  // 书籍封面高度（3:4比例）
+  book-cover-height: 280rpx,
+
+  // 导航栏图标尺寸
+  nav-icon-size: 40rpx,
+
+  // FAB按钮尺寸
+  fab-size: 112rpx,
+
+  // 空状态图标尺寸
+  empty-icon-size: 160rpx,
+
+  // 弹窗默认高度
+  popup-height: 600rpx
+);
+
+// ===========================
+// Figma Make 阴影系统
+// ===========================
+
+$bookshelf-shadows: (
+  // 卡片阴影（sm）
+  card: 0 4rpx 16rpx rgba(0, 0, 0, 0.06),
+
+  // FAB按钮阴影
+  fab: 0 8rpx 24rpx rgba(0, 168, 45, 0.3),
+
+  // 弹窗阴影
+  popup: 0 -2rpx 16rpx rgba(0, 0, 0, 0.08)
+);
+
+// ===========================
+// Figma Make 动画系统
+// ===========================
+
+$bookshelf-transitions: (
+  // 快速动画（按钮点击）
+  fast: 0.1s,
+
+  // 标准动画（卡片hover）
+  normal: 0.2s,
+
+  // 慢速动画（页面切换）
+  slow: 0.3s
+);
+
+// ===========================
+// 布局令牌（Grid系统）
+// ===========================
+
+$bookshelf-layout: (
+  // 页面水平内边距
+  page-padding-x: 32rpx,
+
+  // 页面垂直内边距
+  page-padding-y: 24rpx,
+
+  // 网格列数
+  grid-columns: 2,
+
+  // 网格间距
+  grid-gap: 24rpx,
+
+  // 底部TabBar高度（为FAB按钮留空）
+  tabbar-height: 100rpx,
+
+  // FAB按钮距离底部
+  fab-bottom: 180rpx,
+
+  // FAB按钮距离右侧
+  fab-right: 40rpx
+);
+
+// ===========================
+// 组件状态令牌（交互状态）
+// ===========================
+
+// 书籍卡片状态
+$bookshelf-card-states: (
+  // 默认状态
+  default: (
+    background: map-get($bookshelf-colors, card-background),
+    border: 1rpx solid map-get($bookshelf-colors, border),
+    shadow: map-get($bookshelf-shadows, card),
+    transform: scale(1)
+  ),
+
+  // hover状态（H5端）
+  hover: (
+    shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.1),
+    transform: translateY(-4rpx)
+  ),
+
+  // active状态（按下）
+  active: (
+    transform: scale(0.98),
+    shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04)
+  )
+);
+
+// FAB按钮状态
+$bookshelf-fab-states: (
+  // 默认状态
+  default: (
+    background: map-get($bookshelf-colors, primary),
+    shadow: map-get($bookshelf-shadows, fab),
+    transform: scale(1)
+  ),
+
+  // hover状态
+  hover: (
+    background: map-get($bookshelf-colors, primary-dark),
+    shadow: 0 10rpx 28rpx rgba(0, 168, 45, 0.4)
+  ),
+
+  // active状态
+  active: (
+    transform: scale(0.95),
+    shadow: 0 6rpx 20rpx rgba(0, 168, 45, 0.25)
+  )
+);
+
+// 空状态按钮
+$bookshelf-empty-button: (
+  // 默认状态
+  default: (
+    background: map-get($bookshelf-colors, primary),
+    color: #ffffff,
+    border: none
+  ),
+
+  // hover状态
+  hover: (
+    background: map-get($bookshelf-colors, primary-dark)
+  ),
+
+  // disabled状态
+  disabled: (
+    background: #e5e7eb,
+    color: #9ca3af
+  )
+);
+
+// ===========================
+// 导出SCSS变量（向后兼容）
+// ===========================
+
+:root {
+  // 颜色
+  --bookshelf-primary: #{map-get($bookshelf-colors, primary)};
+  --bookshelf-foreground: #{map-get($bookshelf-colors, foreground)};
+  --bookshelf-background: #{map-get($bookshelf-colors, background)};
+  --bookshelf-card-background: #{map-get($bookshelf-colors, card-background)};
+  --bookshelf-border: #{map-get($bookshelf-colors, border)};
+
+  // 字体
+  --bookshelf-font-base: #{map-get($bookshelf-font-sizes, base)};
+  --bookshelf-font-sm: #{map-get($bookshelf-font-sizes, sm)};
+  --bookshelf-font-xs: #{map-get($bookshelf-font-sizes, xs)};
+
+  // 间距
+  --bookshelf-spacing-lg: #{map-get($bookshelf-spacing, lg)};
+  --bookshelf-spacing-md: #{map-get($bookshelf-spacing, md)};
+  --bookshelf-page-padding: #{map-get($bookshelf-layout, page-padding-x)};
+
+  // 尺寸
+  --bookshelf-cover-width: #{map-get($bookshelf-sizes, book-cover-width)};
+  --bookshelf-cover-height: #{map-get($bookshelf-sizes, book-cover-height)};
+  --bookshelf-fab-size: #{map-get($bookshelf-sizes, fab-size)};
+
+  // 圆角
+  --bookshelf-radius-lg: #{map-get($bookshelf-radius, lg)};
+  --bookshelf-radius-md: #{map-get($bookshelf-radius, md)};
+}

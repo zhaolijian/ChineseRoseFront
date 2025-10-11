@@ -1,0 +1,1 @@
+"use strict";const e=require("../../common/vendor.js");if(!Array){e.resolveComponent("u-skeleton")()}const o=e.defineComponent({__name:"LoadingSkeleton",props:{rows:null,title:{type:Boolean},avatar:{type:Boolean}},setup:o=>(t,n)=>({a:e.p({loading:!0,animate:!0,title:o.title,rows:o.rows,avatar:o.avatar})})});wx.createComponent(o);

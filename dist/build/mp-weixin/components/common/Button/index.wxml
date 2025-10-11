@@ -1,0 +1,1 @@
+<button class="{{['cr-btn', 'data-v-18ad7818', b, c, d]}}" type="button" disabled="{{e}}" aria-disabled="{{f}}" bindtap="{{g}}"><label wx:if="{{a}}" class="cr-btn__spinner data-v-18ad7818" data-testid="spinner"></label><label class="cr-btn__label data-v-18ad7818"><slot/></label></button>

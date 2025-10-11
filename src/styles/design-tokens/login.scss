@@ -1,0 +1,153 @@
+// 登录页设计令牌 - 100%还原Figma Make设计
+// 数据来源：https://www.figma.com/make/WpRJCjULqwmrE5OhPHT9Ql
+// 更新日期：2025-10-09
+
+// ===========================
+// Figma Make 颜色系统（globals.css精确提取）
+// ===========================
+
+$login-colors: (
+  // 主色：Figma Make专用绿色（globals.css:12 --primary）
+  primary: #00a82d,
+
+  // 前景色：深灰色文字（globals.css:10 --foreground）
+  foreground: #333333,
+
+  // 背景色：浅灰色背景（globals.css:9 --background）
+  background: #fafafa,
+
+  // 边框色：主色半透明（globals.css:16 --border）
+  border: rgba(0, 168, 45, 0.12),
+
+  // 次要文字色（globals.css:15 --muted-foreground）
+  muted-foreground: #666666,
+
+  // 标题文字色（Figma LoginPage.tsx:32）
+  title: #111827,
+
+  // 灰色文字（协议等）
+  gray-text: #6b7280,
+
+  // Slogan主色70%透明度（Figma LoginPage.tsx:46）
+  slogan: rgba(0, 168, 45, 0.7),
+
+  // 禁用按钮背景（Figma LoginPage.tsx:71）
+  disabled-bg: #e5e7eb,
+
+  // 禁用按钮文字（Figma LoginPage.tsx:72）
+  disabled-text: #9ca3af
+);
+
+// ===========================
+// Figma Make 字体系统（精确转换）
+// ===========================
+
+$login-font-sizes: (
+  // text-xs: 0.75rem → 24rpx
+  xs: 24rpx,
+
+  // text-sm: 0.875rem → 28rpx（协议文字，Figma:58）
+  sm: 28rpx,
+
+  // text-base: 1rem → 32rpx
+  base: 32rpx,
+
+  // text-xl: 1.25rem → 40rpx
+  xl: 40rpx,
+
+  // text-[28px]: 28px → 56rpx（标题专用，Figma:32）
+  title: 56rpx
+);
+
+$login-font-weights: (
+  normal: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700
+);
+
+// ===========================
+// Figma Make 间距系统（Tailwind → rpx精确转换）
+// ===========================
+
+$login-spacing: (
+  // space-y-1: 4px → 8rpx
+  xs: 8rpx,
+
+  // space-y-2: 8px → 16rpx
+  sm: 16rpx,
+
+  // space-y-3: 12px → 24rpx
+  md: 24rpx,
+
+  // space-y-4: 16px → 32rpx
+  lg: 32rpx,
+
+  // space-y-5: 20px → 40rpx（Figma LoginPage元素间距）
+  xl: 40rpx,
+
+  // space-y-6: 24px → 48rpx
+  xxl: 48rpx,
+
+  // space-y-8: 32px → 64rpx（px-8页面padding，Figma:27）
+  xxxl: 64rpx
+);
+
+// ===========================
+// Figma Make 圆角系统
+// ===========================
+
+$login-radius: (
+  // rounded-sm: 2px → 4rpx
+  sm: 4rpx,
+
+  // rounded: 4px → 8rpx
+  md: 8rpx,
+
+  // rounded-lg: 8px → 16rpx（按钮圆角，Figma:69）
+  lg: 16rpx,
+
+  // rounded-xl: 12px → 24rpx
+  xl: 24rpx
+);
+
+// ===========================
+// Figma Make 组件尺寸（精确测量）
+// ===========================
+
+$login-sizes: (
+  // Logo宽度：w-48 → 384rpx（Figma:40-41）
+  logo-width: 384rpx,
+
+  // 按钮高度：h-[48px] → 96rpx（Figma:68）
+  button-height: 96rpx,
+
+  // Checkbox尺寸：w-4 h-4 → 32rpx（Figma:57）
+  checkbox-size: 32rpx
+);
+
+// ===========================
+// 导出SCSS变量（向后兼容）
+// ===========================
+
+:root {
+  // 颜色
+  --login-primary: #{map-get($login-colors, primary)};
+  --login-foreground: #{map-get($login-colors, foreground)};
+  --login-background: #{map-get($login-colors, background)};
+  --login-border: #{map-get($login-colors, border)};
+  --login-muted-foreground: #{map-get($login-colors, muted-foreground)};
+
+  // 字体
+  --login-font-title: #{map-get($login-font-sizes, title)};
+  --login-font-base: #{map-get($login-font-sizes, base)};
+  --login-font-sm: #{map-get($login-font-sizes, sm)};
+
+  // 间距
+  --login-spacing-xl: #{map-get($login-spacing, xl)};
+  --login-spacing-xxxl: #{map-get($login-spacing, xxxl)};
+
+  // 尺寸
+  --login-logo-width: #{map-get($login-sizes, logo-width)};
+  --login-button-height: #{map-get($login-sizes, button-height)};
+}

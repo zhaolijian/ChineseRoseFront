@@ -99,6 +99,11 @@ npm run dev:h5
 npm run dev:app
 ```
 
+### 4. 开发模式快速登录
+- 调试阶段可在登录页输入 11 位手机号并输入验证码 `000000`
+- 仅在开发环境生效，会自动创建本地测试账号并跳转首页
+
+
 ## 常见问题
 
 ### 1. 编译失败
@@ -118,6 +123,10 @@ npm run dev:app
 
 ### 4. 页面空白或组件异常
 - 检查控制台是否有Vue/TypeScript错误
+
+### 5. 提示 common/assets.js 找不到
+- 如果出现该提示，执行 `npm run postbuild:mp-weixin` 生成兼容文件
+- 或手动运行 `node scripts/postbuild/create-mp-assets-stub.js`
 - 确认uView Plus组件是否正确引入
 - 验证路由配置是否正确
 

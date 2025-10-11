@@ -51,7 +51,7 @@ export const wechatCodeLogin = (data: WeChatLoginData): Promise<LoginResponse> =
  * 短信验证码登录
  */
 export const smsLogin = (data: PhoneLoginData): Promise<LoginResponse> => {
-  return request.post<LoginResponse>('/v1/auth/phone/sms', data)
+  return request.post<LoginResponse>('/v1/auth/phone/login', data)
 }
 
 /**
@@ -89,18 +89,38 @@ export const refreshToken = (): Promise<{ token: string }> => {
   return request.post<{ token: string }>('/v1/auth/refresh-token')
 }
 
+
 /**
- * 微信手机号快捷登录参数
+ * 用户统计数据
  */
-export interface WechatPhoneLoginData {
-  code: string          // wx.login获取的code
-  encryptedData: string // getPhoneNumber获取的加密数据
-  iv: string           // getPhoneNumber获取的初始向量
+export interface UserStats {
+  bookCount: number
+  noteCount: number
+  mindmapCount: number
 }
 
 /**
- * 微信手机号快捷登录
+ * 获取用户统计数据
  */
-export const wechatPhoneLogin = (data: WechatPhoneLoginData): Promise<LoginResponse> => {
-  return request.post<LoginResponse>('/v1/auth/wechat/phone', data)
+export const getUserStats = (): Promise<UserStats> => {
+  return request.get<UserStats>('/v1/users/stats')
+}
+
+/**
+ * 微信一键登录参数（2025最佳实践 - 双code方式）
+ */
+export interface WechatQuickLoginRequest {
+  loginCode: string  // 从wx.login()获取的code
+  phoneCode: string  // 从getPhoneNumber事件获取的code
+}
+
+/**
+ * 微信一键登录（2025最佳实践 - 双code方式）
+ * 替代旧的encryptedData+iv方式，使用更安全的双code方案
+ */
+export const wechatQuickLogin = (loginCode: string, phoneCode: string): Promise<LoginResponse> => {
+  return request.post<LoginResponse>('/v1/auth/wechat/quick-login', {
+    loginCode,
+    phoneCode
+  })
 }

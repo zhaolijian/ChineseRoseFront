@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "笔记",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "app-nav-bar": "../../components/common/AppNavBar",
+    "page-container": "../../components/common/PageContainer",
+    "empty-state": "../../components/common/EmptyState",
+    "loading-skeleton": "../../components/common/LoadingSkeleton",
+    "tab-bar": "../../components/common/TabBar"
+  }
+}

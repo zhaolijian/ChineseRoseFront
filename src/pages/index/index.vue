@@ -12,29 +12,42 @@
     <!-- 书籍列表 -->
     <PageContainer>
     <view class="bookshelf-content">
-      <view v-if="loading && books.length === 0">
-        <LoadingSkeleton :rows="4" />
-      </view>
-      <view v-else-if="books.length === 0" class="empty-state">
-        <EmptyState icon="book" title="还没有添加书籍" actionText="添加第一本书" @action="showAddBook = true" />
+      <!-- 未登录状态：显示登录引导 -->
+      <view v-if="!userStore.isLoggedIn" class="empty-state">
+        <EmptyState
+          icon="account"
+          title="登录后查看你的书架"
+          actionText="立即登录"
+          @action="goToLogin"
+        />
       </view>
 
-      <view v-else class="book-grid">
-        <view v-for="book in books" :key="book.id" class="book-item cr-card cr-card--padded" @click="goToBookDetail(book)">
-          <view class="book-cover">
-            <u-image 
-              :src="book.coverUrl || '/static/images/book-placeholder.svg'"
-              mode="aspectFit"
-              width="100%"
-              height="140px"
-              radius="8"
-              loading-icon="book"
-            ></u-image>
-          </view>
-          <view class="book-info">
-            <text class="book-title">{{ book.title }}</text>
-            <text class="book-author">{{ book.author }}</text>
-            <text class="book-notes">{{ book.noteCount || 0 }}条笔记</text>
+      <!-- 已登录状态：显示书籍列表 -->
+      <view v-else>
+        <view v-if="loading && books.length === 0">
+          <LoadingSkeleton :rows="4" />
+        </view>
+        <view v-else-if="books.length === 0" class="empty-state">
+          <EmptyState icon="book" title="还没有添加书籍" actionText="添加第一本书" @action="showAddBook = true" />
+        </view>
+
+        <view v-else class="book-grid">
+          <view v-for="book in books" :key="book.id" class="book-item cr-card cr-card--padded" @click="goToBookDetail(book)">
+            <view class="book-cover">
+              <u-image
+                :src="book.coverUrl || '/static/images/book-placeholder.svg'"
+                mode="aspectFit"
+                width="100%"
+                height="140px"
+                radius="8"
+                loading-icon="book"
+              ></u-image>
+            </view>
+            <view class="book-info">
+              <text class="book-title">{{ book.title }}</text>
+              <text class="book-author">{{ book.author }}</text>
+              <text class="book-notes">{{ book.noteCount || 0 }}条笔记</text>
+            </view>
           </view>
         </view>
       </view>
@@ -132,7 +145,7 @@ const hasInitialLoaded = ref(false)
 onMounted(async () => {
   const ctx = createContext()
   logger.info(ctx, '[BookshelfPage] 页面挂载')
-  await checkLoginAndLoadData()
+  await init()
 })
 
 onShow(async () => {
@@ -156,12 +169,27 @@ onShow(async () => {
 onPullDownRefresh(async () => {
   const ctx = createContext()
   logger.debug(ctx, '[BookshelfPage] 触发下拉刷新')
+
+  // 未登录时静默返回
+  if (!userStore.isLoggedIn) {
+    logger.debug(ctx, '[BookshelfPage] 用户未登录，静默处理下拉刷新')
+    uni.stopPullDownRefresh()
+    return
+  }
+
   await loadBooks(true)
   uni.stopPullDownRefresh()
 })
 
 onReachBottom(async () => {
   const ctx = createContext()
+
+  // 未登录时静默返回
+  if (!userStore.isLoggedIn) {
+    logger.debug(ctx, '[BookshelfPage] 用户未登录，静默处理触底事件')
+    return
+  }
+
   if (hasMore.value && !loading.value) {
     logger.debug(ctx, '[BookshelfPage] 触底加载更多')
     await loadMoreBooks()
@@ -169,30 +197,23 @@ onReachBottom(async () => {
 })
 
 // 方法
-const checkLoginAndLoadData = async () => {
+const init = async () => {
   const ctx = createContext()
-  
+
   try {
     pageLoading.value = true
-    logger.debug(ctx, '[checkLoginAndLoadData] 开始检查登录状态')
-    
-    // 优化：先检查登录状态，再根据结果决定是否跳转
-    const isLoggedIn = await userStore.checkLoginStatus()
-    
-    if (!isLoggedIn) {
-      logger.info(ctx, '[checkLoginAndLoadData] 用户未登录，跳转到登录页')
-      uni.navigateTo({
-        url: '/pages/login/login'
-      })
-      return
+    logger.debug(ctx, '[init] 初始化书架页')
+
+    // ADR-007: 使用简单的二元状态判断，不做网络验证
+    if (userStore.isLoggedIn) {
+      logger.debug(ctx, '[init] 用户已登录，加载书籍数据')
+      await loadBooks(true)
+      hasInitialLoaded.value = true
+    } else {
+      logger.debug(ctx, '[init] 用户未登录，显示登录引导')
     }
-    
-    logger.debug(ctx, '[checkLoginAndLoadData] 用户已登录，加载书籍数据')
-    // 加载书籍数据
-    await loadBooks(true)
-    hasInitialLoaded.value = true
   } catch (error) {
-    logger.error(ctx, '[checkLoginAndLoadData] 初始化失败', error)
+    logger.error(ctx, '[init] 初始化失败', error)
     uni.showToast({
       title: '加载失败',
       icon: 'error'
@@ -200,6 +221,15 @@ const checkLoginAndLoadData = async () => {
   } finally {
     pageLoading.value = false
   }
+}
+
+// 跳转到登录页
+const goToLogin = () => {
+  const ctx = createContext()
+  logger.debug(ctx, '[goToLogin] 跳转到登录页')
+  uni.navigateTo({
+    url: '/pages/login/login'
+  })
 }
 
 const loadBooks = async (refresh = false) => {

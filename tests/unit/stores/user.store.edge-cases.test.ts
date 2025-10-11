@@ -8,6 +8,7 @@ import { ErrorCode } from '@/types/errorCodes'
 vi.mock('@/api/modules/auth', () => ({
   wechatCodeLogin: vi.fn(),
   wechatPhoneLogin: vi.fn(),
+  wechatQuickLogin: vi.fn(),
   smsLogin: vi.fn(),
   sendSMSCode: vi.fn(),
   getUserInfo: vi.fn(),
@@ -47,14 +48,14 @@ describe('user store – 边界与竞态处理', () => {
     vi.useRealTimers()
   })
 
-  it('wechatLogin 并发调用时后续请求应被拒绝', async () => {
+  it('wechatQuickLogin 并发调用时后续请求应被拒绝', async () => {
     let resolveLogin: (value: any) => void
     const pendingPromise = new Promise((resolve) => { resolveLogin = resolve })
 
-    vi.mocked(authAPI.wechatPhoneLogin).mockReturnValue(pendingPromise as any)
+    vi.mocked(authAPI.wechatQuickLogin).mockReturnValue(pendingPromise as any)
 
-    const first = store.wechatLogin({ code: 'c', encryptedData: 'e', iv: 'i' })
-    const second = store.wechatLogin({ code: 'c', encryptedData: 'e', iv: 'i' })
+    const first = store.wechatQuickLogin('loginCode', 'phoneCode')
+    const second = store.wechatQuickLogin('loginCode', 'phoneCode')
 
     await expect(second).rejects.toMatchObject({ code: ErrorCode.ERR_OPERATION_IN_PROGRESS })
 

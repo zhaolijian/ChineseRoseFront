@@ -31,8 +31,8 @@ const { title, subtitle, padded } = defineProps<{
   align-items: center;
   padding: 24rpx 24rpx 0 24rpx;
 }
-.card-title { font-size: var(--cr-font-subtitle); color: var(--cr-color-text-strong); font-weight: 600; }
-.card-subtitle { font-size: var(--cr-font-caption); color: var(--cr-color-subtext); margin-left: 12rpx; }
+.card-title { font-size: var(--cr-font-xl); color: var(--cr-color-foreground); font-weight: var(--cr-font-weight-semibold); }
+.card-subtitle { font-size: var(--cr-font-sm); color: var(--cr-color-muted-foreground); margin-left: 12rpx; }
 .card-actions { display: flex; align-items: center; gap: 16rpx; }
 .card-body { padding: 24rpx; }
 </style>

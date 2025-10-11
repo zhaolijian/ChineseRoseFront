@@ -1,0 +1,139 @@
+// src/styles/theme.scss
+// 纸质书笔记整理小程序设计令牌（源自 docs/design/figma-ui-style-guide.md）
+// 以 SCSS 变量和 CSS 自定义属性双轨暴露，便于 uni-app 组件与 H5 复用
+
+@use "sass:map";
+
+// —— 字体与字号 ——
+$font-scale: (
+  "xs": 10.5px,   // 0.75rem
+  "sm": 12.25px,  // 0.875rem
+  "base": 14px,   // 1rem
+  "lg": 15.75px,  // 1.125rem
+  "xl": 17.5px,   // 1.25rem
+  "2xl": 21px     // 1.5rem
+);
+
+$font-weights: (
+  "normal": 400,
+  "medium": 500,
+  "semibold": 600
+);
+
+// —— 颜色 ——
+$color-palette: (
+  "background": #fafafa,
+  "foreground": #333333,
+  "surface": #ffffff,
+  "card": #ffffff,
+  "card-foreground": #333333,
+  "popover": #ffffff,
+  "popover-foreground": #333333,
+  "primary": #00a82d,
+  "primary-dark": #008621,
+  "primary-light": #33b854,
+  "primary-soft": #e8f3e8,
+  "primary-foreground": #ffffff,
+  "secondary": #f8faf8,
+  "secondary-foreground": #4a5c4a,
+  "muted": #f8faf8,
+  "muted-foreground": #666666,
+  "accent": #e8f3e8,
+  "accent-foreground": #2d5a2d,
+  "success": #16a34a,
+  "warning": #f59e0b,
+  "info": #0ea5e9,
+  "destructive": #dc2626,
+  "destructive-foreground": #ffffff,
+  "border": rgba(0, 168, 45, 0.12),
+  "divider": #e5e7eb,
+  "input": transparent,
+  "input-background": #f8faf8,
+  "switch-background": #f0f4f0,
+  "ring": #00a82d,
+  "chart-1": oklch(0.646 0.222 41.116),
+  "chart-2": oklch(0.6 0.118 184.704),
+  "chart-3": oklch(0.398 0.07 227.392),
+  "chart-4": oklch(0.828 0.189 84.429),
+  "chart-5": oklch(0.769 0.188 70.08)
+);
+
+// —— 圆角与阴影 ——
+$radius-scale: (
+  "sm": 8px,
+  "md": 10px,
+  "lg": 12px,
+  "xl": 16px,
+  "pill": 999px
+);
+
+$shadow-scale: (
+  "sm": 0 4px 12px rgba(17, 24, 39, 0.06),
+  "md": 0 8px 20px rgba(17, 24, 39, 0.08)
+);
+
+// —— 间距（基准 0.25rem ≈ 3.5px） ——
+$spacing-scale: (
+  "xs": 4px,
+  "sm": 8px,
+  "md": 10.5px,
+  "lg": 14px,
+  "xl": 21px,
+  "2xl": 28px
+);
+
+$container-max-width: 392px; // 28rem
+
+// —— CSS 自定义属性导出 ——
+:root {
+  @each $key, $value in $color-palette {
+    --cr-color-#{$key}: #{$value};
+  }
+
+  @each $key, $value in $font-scale {
+    --cr-font-#{$key}: #{$value};
+  }
+
+  @each $key, $value in $font-weights {
+    --cr-font-weight-#{$key}: #{$value};
+  }
+
+  @each $key, $value in $radius-scale {
+    --cr-radius-#{$key}: #{$value};
+  }
+
+  @each $key, $value in $shadow-scale {
+    --cr-shadow-#{$key}: #{$value};
+  }
+
+  @each $key, $value in $spacing-scale {
+    --cr-spacing-#{$key}: #{$value};
+  }
+
+  --cr-container-max-width: #{$container-max-width};
+}
+
+// 暴露读取函数（供 mixins 使用）
+@function theme-color($name) {
+  @return map.get($color-palette, $name);
+}
+
+@function theme-radius($name) {
+  @return map.get($radius-scale, $name);
+}
+
+@function theme-shadow($name) {
+  @return map.get($shadow-scale, $name);
+}
+
+@function theme-spacing($name) {
+  @return map.get($spacing-scale, $name);
+}
+
+@function theme-font-size($name) {
+  @return map.get($font-scale, $name);
+}
+
+@function theme-font-weight($name) {
+  @return map.get($font-weights, $name);
+}

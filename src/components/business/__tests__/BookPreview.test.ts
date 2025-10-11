@@ -23,6 +23,11 @@ vi.mock('@/api/modules/book', () => ({
   createBook: vi.fn()
 }))
 
+// Mock auth-guard - 模拟已登录状态
+vi.mock('@/utils/auth-guard', () => ({
+  ensureLoggedIn: vi.fn(async () => true)
+}))
+
 const createUni = () => ({
   showToast: vi.fn(),
   showModal: vi.fn()

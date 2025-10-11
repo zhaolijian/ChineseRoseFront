@@ -1,0 +1,290 @@
+// design-tokens.scss - 核心设计令牌系统
+// Chinese Rose 设计系统 v1.0
+
+// ===========================
+// 1. 颜色系统
+// ===========================
+
+// 品牌主色 - 翡翠绿
+$cr-emerald: (
+  50: #e8f3e8,
+  100: #c2e0c2,
+  200: #98cc98,
+  300: #6db86d,
+  400: #4da94d,
+  500: #2e9a2e,
+  600: #00a82d,  // 主色
+  700: #007f22,
+  800: #00661b,
+  900: #004d14,
+);
+
+// 语义化颜色
+$cr-colors: (
+  // 主色系
+  primary: map-get($cr-emerald, 600),
+  primary-light: map-get($cr-emerald, 400),
+  primary-dark: map-get($cr-emerald, 700),
+  primary-bg: map-get($cr-emerald, 50),
+  
+  // 功能色
+  success: #52c41a,
+  warning: #faad14,
+  error: #ff4d4f,
+  info: #1890ff,
+  
+  // 中性色
+  text-primary: #1a1a1a,
+  text-regular: #4a4a4a,
+  text-secondary: #8c8c8c,
+  text-disabled: #c0c0c0,
+  
+  // 背景色
+  bg-page: #f5f7fa,
+  bg-container: #ffffff,
+  bg-elevated: #ffffff,
+  bg-overlay: rgba(0, 0, 0, 0.45),
+  
+  // 边框色
+  border-base: #e8e8e8,
+  border-light: #f0f0f0,
+  border-dark: #d9d9d9,
+);
+
+// ===========================
+// 2. 间距系统
+// ===========================
+
+$cr-spacing: (
+  xxs: 4rpx,
+  xs: 8rpx,
+  sm: 12rpx,
+  md: 16rpx,
+  lg: 24rpx,
+  xl: 32rpx,
+  xxl: 48rpx,
+  xxxl: 64rpx,
+);
+
+// 页面内边距
+$cr-page-padding: (
+  h5: 32rpx,
+  weixin: 24rpx,
+  default: 24rpx,
+);
+
+// ===========================
+// 3. 字体系统
+// ===========================
+
+$cr-font-family: (
+  sans: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  mono: 'Menlo, Monaco, Consolas, "Courier New", monospace',
+);
+
+$cr-font-size: (
+  xs: 22rpx,
+  sm: 24rpx,
+  base: 28rpx,
+  md: 32rpx,
+  lg: 36rpx,
+  xl: 44rpx,
+  xxl: 52rpx,
+  xxxl: 64rpx,
+);
+
+$cr-font-weight: (
+  light: 300,
+  regular: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+);
+
+$cr-line-height: (
+  tight: 1.25,
+  normal: 1.5,
+  relaxed: 1.75,
+  loose: 2,
+);
+
+// ===========================
+// 4. 圆角系统
+// ===========================
+
+$cr-radius: (
+  none: 0,
+  sm: 8rpx,
+  base: 12rpx,
+  md: 16rpx,
+  lg: 24rpx,
+  xl: 32rpx,
+  full: 9999px,
+);
+
+// 组件特定圆角
+$cr-component-radius: (
+  card: map-get($cr-radius, base),
+  button: map-get($cr-radius, sm),
+  input: map-get($cr-radius, sm),
+  avatar: map-get($cr-radius, full),
+  badge: map-get($cr-radius, full),
+  tag: map-get($cr-radius, sm),
+);
+
+// ===========================
+// 5. 阴影系统
+// ===========================
+
+$cr-shadow: (
+  // 基础阴影
+  xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05),
+  sm: 0 2px 4px 0 rgba(0, 0, 0, 0.06),
+  base: 0 4px 12px 0 rgba(0, 0, 0, 0.08),
+  md: 0 8px 24px 0 rgba(0, 0, 0, 0.10),
+  lg: 0 16px 32px 0 rgba(0, 0, 0, 0.12),
+  xl: 0 24px 48px 0 rgba(0, 0, 0, 0.14),
+  
+  // 彩色阴影
+  primary: 0 4px 16px 0 rgba(0, 168, 45, 0.15),
+  success: 0 4px 16px 0 rgba(82, 196, 26, 0.15),
+  error: 0 4px 16px 0 rgba(255, 77, 79, 0.15),
+  
+  // 内阴影
+  inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06),
+);
+
+// 小程序兼容阴影
+$cr-shadow-compat: (
+  xs: 0 1rpx 2rpx 0 rgba(0, 0, 0, 0.05),
+  sm: 0 2rpx 4rpx 0 rgba(0, 0, 0, 0.06),
+  base: 0 4rpx 12rpx 0 rgba(0, 0, 0, 0.08),
+  md: 0 8rpx 24rpx 0 rgba(0, 0, 0, 0.10),
+);
+
+// ===========================
+// 6. 动画与过渡
+// ===========================
+
+$cr-duration: (
+  fast: 150ms,
+  base: 250ms,
+  slow: 350ms,
+  slower: 500ms,
+);
+
+$cr-easing: (
+  linear: linear,
+  ease-in: cubic-bezier(0.4, 0, 1, 1),
+  ease-out: cubic-bezier(0, 0, 0.2, 1),
+  ease-in-out: cubic-bezier(0.4, 0, 0.2, 1),
+  spring: cubic-bezier(0.34, 1.56, 0.64, 1),
+);
+
+// ===========================
+// 7. 渐变系统
+// ===========================
+
+$cr-gradient: (
+  // 品牌渐变
+  primary: linear-gradient(135deg, map-get($cr-emerald, 50) 0%, map-get($cr-emerald, 600) 100%),
+  primary-reverse: linear-gradient(135deg, map-get($cr-emerald, 600) 0%, map-get($cr-emerald, 700) 100%),
+  
+  // 特效渐变
+  glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%),
+  overlay: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 100%),
+  
+  // 骨架屏渐变
+  skeleton: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%),
+);
+
+// ===========================
+// 8. Z-index 层级系统
+// ===========================
+
+$cr-z-index: (
+  base: 1,
+  dropdown: 100,
+  sticky: 200,
+  fixed: 300,
+  modal-backdrop: 400,
+  modal: 500,
+  popover: 600,
+  tooltip: 700,
+  toast: 800,
+  loading: 900,
+);
+
+// ===========================
+// 9. 断点系统（响应式）
+// ===========================
+
+$cr-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1600px,
+);
+
+// ===========================
+// 10. 特殊效果令牌
+// ===========================
+
+// 毛玻璃效果（仅H5支持）
+$cr-blur: (
+  sm: 4px,
+  base: 8px,
+  md: 12px,
+  lg: 20px,
+  xl: 40px,
+);
+
+// 用户徽章配置
+$cr-badge: (
+  size: 32rpx,
+  padding: 8rpx 16rpx,
+  font-size: map-get($cr-font-size, sm),
+  radius: map-get($cr-radius, full),
+  colors: (
+    vip: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%),
+    premium: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%),
+    default: map-get($cr-colors, primary-bg),
+  ),
+);
+
+// ===========================
+// 导出为CSS变量（可选）
+// ===========================
+
+:root {
+  // 颜色
+  --cr-color-primary: #{map-get($cr-colors, primary)};
+  --cr-color-primary-light: #{map-get($cr-colors, primary-light)};
+  --cr-color-primary-dark: #{map-get($cr-colors, primary-dark)};
+  
+  // 文本色
+  --cr-text-primary: #{map-get($cr-colors, text-primary)};
+  --cr-text-regular: #{map-get($cr-colors, text-regular)};
+  --cr-text-secondary: #{map-get($cr-colors, text-secondary)};
+  
+  // 背景色
+  --cr-bg-page: #{map-get($cr-colors, bg-page)};
+  --cr-bg-container: #{map-get($cr-colors, bg-container)};
+  
+  // 间距
+  --cr-spacing-sm: #{map-get($cr-spacing, sm)};
+  --cr-spacing-md: #{map-get($cr-spacing, md)};
+  --cr-spacing-lg: #{map-get($cr-spacing, lg)};
+  
+  // 圆角
+  --cr-radius-sm: #{map-get($cr-radius, sm)};
+  --cr-radius-base: #{map-get($cr-radius, base)};
+  --cr-radius-lg: #{map-get($cr-radius, lg)};
+  
+  // 阴影
+  --cr-shadow-sm: #{map-get($cr-shadow, sm)};
+  --cr-shadow-base: #{map-get($cr-shadow, base)};
+  --cr-shadow-md: #{map-get($cr-shadow, md)};
+}

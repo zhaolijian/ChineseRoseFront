@@ -16,7 +16,13 @@ export function createApp() {
   if ((uni as any).$u && (uni as any).$u.setConfig) {
     // @ts-ignore
     (uni as any).$u.setConfig({
-      color: { primary: '#059669' }
+      color: {
+        primary: '#00a82d',
+        success: '#16a34a',
+        warning: '#f59e0b',
+        error: '#dc2626',
+        info: '#0ea5e9'
+      }
     })
   }
   

@@ -249,6 +249,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { logger, createContext } from '@/utils'
 import { ErrorCode, getFriendlyErrorMessage } from '@/types/errorCodes'
+import { ensureLoggedIn } from '@/utils/auth-guard'
 import PageContainer from '@/components/common/PageContainer.vue'
 import PrimaryButton from '@/components/common/PrimaryButton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -887,8 +888,14 @@ const formatFileSize = (bytes: number): string => {
 }
 
 // 保存为笔记
-const saveAsNote = () => {
+const saveAsNote = async () => {
   const ctx = createContext()
+
+  // ADR-007 P0守卫：保存笔记需要登录
+  const canProceed = await ensureLoggedIn('保存笔记')
+  if (!canProceed) {
+    return
+  }
 
   // 合并所有识别结果
   const allText = ocrResults.value

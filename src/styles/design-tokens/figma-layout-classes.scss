@@ -1,0 +1,259 @@
+// Figma布局类映射 - 100%精确还原Tailwind/Figma样式
+// 基于 LoginPage.tsx 和 PhoneLoginPage.tsx 提取
+
+// ===========================
+// Flexbox 布局类
+// ===========================
+
+// flex flex-col (Figma LoginPage:27)
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+// flex flex-col items-center (Figma LoginPage:29,57)
+.flex-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// flex items-center (Figma PhoneLoginPage:69,88,105)
+.flex-items-center {
+  display: flex;
+  align-items: center;
+}
+
+// flex items-center justify-between (Figma PhoneLoginPage:95)
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// flex items-center space-x-2 (Figma PhoneLoginPage:105)
+.flex-row-gap-sm {
+  display: flex;
+  align-items: center;
+  gap: 16rpx; // space-x-2 → 8*2=16rpx
+}
+
+// flex items-center space-x-3 (Figma PhoneLoginPage:119,153)
+.flex-row-gap-md {
+  display: flex;
+  align-items: center;
+  gap: 24rpx; // space-x-3 → 12*2=24rpx
+}
+
+// flex items-start space-x-3 (Figma PhoneLoginPage:153, LoginPage:71)
+.flex-start-gap-md {
+  display: flex;
+  align-items: flex-start;
+  gap: 24rpx;
+}
+
+// ===========================
+// Spacing 间距类（垂直栈）
+// ===========================
+
+// space-y-4 (Figma PhoneLoginPage:85)
+.stack-gap-lg {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx; // space-y-4 → 16*2=32rpx
+}
+
+// space-y-5 (Figma LoginPage:57)
+.stack-gap-xl {
+  display: flex;
+  flex-direction: column;
+  gap: 40rpx; // space-y-5 → 20*2=40rpx
+}
+
+// ===========================
+// Grid 网格布局类
+// ===========================
+
+// grid grid-cols-[90px_1fr] gap-3 (Figma PhoneLoginPage:88,100,114)
+.grid-label-field {
+  display: grid;
+  grid-template-columns: 180rpx 1fr; // 90px → 180rpx
+  gap: 24rpx; // gap-3 → 12*2=24rpx
+  align-items: center;
+}
+
+// ===========================
+// 宽度限制类
+// ===========================
+
+// max-w-xs (320px) (Figma LoginPage:60,72)
+.max-width-xs {
+  max-width: 640rpx; // 320px → 640rpx
+}
+
+// ===========================
+// 文本对齐类
+// ===========================
+
+// text-center (Figma LoginPage:31,47)
+.text-center {
+  text-align: center;
+}
+
+// text-left (Figma LoginPage:80, PhoneLoginPage:91,156)
+.text-left {
+  text-align: left;
+}
+
+// ===========================
+// 边框样式类（关键！）
+// ===========================
+
+// border-none border-b border-border (Figma PhoneLoginPage:109,123)
+.border-bottom-only {
+  border: none;
+  border-bottom: 1rpx solid rgba(0, 168, 45, 0.12); // --border from globals.css
+}
+
+// ===========================
+// 按钮变体类
+// ===========================
+
+// variant="ghost" (Figma LoginPage:93, PhoneLoginPage:70,127)
+.btn-ghost {
+  background: transparent;
+  color: inherit;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+// ===========================
+// 输入框样式
+// ===========================
+
+// Input基础样式 (Figma PhoneLoginPage:107-112,121-126)
+.input-base {
+  background: transparent; // bg-input-background
+  border: none;
+  border-bottom: 1rpx solid rgba(0, 168, 45, 0.12);
+  border-radius: 0; // rounded-none
+  padding-left: 24rpx; // pl-3
+  padding-right: 0;
+  height: 96rpx; // h-12 → 48px → 96rpx
+
+  &::placeholder {
+    color: #666666; // text-muted-foreground
+  }
+
+  &:focus {
+    border-bottom-color: #00a82d; // border-primary
+    outline: none;
+  }
+}
+
+// ===========================
+// 容器内边距类
+// ===========================
+
+// px-8 (Figma LoginPage:29, PhoneLoginPage:69,80)
+.padding-x-xl {
+  padding-left: 64rpx; // 32px → 64rpx
+  padding-right: 64rpx;
+}
+
+// px-4 (Figma PhoneLoginPage:85,153,172)
+.padding-x-lg {
+  padding-left: 32rpx; // 16px → 32rpx
+  padding-right: 32rpx;
+}
+
+// py-2 (Figma LoginPage:72)
+.padding-y-sm {
+  padding-top: 16rpx; // 8px → 16rpx
+  padding-bottom: 16rpx;
+}
+
+// py-6 (Figma PhoneLoginPage:69,153)
+.padding-y-xxl {
+  padding-top: 48rpx; // 24px → 48rpx
+  padding-bottom: 48rpx;
+}
+
+// py-8 (Figma PhoneLoginPage:80)
+.padding-y-xxxl {
+  padding-top: 64rpx; // 32px → 64rpx
+  padding-bottom: 64rpx;
+}
+
+// pt-8 (Figma LoginPage:29, PhoneLoginPage:69)
+.padding-top-xxxl {
+  padding-top: 64rpx;
+}
+
+// pb-20 (Figma LoginPage:29)
+.padding-bottom-huge {
+  padding-bottom: 160rpx; // 80px → 160rpx
+}
+
+// ===========================
+// Margin 外边距类
+// ===========================
+
+// mb-6 (Figma LoginPage:34,41)
+.margin-bottom-xxl {
+  margin-bottom: 48rpx; // 24px → 48rpx
+}
+
+// mb-8 (Figma LoginPage:31,47)
+.margin-bottom-xxxl {
+  margin-bottom: 64rpx; // 32px → 64rpx
+}
+
+// mb-12 (Figma PhoneLoginPage:82)
+.margin-bottom-huge {
+  margin-bottom: 96rpx; // 48px → 96rpx
+}
+
+// mt-6 (Figma PhoneLoginPage:172)
+.margin-top-xxl {
+  margin-top: 48rpx;
+}
+
+// mt-0.5 (Figma LoginPage:76, PhoneLoginPage:157)
+.margin-top-tiny {
+  margin-top: 4rpx; // 2px → 4rpx
+}
+
+// ===========================
+// 禁用状态类
+// ===========================
+
+// disabled 样式 (Figma LoginPage:64-66, PhoneLoginPage:175-177)
+.btn-disabled {
+  background: #E5E7EB; // disabled:bg-gray-200
+  color: #9CA3AF; // disabled:text-gray-400
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+// ===========================
+// 过渡动画类
+// ===========================
+
+// transition-all duration-200 (Figma LoginPage:66, PhoneLoginPage:177)
+.transition-smooth {
+  transition: all 0.2s ease-in-out;
+}
+
+// ===========================
+// 分隔线类
+// ===========================
+
+// 分隔线 (Figma PhoneLoginPage:99)
+.divider {
+  width: 100%;
+  height: 1rpx;
+  background: rgba(0, 168, 45, 0.12); // bg-border
+}

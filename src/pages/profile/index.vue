@@ -1,549 +1,441 @@
 <template>
   <view class="profile-page">
-    <AppNavBar title="我的" :showBack="false">
-      <template #right>
-        <u-icon name="setting" size="20" class="cr-icon" @click="goToSettings" />
-      </template>
-    </AppNavBar>
-
-    <!-- 用户信息卡片 -->
-    <view class="user-card">
-      <view class="user-avatar">
-        <u-avatar 
-          :src="userInfo.avatar || '/static/images/default-avatar.png'" 
-          size="60"
-          mode="circle"
-        ></u-avatar>
-      </view>
-      
+    <!-- 头部区域 -->
+    <view class="profile-header">
       <view class="user-info">
-        <text class="user-name">{{ userInfo.nickname || '阅记用户' }}</text>
-        <text class="user-desc">让阅读更有价值</text>
+        <!-- 用户头像 -->
+        <view class="avatar-wrapper">
+          <u-avatar 
+            :src="userAvatar" 
+            size="64"
+            mode="aspectFill"
+          ></u-avatar>
+        </view>
+        
+        <!-- 用户信息 -->
+        <view class="user-details">
+          <text class="user-name">{{ userName }}</text>
+          <text class="user-motto">阅有所记，学有所成</text>
+        </view>
       </view>
       
-      <view class="user-actions">
-        <u-icon name="arrow-right" size="16" color="#666" @click="goToProfile"></u-icon>
+      <!-- 徽章区域 -->
+      <view class="badges">
+        <view class="badge badge--premium">
+          <text class="badge-icon">👑</text>
+          <text class="badge-text">高级用户</text>
+        </view>
+        <view class="badge badge--streak">
+          <text class="badge-icon">🔥</text>
+          <text class="badge-text">连续使用 15 天</text>
+        </view>
       </view>
     </view>
 
-    <!-- 数据统计 -->
+    <!-- 数据统计卡片 -->
     <view class="stats-section">
-      <view class="stats-grid">
-        <view class="stat-item" @click="goToBooks">
-          <text class="stat-number">{{ stats.bookCount || 0 }}</text>
-          <text class="stat-label">本书籍</text>
+      <view class="section-card">
+        <view class="card-header">
+          <u-icon name="chart-line" size="20" :color="primaryColor"></u-icon>
+          <text class="card-title">我的阅读数据</text>
         </view>
-        <view class="stat-divider"></view>
-        <view class="stat-item" @click="goToNotes">
-          <text class="stat-number">{{ stats.noteCount || 0 }}</text>
-          <text class="stat-label">条笔记</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 功能菜单 -->
-    <view class="menu-section">
-      <view class="menu-group">
-        <text class="group-title">数据管理</text>
         
-        <view class="menu-item" @click="goToSync">
-          <u-icon name="reload" size="20" color="#00a82d"></u-icon>
-          <text class="menu-text">数据同步</text>
-          <view class="menu-extra">
-            <text class="extra-text">{{ lastSyncTime || '从未同步' }}</text>
-            <u-icon name="arrow-right" size="14" color="#ccc"></u-icon>
+        <view class="stats-grid">
+          <view class="stat-item">
+            <text class="stat-number">{{ bookCount }}</text>
+            <text class="stat-label">本书籍</text>
           </view>
-        </view>
-        
-        <view class="menu-item" @click="goToExport">
-          <u-icon name="download" size="20" color="#00a82d"></u-icon>
-          <text class="menu-text">数据导出</text>
-          <view class="menu-extra">
-            <u-icon name="arrow-right" size="14" color="#ccc"></u-icon>
+          <view class="stat-divider"></view>
+          <view class="stat-item">
+            <text class="stat-number">{{ noteCount }}</text>
+            <text class="stat-label">条笔记</text>
           </view>
-        </view>
-        
-        <view class="menu-item" @click="goToImport">
-          <u-icon name="upload" size="20" color="#00a82d"></u-icon>
-          <text class="menu-text">数据导入</text>
-          <view class="menu-extra">
-            <u-icon name="arrow-right" size="14" color="#ccc"></u-icon>
-          </view>
-        </view>
-      </view>
-
-      <view class="menu-group">
-        <text class="group-title">个人设置</text>
-        
-        <view class="menu-item" @click="goToSettings">
-          <u-icon name="setting" size="20" color="#00a82d"></u-icon>
-          <text class="menu-text">设置</text>
-          <view class="menu-extra">
-            <u-icon name="arrow-right" size="14" color="#ccc"></u-icon>
-          </view>
-        </view>
-        
-        <view class="menu-item" @click="goToFeedback">
-          <u-icon name="chat" size="20" color="#00a82d"></u-icon>
-          <text class="menu-text">意见反馈</text>
-          <view class="menu-extra">
-            <u-icon name="arrow-right" size="14" color="#ccc"></u-icon>
-          </view>
-        </view>
-        
-        <view class="menu-item" @click="goToAbout">
-          <u-icon name="info-circle" size="20" color="#00a82d"></u-icon>
-          <text class="menu-text">关于阅记</text>
-          <view class="menu-extra">
-            <text class="extra-text">v{{ version }}</text>
-            <u-icon name="arrow-right" size="14" color="#ccc"></u-icon>
+          <view class="stat-divider"></view>
+          <view class="stat-item">
+            <text class="stat-number">{{ mindmapCount }}</text>
+            <text class="stat-label">个导图</text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 退出登录按钮 -->
+    <!-- 设置选项组 -->
+    <view class="settings-section">
+      <view class="section-card">
+        <text class="section-title">设置与帮助</text>
+        
+        <view class="settings-list">
+          <view class="setting-item" @click="goToNotificationSettings">
+            <view class="setting-left">
+              <u-icon name="bell" size="20" color="#666"></u-icon>
+              <text class="setting-text">通知设置</text>
+            </view>
+            <u-icon name="arrow-right" size="16" color="#999"></u-icon>
+          </view>
+          
+          <view class="setting-item" @click="goToShareSettings">
+            <view class="setting-left">
+              <u-icon name="share-square" size="20" color="#666"></u-icon>
+              <text class="setting-text">分享设置</text>
+            </view>
+            <u-icon name="arrow-right" size="16" color="#999"></u-icon>
+          </view>
+          
+          <view class="setting-item" @click="goToFeedback">
+            <view class="setting-left">
+              <u-icon name="question-circle" size="20" color="#666"></u-icon>
+              <text class="setting-text">帮助与反馈</text>
+            </view>
+            <u-icon name="arrow-right" size="16" color="#999"></u-icon>
+          </view>
+          
+          <view class="setting-item" @click="goToAbout">
+            <view class="setting-left">
+              <u-icon name="info-circle" size="20" color="#666"></u-icon>
+              <text class="setting-text">关于阅记</text>
+            </view>
+            <u-icon name="arrow-right" size="16" color="#999"></u-icon>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 退出登录 -->
     <view class="logout-section">
-      <u-button 
-        type="error" 
-        text="退出登录"
-        shape="round"
-        :plain="true"
-        @click="logout"
-      ></u-button>
+      <view class="section-card">
+        <view class="logout-button" @click="handleLogout">
+          <text class="logout-text">退出登录</text>
+        </view>
+      </view>
     </view>
-
-    <!-- 加载提示 -->
-    <u-loading-page :loading="pageLoading" bg-color="#f5f7fa" />
-    <TabBar />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/modules/user'
-import { useBookStore } from '@/stores/modules/book'
-import { useNoteStore } from '@/stores/modules/note'
-import { safeHideTabBar } from '@/utils/tabbar'
-import { logger, createContext } from '@/utils'
-import AppNavBar from '@/components/common/AppNavBar.vue'
-import TabBar from '@/components/common/TabBar.vue'
-
-// 类型定义
-interface UserInfo {
-  id?: number
-  nickname?: string
-  avatar?: string
-  phone?: string
-}
-
-interface Stats {
-  bookCount: number
-  noteCount: number
-}
+import { getUserStats } from '@/api/modules/auth'
 
 // Store
 const userStore = useUserStore()
-const bookStore = useBookStore()
-const noteStore = useNoteStore()
-void bookStore
-void noteStore
 
 // 响应式数据
-const pageLoading = ref(false)
-const userInfo = ref<UserInfo>({})
-const stats = reactive<Stats>({
-  bookCount: 0,
-  noteCount: 0
-})
-const lastSyncTime = ref('')
-const version = ref('1.0.0')
+const bookCount = ref(12)  // Figma设计稿显示的数据
+const noteCount = ref(156) // Figma设计稿显示的数据
+const mindmapCount = ref(8) // Figma设计稿显示的数据
 
 // 计算属性
-const isLoggedIn = computed(() => userStore.isLoggedIn)
+const userName = computed(() => userStore.userNickname || '阅记用户')
+const userAvatar = computed(() => userStore.userAvatar || '/static/images/default-avatar.png')
+
+// 主色
+const primaryColor = '#00a82d'
 
 // 生命周期
 onMounted(async () => {
-  const ctx = createContext()
-  logger.info(ctx, '[ProfilePage] 页面挂载')
-  await loadUserData()
+  await loadUserStats()
 })
 
 onShow(async () => {
-  const ctx = createContext()
-  logger.info(ctx, '[ProfilePage] 页面显示')
-  
-  // 修复：使用统一的TabBar工具函数
-  safeHideTabBar()
-  // 页面显示时刷新数据
-  if (isLoggedIn.value) {
-    logger.debug(ctx, '[ProfilePage] 用户已登录，刷新统计数据')
-    await loadUserStats()
-  }
+  await loadUserStats()
 })
 
 // 方法
-const loadUserData = async () => {
-  const ctx = createContext()
-  
-  try {
-    pageLoading.value = true
-    logger.debug(ctx, '[loadUserData] 开始加载用户数据')
-    
-    // 检查登录状态
-    if (!isLoggedIn.value) {
-      logger.info(ctx, '[loadUserData] 用户未登录，跳转到登录页')
-      uni.navigateTo({
-        url: '/pages/login/login'
-      })
-      return
-    }
-    
-    // 加载用户信息
-    userInfo.value = userStore.userInfo
-    logger.debug(ctx, '[loadUserData] 用户信息', { userId: userInfo.value.id })
-    
-    // 加载统计数据
-    await loadUserStats()
-    
-    // 加载最后同步时间
-    loadLastSyncTime()
-    
-    logger.info(ctx, '[loadUserData] 用户数据加载完成')
-  } catch (error) {
-    logger.error(ctx, '[loadUserData] 加载用户数据失败', error)
-    uni.showToast({
-      title: '加载失败',
-      icon: 'error'
-    })
-  } finally {
-    pageLoading.value = false
-  }
-}
-
 const loadUserStats = async () => {
-  const ctx = createContext()
-  
   try {
-    logger.debug(ctx, '[loadUserStats] 开始加载统计数据')
-    
-    // TODO: 实现统计数据加载
-    // const statsResult = await Promise.all([
-    //   bookStore.getUserBookCount(),
-    //   noteStore.getUserNoteCount(),
-    //   mindmapStore.getUserMindmapCount()
-    // ])
-    
-    // 模拟数据
-    Object.assign(stats, {
-      bookCount: 3,
-      noteCount: 15
-    })
-    
-    logger.info(ctx, '[loadUserStats] 统计数据加载完成', stats)
+    const stats = await getUserStats()
+    bookCount.value = stats.bookCount
+    noteCount.value = stats.noteCount
+    mindmapCount.value = stats.mindmapCount
   } catch (error) {
-    logger.error(ctx, '[loadUserStats] 加载统计数据失败', error)
+    console.error('加载用户统计失败:', error)
+    // 加载失败时使用默认数据
+    bookCount.value = 0
+    noteCount.value = 0
+    mindmapCount.value = 0
   }
 }
 
-const loadLastSyncTime = () => {
-  // TODO: 从本地存储或服务器获取最后同步时间
-  const lastSync = uni.getStorageSync('lastSyncTime')
-  if (lastSync) {
-    const date = new Date(lastSync)
-    lastSyncTime.value = date.toLocaleDateString('zh-CN')
-  }
-}
-
-const goToProfile = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToProfile] 跳转到编辑资料页')
-  uni.navigateTo({
-    url: '/pages-profile/edit/edit'
+// 设置相关方法
+const goToNotificationSettings = () => {
+  uni.showToast({
+    title: '功能开发中',
+    icon: 'none'
   })
 }
 
-const goToBooks = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToBooks] 切换到书架页')
-  uni.switchTab({
-    url: '/pages/index/index'
-  })
-}
-
-const goToNotes = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToNotes] 切换到笔记页')
-  uni.switchTab({
-    url: '/pages/notes/index'
-  })
-}
-
-
-const goToSync = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToSync] 跳转到数据同步页')
-  uni.navigateTo({
-    url: '/pages-profile/sync/sync'
-  })
-}
-
-const goToExport = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToExport] 跳转到数据导出页')
-  uni.navigateTo({
-    url: '/pages-profile/export/export'
-  })
-}
-
-const goToImport = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToImport] 跳转到数据导入页')
-  uni.navigateTo({
-    url: '/pages-profile/import/import'
-  })
-}
-
-const goToSettings = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToSettings] 跳转到设置页')
-  uni.navigateTo({
-    url: '/pages-profile/settings/settings'
+const goToShareSettings = () => {
+  uni.showToast({
+    title: '功能开发中',
+    icon: 'none'
   })
 }
 
 const goToFeedback = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToFeedback] 跳转到意见反馈页')
-  uni.navigateTo({
-    url: '/pages-profile/feedback/feedback'
+  uni.showToast({
+    title: '功能开发中',
+    icon: 'none'
   })
 }
 
 const goToAbout = () => {
-  const ctx = createContext()
-  logger.debug(ctx, '[goToAbout] 跳转到关于页面')
-  uni.navigateTo({
-    url: '/pages-profile/about/about'
+  uni.showToast({
+    title: '功能开发中',
+    icon: 'none'
   })
 }
 
-const logout = () => {
+const handleLogout = () => {
   uni.showModal({
     title: '确认退出',
-    content: '退出登录后需要重新登录才能使用完整功能',
-    success: (res) => {
+    content: '确定要退出登录吗？',
+    success: async (res) => {
       if (res.confirm) {
-        performLogout()
+        try {
+          await userStore.logout()
+          
+          uni.showToast({
+            title: '已退出登录',
+            icon: 'success'
+          })
+          
+          setTimeout(() => {
+            uni.reLaunch({
+              url: '/pages/login/login'
+            })
+          }, 1500)
+        } catch (error) {
+          console.error('退出登录失败:', error)
+          uni.showToast({
+            title: '退出失败',
+            icon: 'error'
+          })
+        }
       }
     }
   })
-}
-
-const performLogout = async () => {
-  const ctx = createContext()
-  
-  try {
-    logger.info(ctx, '[performLogout] 开始退出登录')
-    
-    // 清除用户数据
-    await userStore.logout()
-    
-    // 跳转到登录页
-    uni.navigateTo({
-      url: '/pages/login/login'
-    })
-    
-    logger.info(ctx, '[performLogout] 退出登录成功')
-    
-    uni.showToast({
-      title: '已退出登录',
-      icon: 'success'
-    })
-  } catch (error) {
-    logger.error(ctx, '[performLogout] 退出登录失败', error)
-    uni.showToast({
-      title: '退出失败',
-      icon: 'error'
-    })
-  }
 }
 </script>
 
 <style lang="scss" scoped>
+@import '@/uni.scss';
+@import '@/styles/design-tokens.scss';
+@import '@/styles/effects.scss';
+@import '@/styles/profile-tokens.scss';
+
 .profile-page {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: map-get($profile-bg, page);
 }
 
-.custom-navbar {
-  background: linear-gradient(135deg, #00a82d 0%, #357ABD 100%);
-  padding-top: var(--status-bar-height);
+// 头部区域
+.profile-header {
+  background: map-get($cr-colors, primary);
+  padding: map-get($profile-spacing, header-padding-top) 32rpx map-get($profile-spacing, header-padding-bottom);
+  color: #fff;
   
-  .navbar-content {
-    height: 44px;
+  .user-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 32rpx;
+    
+    .avatar-wrapper {
+      margin-right: 24rpx;
+    }
+    
+    .user-details {
+      flex: 1;
+      
+      .user-name {
+        display: block;
+        font-size: map-get($cr-font-size, xl);
+        font-weight: map-get($cr-font-weight, bold);
+        margin-bottom: 8rpx;
+      }
+      
+      .user-motto {
+        display: block;
+        font-size: map-get($cr-font-size, sm);
+        opacity: 0.9;
+      }
+    }
+  }
+  
+  // 徽章区域
+  .badges {
+    display: flex;
+    gap: 16rpx;
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8rpx;
+      padding: 8rpx 16rpx;
+      border-radius: map-get($cr-radius, full);
+      font-size: map-get($cr-font-size, sm);
+      
+      &--premium {
+        background: map-get(map-get($profile-badges, premium), background);
+        color: map-get(map-get($profile-badges, premium), color);
+      }
+      
+      &--streak {
+        background: map-get(map-get($profile-badges, streak), background);
+        color: map-get(map-get($profile-badges, streak), color);
+      }
+      
+      .badge-icon {
+        font-size: 16rpx;
+      }
+      
+      .badge-text {
+        font-weight: map-get($cr-font-weight, medium);
+      }
+    }
+  }
+}
+
+// 通用卡片样式
+.section-card {
+  background: map-get($profile-card, background);
+  border: map-get($profile-card, border);
+  border-radius: map-get($profile-card, border-radius);
+  padding: map-get($profile-card, padding);
+  
+  /* #ifndef MP */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* #endif */
+  
+  /* #ifdef MP */
+  // 小程序降级：纯白背景
+  background: rgba(255, 255, 255, 0.95);
+  /* #endif */
+}
+
+// 数据统计部分
+.stats-section {
+  padding: 0 24rpx;
+  margin-top: map-get($profile-spacing, section-gap);
+  
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    margin-bottom: 32rpx;
+    
+    .card-title {
+      font-size: map-get($cr-font-size, md);
+      font-weight: map-get($cr-font-weight, semibold);
+      color: map-get($cr-colors, text-primary);
+    }
+  }
+  
+  .stats-grid {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
     
-    .navbar-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #fff;
-    }
-    
-    .navbar-actions {
-      display: flex;
-      align-items: center;
-    }
-  }
-}
-
-.user-card {
-  background: #fff;
-  margin: 16px;
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  
-  .user-avatar {
-    margin-right: 16px;
-  }
-  
-  .user-info {
-    flex: 1;
-    
-    .user-name {
-      display: block;
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-      line-height: 1.4;
-      margin-bottom: 4px;
-    }
-    
-    .user-desc {
-      font-size: 14px;
-      color: #999;
-    }
-  }
-  
-  .user-actions {
-    padding: 8px;
-  }
-}
-
-.stats-section {
-  background: #fff;
-  margin: 0 16px 16px;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.stats-grid {
-  display: flex;
-  align-items: center;
-  
-  .stat-item {
-    flex: 1;
-    text-align: center;
-    
-    .stat-number {
-      display: block;
-      font-size: 24px;
-      font-weight: 700;
-      color: #00a82d;
-      line-height: 1.2;
-      margin-bottom: 4px;
-    }
-    
-    .stat-label {
-      font-size: 14px;
-      color: #666;
-    }
-  }
-  
-  .stat-divider {
-    width: 1px;
-    height: 30px;
-    background: #f0f0f0;
-    margin: 0 30px;
-  }
-}
-
-.menu-section {
-  padding: 0 16px 20px;
-  
-  .menu-group {
-    background: #fff;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    
-    .group-title {
-      display: block;
-      padding: 16px 20px 8px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-    }
-    
-    .menu-item {
-      display: flex;
-      align-items: center;
-      padding: 16px 20px;
-      border-bottom: 1px solid #f8f9fa;
+    .stat-item {
+      flex: 1;
+      text-align: center;
       
-      &:last-child {
-        border-bottom: none;
+      .stat-number {
+        display: block;
+        font-size: map-get($profile-stats, number-size);
+        font-weight: map-get($cr-font-weight, bold);
+        color: map-get($cr-colors, text-primary);
+        margin-bottom: 8rpx;
+      }
+      
+      .stat-label {
+        display: block;
+        font-size: map-get($profile-stats, label-size);
+        color: map-get($cr-colors, text-secondary);
+      }
+    }
+    
+    .stat-divider {
+      width: 1rpx;
+      height: 40rpx;
+      background-color: map-get($profile-stats, divider-color);
+    }
+  }
+}
+
+// 设置部分
+.settings-section {
+  padding: 0 24rpx;
+  margin-top: map-get($profile-spacing, section-gap);
+  
+  .section-title {
+    display: block;
+    font-size: map-get($cr-font-size, md);
+    font-weight: map-get($cr-font-weight, semibold);
+    color: map-get($cr-colors, text-primary);
+    margin-bottom: 24rpx;
+  }
+  
+  .settings-list {
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20rpx 0;
+      
+      &:not(:last-child) {
+        border-bottom: 1rpx solid map-get($cr-colors, border-light);
       }
       
       &:active {
-        background: #f8f9fa;
+        background-color: map-get($profile-settings, hover-bg);
+        margin: 0 -32rpx;
+        padding-left: 32rpx;
+        padding-right: 32rpx;
       }
       
-      .menu-text {
-        flex: 1;
-        font-size: 15px;
-        color: #333;
-        margin-left: 12px;
-      }
-      
-      .menu-extra {
+      .setting-left {
         display: flex;
         align-items: center;
+        gap: 16rpx;
         
-        .extra-text {
-          font-size: 13px;
-          color: #999;
-          margin-right: 4px;
+        .setting-text {
+          font-size: map-get($cr-font-size, base);
+          color: map-get($cr-colors, text-primary);
         }
       }
     }
   }
 }
 
+// 退出登录部分
 .logout-section {
-  padding: 20px 16px 40px;
+  padding: 0 24rpx;
+  margin-top: map-get($profile-spacing, section-gap);
+  margin-bottom: 48rpx;
+  
+  .logout-button {
+    text-align: center;
+    padding: 24rpx 0;
+    border-top: 1rpx solid map-get($cr-colors, border-light);
+    
+    &:active {
+      opacity: 0.7;
+    }
+    
+    .logout-text {
+      font-size: map-get($cr-font-size, md);
+      font-weight: map-get($cr-font-weight, medium);
+      color: #ff4d4f;
+    }
+  }
 }
 
 /* 微信小程序特定样式 */
 /* #ifdef MP-WEIXIN */
-.custom-navbar {
-  padding-top: 20px;
-}
-/* #endif */
-
-/* H5特定样式 */
-/* #ifdef H5 */
-.custom-navbar {
-  padding-top: 0;
+.profile-header {
+  padding-top: calc(map-get($profile-spacing, header-padding-top) + var(--status-bar-height));
 }
 /* #endif */
 </style>

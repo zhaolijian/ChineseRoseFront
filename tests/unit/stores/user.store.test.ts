@@ -14,6 +14,7 @@ vi.mock('@/utils/storage', () => ({
 vi.mock('@/api/modules/auth', () => ({
   wechatCodeLogin: vi.fn(),
   wechatPhoneLogin: vi.fn(),
+  wechatQuickLogin: vi.fn(),
   smsLogin: vi.fn(),
   sendSMSCode: vi.fn(),
   getUserInfo: vi.fn(),
@@ -92,22 +93,20 @@ describe('user store – 登录与会话管理', () => {
     expect(storage.setStorage).toHaveBeenCalledWith('userInfo', response.user)
   })
 
-  it('wechatLogin 参数不完整时应抛出业务错误', async () => {
-    await expect(store.wechatLogin({ code: '', encryptedData: '', iv: '' }))
+  it('wechatQuickLogin 参数不完整时应抛出业务错误', async () => {
+    await expect(store.wechatQuickLogin('', ''))
       .rejects.toMatchObject({ code: ErrorCode.ERR_INVALID_PARAMS })
   })
 
-  it('wechatLogin 成功流程应清理 loading 并持久化用户信息', async () => {
+  it('wechatQuickLogin 成功流程应持久化用户信息', async () => {
     const apiResult = {
       token: createMockToken({ user_id: 7 }),
       user: { id: 7, phone: '13900000000' }
     }
-    vi.mocked(authAPI.wechatPhoneLogin).mockResolvedValue(apiResult)
+    vi.mocked(authAPI.wechatQuickLogin).mockResolvedValue(apiResult)
 
-    await store.wechatLogin({ code: 'wx-code', encryptedData: 'enc', iv: 'iv' })
+    await store.wechatQuickLogin('loginCode123', 'phoneCode456')
 
-    expect(mockUni.showLoading).toHaveBeenCalledWith({ title: '登录中...', mask: true })
-    expect(mockUni.hideLoading).toHaveBeenCalled()
     expect(store.userInfo).toEqual(apiResult.user)
     expect(storage.setStorage).toHaveBeenCalledWith('token', apiResult.token)
     expect(storage.setStorage).toHaveBeenCalledWith('userInfo', apiResult.user)

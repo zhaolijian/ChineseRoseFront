@@ -14,6 +14,12 @@
       }
     },
     {
+      "path": "pages/login/phone-login",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/notes/index",
       "style": {
         "navigationBarTitleText": "笔记",

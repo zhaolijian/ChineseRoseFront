@@ -18,7 +18,8 @@ export interface Book {
 // 书籍列表查询参数
 export interface BookListParams {
   page?: number
-  pageSize?: number
+  limit?: number
+  pageSize?: number // 兼容旧参数，优先级低于 limit
   keyword?: string
   sortBy?: 'createdAt' | 'updatedAt' | 'title' | 'totalNotes'
   sortOrder?: 'asc' | 'desc'
@@ -26,11 +27,14 @@ export interface BookListParams {
 
 // 书籍列表响应 - 匹配后端响应结构
 export interface BookListResponse {
-  list: Book[]  // 后端字段名为 list，不是 books
-  total: number
-  page: number
-  pageSize: number
-  hasMore?: boolean  // 前端计算字段，可选
+  books: Book[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+  hasMore?: boolean
 }
 
 // 创建书籍参数
@@ -58,7 +62,14 @@ export interface UpdateBookData {
  * 获取书籍列表
  */
 export const getBookList = (params: BookListParams = {}): Promise<BookListResponse> => {
-  return request.get<BookListResponse>('/v1/books', params)
+  const normalizedParams: Record<string, any> = { ...params }
+
+  if (typeof params.pageSize !== 'undefined' && typeof normalizedParams.limit === 'undefined') {
+    normalizedParams.limit = params.pageSize
+  }
+  delete normalizedParams.pageSize
+
+  return request.get<BookListResponse>('/v1/books', normalizedParams)
 }
 
 /**
@@ -100,6 +111,6 @@ export const searchBookByISBN = (isbn: string): Promise<Book> => {
 /**
  * 搜索书籍
  */
-export const searchBooks = (keyword: string): Promise<Book[]> => {
-  return request.get<Book[]>('/v1/books/search', { keyword })
+export const searchBooks = (keyword: string): Promise<BookListResponse> => {
+  return request.get<BookListResponse>('/v1/books/search', { keyword })
 }

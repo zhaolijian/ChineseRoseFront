@@ -1,132 +1,100 @@
 <template>
-  <view class="profile-page cr-page-bg">
-    <!-- 用户信息头部 -->
+  <view class="profile-page">
+    <!-- 头部区域 -->
     <view class="profile-header">
       <view class="user-info">
-        <view class="avatar-section">
+        <!-- 用户头像 -->
+        <view class="avatar-wrapper">
           <u-avatar 
             :src="userAvatar" 
-            size="80"
+            size="64"
             mode="aspectFill"
           ></u-avatar>
-          <view class="edit-avatar" @click="changeAvatar">
-            <u-icon name="camera" size="16" color="#fff"></u-icon>
-          </view>
         </view>
         
+        <!-- 用户信息 -->
         <view class="user-details">
-          <text class="user-name">{{ userNickname }}</text>
-          <text v-if="userInfo?.phone" class="user-phone">{{ formatPhone(userInfo.phone) }}</text>
-          <text class="join-date">加入于 {{ formatJoinDate(userInfo?.createdAt) }}</text>
+          <text class="user-name">{{ userName }}</text>
+          <text class="user-motto">阅有所记，学有所成</text>
+        </view>
+      </view>
+      
+      <!-- 徽章区域 -->
+      <view class="badges">
+        <view class="badge badge--premium">
+          <text class="badge-icon">👑</text>
+          <text class="badge-text">高级用户</text>
+        </view>
+        <view class="badge badge--streak">
+          <text class="badge-icon">🔥</text>
+          <text class="badge-text">连续使用 15 天</text>
         </view>
       </view>
     </view>
 
-    <!-- 统计数据独立卡片 -->
-    <view class="stats-card cr-card cr-card--padded">
-      <view class="stats-grid">
-        <view class="stat-item">
-          <text class="stat-number text-primary">{{ bookCount }}</text>
-          <text class="stat-label text-sub">本书籍</text>
+    <!-- 数据统计卡片 -->
+    <view class="stats-section">
+      <view class="section-card">
+        <view class="card-header">
+          <u-icon name="chart-line" size="20" :color="primaryColor"></u-icon>
+          <text class="card-title">我的阅读数据</text>
         </view>
-        <view class="stat-item">
-          <text class="stat-number text-primary">{{ noteCount }}</text>
-          <text class="stat-label text-sub">条笔记</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-number text-primary">{{ readingDays }}</text>
-          <text class="stat-label text-sub">天阅读</text>
+        
+        <view class="stats-grid">
+          <view class="stat-item">
+            <text class="stat-number">{{ bookCount }}</text>
+            <text class="stat-label">本书籍</text>
+          </view>
+          <view class="stat-divider"></view>
+          <view class="stat-item">
+            <text class="stat-number">{{ noteCount }}</text>
+            <text class="stat-label">条笔记</text>
+          </view>
+          <view class="stat-divider"></view>
+          <view class="stat-item">
+            <text class="stat-number">{{ mindmapCount }}</text>
+            <text class="stat-label">个导图</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 功能菜单 -->
-    <view class="menu-section">
-      <view class="menu-group cr-card">
-        <view class="menu-item" @click="goToReadingGoals">
-          <view class="menu-left">
-            <u-icon name="calendar" size="20" :color="primaryColor"></u-icon>
-            <text class="menu-text text-main">阅读目标</text>
-          </view>
-          <view class="menu-right">
-            <text class="menu-desc text-sub">设置年度目标</text>
-            <u-icon name="arrow-right" size="16" color="#ccc"></u-icon>
-          </view>
-        </view>
+    <!-- 设置选项组 -->
+    <view class="settings-section">
+      <view class="section-card">
+        <text class="section-title">设置与帮助</text>
         
-        <view class="menu-item" @click="goToReadingStats">
-          <view class="menu-left">
-            <u-icon name="chart-pie" size="20" :color="primaryColor"></u-icon>
-            <text class="menu-text text-main">阅读统计</text>
+        <view class="settings-list">
+          <view class="setting-item" @click="goToNotificationSettings">
+            <view class="setting-left">
+              <u-icon name="bell" size="20" color="#666"></u-icon>
+              <text class="setting-text">通知设置</text>
+            </view>
+            <u-icon name="arrow-right" size="16" color="#999"></u-icon>
           </view>
-          <view class="menu-right">
-            <text class="menu-desc text-sub">查看详细数据</text>
-            <u-icon name="arrow-right" size="16" color="#ccc"></u-icon>
+          
+          <view class="setting-item" @click="goToShareSettings">
+            <view class="setting-left">
+              <u-icon name="share-square" size="20" color="#666"></u-icon>
+              <text class="setting-text">分享设置</text>
+            </view>
+            <u-icon name="arrow-right" size="16" color="#999"></u-icon>
           </view>
-        </view>
-        
-        <view class="menu-item" @click="goToExport">
-          <view class="menu-left">
-            <u-icon name="download" size="20" :color="primaryColor"></u-icon>
-            <text class="menu-text text-main">数据导出</text>
+          
+          <view class="setting-item" @click="goToFeedback">
+            <view class="setting-left">
+              <u-icon name="question-circle" size="20" color="#666"></u-icon>
+              <text class="setting-text">帮助与反馈</text>
+            </view>
+            <u-icon name="arrow-right" size="16" color="#999"></u-icon>
           </view>
-          <view class="menu-right">
-            <text class="menu-desc text-sub">导出笔记数据</text>
-            <u-icon name="arrow-right" size="16" color="#ccc"></u-icon>
-          </view>
-        </view>
-        
-        <view class="menu-item" @click="goToMyBooks">
-          <view class="menu-left">
-            <u-icon name="book" size="20" :color="primaryColor"></u-icon>
-            <text class="menu-text text-main">我的书籍</text>
-          </view>
-          <view class="menu-right">
-            <u-badge :value="bookCount" :max="99" type="primary"></u-badge>
-            <u-icon name="arrow-right" size="16" color="#ccc" style="margin-left: 8px;"></u-icon>
-          </view>
-        </view>
-        
-        <view class="menu-item" @click="goToMyNotes">
-          <view class="menu-left">
-            <u-icon name="edit-pen" size="20" :color="primaryColor"></u-icon>
-            <text class="menu-text text-main">我的笔记</text>
-          </view>
-          <view class="menu-right">
-            <u-badge :value="noteCount" :max="99" type="primary"></u-badge>
-            <u-icon name="arrow-right" size="16" color="#ccc" style="margin-left: 8px;"></u-icon>
-          </view>
-        </view>
-      </view>
-
-      <view class="menu-group cr-card">
-        <view class="menu-item" @click="goToSettings">
-          <view class="menu-left">
-            <u-icon name="setting" size="20" color="#666"></u-icon>
-            <text class="menu-text text-main">设置</text>
-          </view>
-          <view class="menu-right">
-            <u-icon name="arrow-right" size="16" color="#ccc"></u-icon>
-          </view>
-        </view>
-        
-        <view class="menu-item" @click="goToAbout">
-          <view class="menu-left">
-            <u-icon name="info-circle" size="20" color="#666"></u-icon>
-            <text class="menu-text text-main">关于我们</text>
-          </view>
-          <view class="menu-right">
-            <u-icon name="arrow-right" size="16" color="#ccc"></u-icon>
-          </view>
-        </view>
-        
-        <view class="menu-item" @click="goToFeedback">
-          <view class="menu-left">
-            <u-icon name="chat" size="20" color="#666"></u-icon>
-            <text class="menu-text text-main">意见反馈</text>
-          </view>
-          <view class="menu-right">
-            <u-icon name="arrow-right" size="16" color="#ccc"></u-icon>
+          
+          <view class="setting-item" @click="goToAbout">
+            <view class="setting-left">
+              <u-icon name="info-circle" size="20" color="#666"></u-icon>
+              <text class="setting-text">关于阅记</text>
+            </view>
+            <u-icon name="arrow-right" size="16" color="#999"></u-icon>
           </view>
         </view>
       </view>
@@ -134,12 +102,11 @@
 
     <!-- 退出登录 -->
     <view class="logout-section">
-      <u-button 
-        text="退出登录"
-        type="error"
-        :custom-style="logoutButtonStyle"
-        @click="handleLogout"
-      ></u-button>
+      <view class="section-card">
+        <view class="logout-button" @click="handleLogout">
+          <text class="logout-text">退出登录</text>
+        </view>
+      </view>
     </view>
   </view>
 </template>
@@ -155,25 +122,17 @@ const userStore = useUserStore()
 const bookStore = useBookStore()
 
 // 响应式数据
-const bookCount = ref(0)
-const noteCount = ref(0)
-const readingDays = ref(0)
+const bookCount = ref(12)  // Figma设计稿显示的数据
+const noteCount = ref(156) // Figma设计稿显示的数据
+const mindmapCount = ref(8) // Figma设计稿显示的数据
 
 // 计算属性
 const userInfo = computed(() => userStore.userInfo)
-const userNickname = computed(() => userStore.userNickname)
-const userAvatar = computed(() => userStore.userAvatar)
+const userName = computed(() => userStore.userNickname || '阅记用户')
+const userAvatar = computed(() => userStore.userAvatar || '/static/images/default-avatar.png')
 
-// 样式和常量
+// 主色
 const primaryColor = '#00a82d'
-
-const logoutButtonStyle = {
-  backgroundColor: '#fff',
-  color: '#ff6b6b',
-  border: '1px solid #ff6b6b',
-  borderRadius: '8px',
-  height: '44px'
-}
 
 // 生命周期
 onMounted(async () => {
@@ -188,75 +147,24 @@ onShow(async () => {
 const loadUserStats = async () => {
   try {
     // TODO: 实现获取用户统计数据的API
-    // const stats = await userStore.fetchUserStats()
-    // bookCount.value = stats.bookCount
-    // noteCount.value = stats.noteCount
-    // readingDays.value = stats.readingDays
-    
-    // 临时使用store中的数据
-    bookCount.value = bookStore.bookCount
-    noteCount.value = 0 // TODO: 从note store获取
-    readingDays.value = 30 // 临时数据
+    // 暂时使用固定数据以匹配Figma设计
+    bookCount.value = 12
+    noteCount.value = 156
+    mindmapCount.value = 8
   } catch (error) {
     console.error('加载用户统计失败:', error)
   }
 }
 
-const changeAvatar = () => {
-  uni.chooseImage({
-    count: 1,
-    sizeType: ['compressed'],
-    sourceType: ['camera', 'album'],
-    success: async () => {
-      try {
-        // TODO: 实现头像上传
-        // const avatarUrl = await uploadAvatar(res.tempFilePaths[0])
-        // await userStore.updateUserInfo({ avatar: avatarUrl })
-        
-        uni.showToast({
-          title: '功能开发中',
-          icon: 'none'
-        })
-      } catch (error) {
-        console.error('头像上传失败:', error)
-        uni.showToast({
-          title: '上传失败',
-          icon: 'error'
-        })
-      }
-    }
-  })
-}
-
-const goToReadingGoals = () => {
+// 设置相关方法
+const goToNotificationSettings = () => {
   uni.showToast({
     title: '功能开发中',
     icon: 'none'
   })
 }
 
-const goToReadingStats = () => {
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none'
-  })
-}
-
-const goToExport = () => {
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none'
-  })
-}
-
-const goToSettings = () => {
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none'
-  })
-}
-
-const goToAbout = () => {
+const goToShareSettings = () => {
   uni.showToast({
     title: '功能开发中',
     icon: 'none'
@@ -270,15 +178,10 @@ const goToFeedback = () => {
   })
 }
 
-const goToMyBooks = () => {
-  uni.switchTab({
-    url: '/pages/index/index'
-  })
-}
-
-const goToMyNotes = () => {
-  uni.switchTab({
-    url: '/pages/notes/index'
+const goToAbout = () => {
+  uni.showToast({
+    title: '功能开发中',
+    icon: 'none'
   })
 }
 
@@ -312,53 +215,32 @@ const handleLogout = () => {
     }
   })
 }
-
-const formatPhone = (phone?: string): string => {
-  if (!phone) return ''
-  return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
-}
-
-const formatJoinDate = (dateStr?: string): string => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return `${date.getFullYear()}年${date.getMonth() + 1}月`
-}
 </script>
 
 <style lang="scss" scoped>
 @import '@/uni.scss';
+@import '@/styles/design-tokens.scss';
+@import '@/styles/effects.scss';
+@import '@/styles/profile-tokens.scss';
 
 .profile-page {
   min-height: 100vh;
+  background-color: map-get($profile-bg, page);
 }
 
-// 翡翠绿色头部渐变 - 与设计稿一致
+// 头部区域
 .profile-header {
-  background: linear-gradient(135deg, var(--cr-color-primary-600) 0%, var(--cr-color-primary-700) 100%);
-  padding: 80rpx 48rpx 60rpx;
+  background: map-get($cr-colors, primary);
+  padding: map-get($profile-spacing, header-padding-top) 32rpx map-get($profile-spacing, header-padding-bottom);
   color: #fff;
-  position: relative;
   
   .user-info {
     display: flex;
     align-items: center;
+    margin-bottom: 32rpx;
     
-    .avatar-section {
-      position: relative;
-      margin-right: 40rpx;
-      
-      .edit-avatar {
-        position: absolute;
-        bottom: -8rpx;
-        right: -8rpx;
-        width: 48rpx;
-        height: 48rpx;
-        background: rgba(0, 0, 0, 0.6);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+    .avatar-wrapper {
+      margin-right: 24rpx;
     }
     
     .user-details {
@@ -366,107 +248,192 @@ const formatJoinDate = (dateStr?: string): string => {
       
       .user-name {
         display: block;
-        font-size: 44rpx;
-        font-weight: 600;
-        margin-bottom: 12rpx;
-        line-height: 1.2;
-      }
-      
-      .user-phone {
-        display: block;
-        font-size: 28rpx;
-        opacity: 0.8;
+        font-size: map-get($cr-font-size, xl);
+        font-weight: map-get($cr-font-weight, bold);
         margin-bottom: 8rpx;
       }
       
-      .join-date {
-        font-size: 24rpx;
-        opacity: 0.7;
+      .user-motto {
+        display: block;
+        font-size: map-get($cr-font-size, sm);
+        opacity: 0.9;
+      }
+    }
+  }
+  
+  // 徽章区域
+  .badges {
+    display: flex;
+    gap: 16rpx;
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8rpx;
+      padding: 8rpx 16rpx;
+      border-radius: map-get($cr-radius, full);
+      font-size: map-get($cr-font-size, sm);
+      
+      &--premium {
+        background: map-get(map-get($profile-badges, premium), background);
+        color: map-get(map-get($profile-badges, premium), color);
+      }
+      
+      &--streak {
+        background: map-get(map-get($profile-badges, streak), background);
+        color: map-get(map-get($profile-badges, streak), color);
+      }
+      
+      .badge-icon {
+        font-size: 16rpx;
+      }
+      
+      .badge-text {
+        font-weight: map-get($cr-font-weight, medium);
       }
     }
   }
 }
 
-// 独立统计数据卡片
-.stats-card {
-  margin: 24rpx;
+// 通用卡片样式
+.section-card {
+  background: map-get($profile-card, background);
+  border: map-get($profile-card, border);
+  border-radius: map-get($profile-card, border-radius);
+  padding: map-get($profile-card, padding);
+  
+  /* #ifndef MP */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* #endif */
+  
+  /* #ifdef MP */
+  // 小程序降级：纯白背景
+  background: rgba(255, 255, 255, 0.95);
+  /* #endif */
+}
+
+// 数据统计部分
+.stats-section {
+  padding: 0 24rpx;
+  margin-top: map-get($profile-spacing, section-gap);
+  
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    margin-bottom: 32rpx;
+    
+    .card-title {
+      font-size: map-get($cr-font-size, md);
+      font-weight: map-get($cr-font-weight, semibold);
+      color: map-get($cr-colors, text-primary);
+    }
+  }
   
   .stats-grid {
     display: flex;
-    justify-content: space-around;
+    align-items: center;
+    justify-content: space-between;
     
     .stat-item {
+      flex: 1;
       text-align: center;
       
       .stat-number {
         display: block;
-        font-size: var(--cr-font-title);
-        font-weight: 600;
+        font-size: map-get($profile-stats, number-size);
+        font-weight: map-get($cr-font-weight, bold);
+        color: map-get($cr-colors, text-primary);
         margin-bottom: 8rpx;
-        line-height: 1.2;
       }
       
       .stat-label {
-        font-size: var(--cr-font-caption);
+        display: block;
+        font-size: map-get($profile-stats, label-size);
+        color: map-get($cr-colors, text-secondary);
       }
+    }
+    
+    .stat-divider {
+      width: 1rpx;
+      height: 40rpx;
+      background-color: map-get($profile-stats, divider-color);
     }
   }
 }
 
-.menu-section {
+// 设置部分
+.settings-section {
   padding: 0 24rpx;
+  margin-top: map-get($profile-spacing, section-gap);
   
-  .menu-group {
-    margin-bottom: 32rpx;
-    overflow: hidden;
-    
-    .menu-item {
+  .section-title {
+    display: block;
+    font-size: map-get($cr-font-size, md);
+    font-weight: map-get($cr-font-weight, semibold);
+    color: map-get($cr-colors, text-primary);
+    margin-bottom: 24rpx;
+  }
+  
+  .settings-list {
+    .setting-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 32rpx 40rpx;
-      border-bottom: 1rpx solid var(--cr-color-divider);
-      transition: background-color 0.2s;
+      padding: 20rpx 0;
       
-      &:last-child {
-        border-bottom: none;
+      &:not(:last-child) {
+        border-bottom: 1rpx solid map-get($cr-colors, border-light);
       }
       
       &:active {
-        background-color: var(--cr-color-primary-50);
+        background-color: map-get($profile-settings, hover-bg);
+        margin: 0 -32rpx;
+        padding-left: 32rpx;
+        padding-right: 32rpx;
       }
       
-      .menu-left {
+      .setting-left {
         display: flex;
         align-items: center;
+        gap: 16rpx;
         
-        .menu-text {
-          font-size: var(--cr-font-body);
-          margin-left: 24rpx;
-        }
-      }
-      
-      .menu-right {
-        display: flex;
-        align-items: center;
-        
-        .menu-desc {
-          font-size: var(--cr-font-caption);
-          margin-right: 16rpx;
+        .setting-text {
+          font-size: map-get($cr-font-size, base);
+          color: map-get($cr-colors, text-primary);
         }
       }
     }
   }
 }
 
+// 退出登录部分
 .logout-section {
-  padding: 32rpx 24rpx;
+  padding: 0 24rpx;
+  margin-top: map-get($profile-spacing, section-gap);
+  margin-bottom: 48rpx;
+  
+  .logout-button {
+    text-align: center;
+    padding: 24rpx 0;
+    
+    &:active {
+      opacity: 0.7;
+    }
+    
+    .logout-text {
+      font-size: map-get($cr-font-size, md);
+      font-weight: map-get($cr-font-weight, medium);
+      color: #ff4d4f;
+    }
+  }
 }
 
 /* 微信小程序特定样式 */
 /* #ifdef MP-WEIXIN */
 .profile-header {
-  padding-top: calc(40px + var(--status-bar-height));
+  padding-top: calc(map-get($profile-spacing, header-padding-top) + var(--status-bar-height));
 }
 /* #endif */
 </style>

@@ -104,7 +104,7 @@ test.describe('H5登录页面测试', () => {
     console.log('测试4: 测试用户协议链接...')
     
     // 检查协议文本
-    await expect(page.locator('.agreement')).toContainText('登录即表示您同意')
+    await expect(page.locator('.agreement')).toContainText('我已阅读并同意')
     
     // 点击用户协议
     const userAgreement = page.locator('.agreement-link:has-text("《用户协议》")')

@@ -163,4 +163,4 @@ class Logger {
 export const logger = new Logger()
 
 // 导出类型
-export type { LogEntry }
+export type { LogEntry, LogContext }

@@ -13,3 +13,6 @@ export { getStorage, setStorage, removeStorage, clearStorage } from './storage'
 export { logger } from './logger'
 export { createContext, createRequestContext, clearRequestContext, generateTraceId } from './logger-helpers'
 export type { LogContext, LogLevel, LogEntry } from './logger'
+
+// Base64相关
+export { base64Decode, base64Encode } from './base64'

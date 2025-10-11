@@ -1,0 +1,51 @@
+// src/styles/mixins.scss
+// 常用 mixin：间距、圆角、阴影、字体、焦点状态等
+
+@use "sass:math";
+@use "./theme" as theme;
+
+@function px-to-rpx($px) {
+  @return math.div($px, 1px) * 2rpx;
+}
+
+@mixin spacing($property, $scale) {
+  $value: theme.theme-spacing($scale);
+  #{$property}: $value;
+  #{$property}: #{px-to-rpx($value)};
+}
+
+@mixin radius($scale) {
+  $value: theme.theme-radius($scale);
+  border-radius: $value;
+  border-radius: #{px-to-rpx($value)};
+}
+
+@mixin shadow($level: "sm") {
+  box-shadow: theme.theme-shadow($level);
+}
+
+@mixin font($scale: "base", $weight: "normal") {
+  font-size: theme.theme-font-size($scale);
+  font-weight: theme.theme-font-weight($weight);
+  line-height: 1.5;
+}
+
+@mixin focus-ring($color: "ring") {
+  box-shadow: 0 0 0 3px rgba(theme.theme-color($color), 0.2);
+}
+
+@mixin surface-card {
+  background-color: theme.theme-color("card");
+  color: theme.theme-color("card-foreground");
+  @include radius("lg");
+  @include shadow("sm");
+  border: 1px solid theme.theme-color("border");
+}
+
+@mixin icon-color($variant: "muted-foreground") {
+  color: theme.theme-color($variant);
+}
+
+@mixin primary-gradient {
+  background-image: linear-gradient(135deg, #00a82d 0%, #2db754 100%);
+}

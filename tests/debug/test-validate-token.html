@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test ValidateToken</title>
+    <script>
+        // 模拟base64Decode函数
+        function base64Decode(str) {
+            try {
+                return atob(str);
+            } catch (e) {
+                console.error('Base64 decode failed:', e);
+                return null;
+            }
+        }
+
+        // 创建一个合法的测试token
+        function createTestToken() {
+            const now = Math.floor(Date.now() / 1000);
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({
+                user_id: 1,
+                exp: now + 3600, // 1小时后过期
+                iat: now,
+                nbf: now
+            }));
+            return `${header}.${payload}.signature`;
+        }
+
+        // 测试validateToken逻辑
+        function testValidateToken() {
+            const token = createTestToken();
+            console.log('Test token:', token);
+
+            // 解析token
+            const parts = token.split('.');
+            console.log('Token parts:', parts.length);
+
+            try {
+                // 解析header
+                const headerJson = base64Decode(parts[0]);
+                console.log('Header JSON:', headerJson);
+                const header = JSON.parse(headerJson);
+                console.log('Parsed header:', header);
+
+                // 解析payload
+                const payloadJson = base64Decode(parts[1]);
+                console.log('Payload JSON:', payloadJson);
+                const payload = JSON.parse(payloadJson);
+                console.log('Parsed payload:', payload);
+
+                // 检查时间
+                const currentTime = Math.floor(Date.now() / 1000);
+                console.log('Current time:', currentTime);
+                console.log('Token exp:', payload.exp);
+                console.log('Is expired?', payload.exp <= currentTime);
+                console.log('Token nbf:', payload.nbf);
+                console.log('Is not yet valid?', payload.nbf > currentTime);
+
+            } catch (error) {
+                console.error('Parse error:', error);
+            }
+        }
+
+        // 测试实际存储的token
+        function testStoredToken() {
+            // 注意：项目使用 chinese_rose_ 前缀
+            const storedTokenData = localStorage.getItem('chinese_rose_token');
+            if (storedTokenData) {
+                try {
+                    // 存储的是包含 value 的 JSON 对象
+                    const data = JSON.parse(storedTokenData);
+                    const storedToken = data.value;
+                    if (!storedToken) {
+                        console.log('Token data exists but value is empty');
+                        return;
+                    }
+                console.log('\n=== Testing stored token ===');
+                console.log('Stored token:', storedToken);
+                
+                const parts = storedToken.split('.');
+                if (parts.length === 3) {
+                    try {
+                        const payloadJson = base64Decode(parts[1]);
+                        const payload = JSON.parse(payloadJson);
+                        console.log('Stored token payload:', payload);
+                        
+                        const currentTime = Math.floor(Date.now() / 1000);
+                        const isExpired = payload.exp <= currentTime;
+                        console.log('Is stored token expired?', isExpired);
+                        
+                        if (isExpired) {
+                            const expDate = new Date(payload.exp * 1000);
+                            console.log('Token expired at:', expDate.toLocaleString());
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse stored token:', e);
+                    }
+                }
+                } catch (e) {
+                    console.error('Failed to parse token data:', e);
+                }
+            } else {
+                console.log('No token found in localStorage (chinese_rose_token)');
+            }
+        }
+
+        window.onload = function() {
+            console.log('=== Testing token validation ===');
+            testValidateToken();
+            testStoredToken();
+        };
+    </script>
+</head>
+<body>
+    <h1>ValidateToken Test</h1>
+    <p>Open console to see results</p>
+    <button onclick="testValidateToken()">Test New Token</button>
+    <button onclick="testStoredToken()">Test Stored Token</button>
+</body>
+</html>

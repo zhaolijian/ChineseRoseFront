@@ -269,6 +269,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { useBookStore } from '@/stores/modules/book'
 import { useNoteStore } from '@/stores/modules/note'
 import { logger, createContext } from '@/utils'
+import { ensureLoggedIn } from '@/utils/auth-guard'
 
 // 类型定义
 interface Book {
@@ -459,6 +460,12 @@ const startRecord = () => {
 
 const saveNote = async () => {
   const ctx = createContext()
+
+  // ADR-007 P0守卫：保存笔记需要登录
+  const canProceed = await ensureLoggedIn('保存笔记')
+  if (!canProceed) {
+    return
+  }
 
   if (!canSave.value) {
     uni.showToast({

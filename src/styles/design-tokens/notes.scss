@@ -1,0 +1,428 @@
+// 笔记页面设计令牌 - 100%还原Figma Make设计
+// 数据来源：https://www.figma.com/make/WpRJCjULqwmrE5OhPHT9Ql
+// 页面：NotesPage.tsx
+// 更新日期：2025-10-10
+
+// ===========================
+// Figma Make 颜色系统（从globals.css和NotesPage提取）
+// ===========================
+
+$notes-colors: (
+  // 主色：品牌绿色（继承globals.css:12 --primary）
+  primary: #00a82d,
+
+  // 深主色：用于按钮hover状态
+  primary-dark: #008523,
+
+  // 浅主色：用于标签背景（主色的10%透明度）
+  primary-light: rgba(0, 168, 45, 0.1),
+
+  // 前景色：深灰色文字（globals.css:10 --foreground）
+  foreground: #333333,
+
+  // 背景色：浅灰色背景（globals.css:9 --background）
+  background: #f5f7fa,
+
+  // 卡片背景：纯白色
+  card-background: #ffffff,
+
+  // 搜索框背景：浅灰色
+  search-background: #f8f9fa,
+
+  // 边框色：主色半透明（globals.css:16 --border）
+  border: rgba(0, 168, 45, 0.12),
+
+  // 分隔线：中性灰
+  divider: #f0f0f0,
+
+  // 次要文字色（笔记内容）
+  muted-foreground: #666666,
+
+  // 标题文字色（笔记标题）
+  title: #333333,
+
+  // 辅助文字色（时间、类型等）
+  secondary-text: #999999,
+
+  // 筛选按钮背景色
+  filter-background: #f8f9fa,
+
+  // 筛选按钮激活背景色
+  filter-active-background: #00a82d,
+
+  // 筛选按钮文字色
+  filter-text: #666666,
+
+  // 筛选按钮激活文字色
+  filter-active-text: #ffffff,
+
+  // 标签文字色
+  tag-text: #00a82d,
+
+  // 标签背景色
+  tag-background: rgba(0, 168, 45, 0.1),
+
+  // 危险操作色（删除）
+  danger: #ff6b6b,
+
+  // 阴影色（卡片阴影）
+  shadow: rgba(0, 0, 0, 0.06)
+);
+
+// ===========================
+// Figma Make 字体系统（精确转换）
+// ===========================
+
+$notes-font-sizes: (
+  // text-[11px]: 11px → 22rpx（标签文字）
+  xxs: 22rpx,
+
+  // text-xs: 0.75rem → 24rpx（时间、类型标识）
+  xs: 24rpx,
+
+  // text-sm: 0.875rem → 28rpx（笔记内容、书名）
+  sm: 28rpx,
+
+  // text-base: 1rem → 32rpx（笔记标题、筛选按钮）
+  base: 32rpx,
+
+  // text-lg: 1.125rem → 36rpx（页面标题）
+  lg: 36rpx,
+
+  // text-xl: 1.25rem → 40rpx（空状态标题）
+  xl: 40rpx
+);
+
+$notes-font-weights: (
+  normal: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700
+);
+
+$notes-line-heights: (
+  tight: 1.2,
+  normal: 1.4,
+  relaxed: 1.6,
+  loose: 1.8
+);
+
+// ===========================
+// Figma Make 间距系统（Tailwind → rpx精确转换）
+// ===========================
+
+$notes-spacing: (
+  // space-1: 4px → 8rpx（标签内间距）
+  xs: 8rpx,
+
+  // space-2: 8px → 16rpx（笔记元素小间距）
+  sm: 16rpx,
+
+  // space-3: 12px → 24rpx（筛选按钮间距、列表项间距）
+  md: 24rpx,
+
+  // space-4: 16px → 32rpx（卡片内边距、页面内边距）
+  lg: 32rpx,
+
+  // space-5: 20px → 40rpx（section间距）
+  xl: 40rpx,
+
+  // space-6: 24px → 48rpx
+  xxl: 48rpx,
+
+  // space-8: 32px → 64rpx
+  xxxl: 64rpx,
+
+  // space-10: 40px → 80rpx（底部padding，为FAB按钮留空）
+  huge: 80rpx,
+
+  // space-12: 48px → 96rpx
+  giant: 96rpx,
+
+  // 底部安全区（为FAB + TabBar留空）
+  bottom-safe: 160rpx
+);
+
+// ===========================
+// Figma Make 圆角系统
+// ===========================
+
+$notes-radius: (
+  // rounded-sm: 2px → 4rpx（标签圆角）
+  sm: 4rpx,
+
+  // rounded: 4px → 8rpx
+  md: 8rpx,
+
+  // rounded-lg: 8px → 16rpx（卡片圆角）
+  lg: 16rpx,
+
+  // rounded-[20px]: 20px → 40rpx（筛选按钮圆角）
+  pill: 40rpx,
+
+  // rounded-xl: 12px → 24rpx（弹窗圆角）
+  xl: 24rpx,
+
+  // rounded-full: 50%（FAB按钮）
+  full: 50%
+);
+
+// ===========================
+// Figma Make 组件尺寸（精确测量）
+// ===========================
+
+$notes-sizes: (
+  // 搜索框高度
+  search-height: 72rpx,
+
+  // 筛选按钮高度
+  filter-height: 48rpx,
+
+  // 筛选按钮最小宽度
+  filter-min-width: 64rpx,
+
+  // 图标尺寸（搜索、排序）
+  icon-size: 32rpx,
+
+  // 小图标尺寸（标签内）
+  icon-sm: 28rpx,
+
+  // FAB按钮尺寸
+  fab-size: 112rpx,
+
+  // FAB图标尺寸
+  fab-icon-size: 48rpx,
+
+  // 空状态图标尺寸
+  empty-icon-size: 160rpx,
+
+  // 弹窗高度（排序、操作）
+  popup-height-sm: 400rpx,
+  popup-height-md: 600rpx
+);
+
+// ===========================
+// Figma Make 阴影系统
+// ===========================
+
+$notes-shadows: (
+  // 卡片阴影
+  card: 0 4rpx 16rpx rgba(0, 0, 0, 0.06),
+
+  // 卡片hover阴影
+  card-hover: 0 6rpx 20rpx rgba(0, 0, 0, 0.1),
+
+  // FAB按钮阴影
+  fab: 0 8rpx 24rpx rgba(0, 168, 45, 0.3),
+
+  // FAB按钮hover阴影
+  fab-hover: 0 10rpx 28rpx rgba(0, 168, 45, 0.4),
+
+  // 弹窗阴影
+  popup: 0 -2rpx 16rpx rgba(0, 0, 0, 0.08)
+);
+
+// ===========================
+// Figma Make 动画系统
+// ===========================
+
+$notes-transitions: (
+  // 快速动画（按钮点击）
+  fast: 0.1s,
+
+  // 标准动画（卡片hover）
+  normal: 0.2s,
+
+  // 慢速动画（页面切换）
+  slow: 0.3s
+);
+
+// ===========================
+// 布局令牌
+// ===========================
+
+$notes-layout: (
+  // 页面水平内边距
+  page-padding-x: 32rpx,
+
+  // 搜索栏padding
+  search-padding-x: 32rpx,
+  search-padding-y: 24rpx,
+
+  // 筛选栏padding
+  filter-padding-x: 32rpx,
+  filter-padding-y: 24rpx,
+
+  // 笔记列表padding
+  list-padding-x: 32rpx,
+  list-padding-y: 24rpx,
+
+  // 底部TabBar高度（为FAB按钮留空）
+  tabbar-height: 100rpx,
+
+  // FAB按钮距离底部
+  fab-bottom: 180rpx,
+
+  // FAB按钮距离右侧
+  fab-right: 40rpx
+);
+
+// ===========================
+// 组件状态令牌（交互状态）
+// ===========================
+
+// 笔记卡片状态
+$notes-card-states: (
+  // 默认状态
+  default: (
+    background: map-get($notes-colors, card-background),
+    shadow: map-get($notes-shadows, card),
+    transform: scale(1)
+  ),
+
+  // hover状态（H5端）
+  hover: (
+    shadow: map-get($notes-shadows, card-hover),
+    transform: translateY(-2rpx)
+  ),
+
+  // active状态（按下）
+  active: (
+    transform: scale(0.98),
+    shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04)
+  )
+);
+
+// 筛选按钮状态
+$notes-filter-states: (
+  // 默认状态
+  default: (
+    background: map-get($notes-colors, filter-background),
+    color: map-get($notes-colors, filter-text),
+    border: none
+  ),
+
+  // 激活状态
+  active: (
+    background: map-get($notes-colors, filter-active-background),
+    color: map-get($notes-colors, filter-active-text),
+    border: none
+  ),
+
+  // hover状态
+  hover: (
+    background: #e9ecef
+  )
+);
+
+// FAB按钮状态
+$notes-fab-states: (
+  // 默认状态
+  default: (
+    background: map-get($notes-colors, primary),
+    shadow: map-get($notes-shadows, fab),
+    transform: scale(1)
+  ),
+
+  // hover状态
+  hover: (
+    background: map-get($notes-colors, primary-dark),
+    shadow: map-get($notes-shadows, fab-hover)
+  ),
+
+  // active状态
+  active: (
+    transform: scale(0.95),
+    shadow: 0 6rpx 20rpx rgba(0, 168, 45, 0.25)
+  )
+);
+
+// 搜索框状态
+$notes-search-states: (
+  // 默认状态
+  default: (
+    background: map-get($notes-colors, search-background),
+    border: 1rpx solid transparent
+  ),
+
+  // focus状态
+  focus: (
+    background: #ffffff,
+    border: 1rpx solid map-get($notes-colors, primary)
+  )
+);
+
+// 标签状态
+$notes-tag-states: (
+  // 默认状态
+  default: (
+    background: map-get($notes-colors, tag-background),
+    color: map-get($notes-colors, tag-text)
+  )
+);
+
+// ===========================
+// 笔记类型令牌
+// ===========================
+
+$notes-types: (
+  // 阅读笔记
+  reading: (
+    label: '阅读',
+    color: #00a82d
+  ),
+
+  // 思考感悟
+  thought: (
+    label: '思考',
+    color: #ff6b6b
+  ),
+
+  // 摘录
+  quote: (
+    label: '摘录',
+    color: #ffd93d
+  ),
+
+  // 总结
+  summary: (
+    label: '总结',
+    color: #6c5ce7
+  )
+);
+
+// ===========================
+// 导出SCSS变量（向后兼容）
+// ===========================
+
+:root {
+  // 颜色
+  --notes-primary: #{map-get($notes-colors, primary)};
+  --notes-foreground: #{map-get($notes-colors, foreground)};
+  --notes-background: #{map-get($notes-colors, background)};
+  --notes-card-background: #{map-get($notes-colors, card-background)};
+  --notes-border: #{map-get($notes-colors, border)};
+  --notes-divider: #{map-get($notes-colors, divider)};
+
+  // 字体
+  --notes-font-base: #{map-get($notes-font-sizes, base)};
+  --notes-font-sm: #{map-get($notes-font-sizes, sm)};
+  --notes-font-xs: #{map-get($notes-font-sizes, xs)};
+  --notes-font-xxs: #{map-get($notes-font-sizes, xxs)};
+
+  // 间距
+  --notes-spacing-lg: #{map-get($notes-spacing, lg)};
+  --notes-spacing-md: #{map-get($notes-spacing, md)};
+  --notes-spacing-sm: #{map-get($notes-spacing, sm)};
+  --notes-page-padding: #{map-get($notes-layout, page-padding-x)};
+
+  // 尺寸
+  --notes-fab-size: #{map-get($notes-sizes, fab-size)};
+  --notes-search-height: #{map-get($notes-sizes, search-height)};
+  --notes-filter-height: #{map-get($notes-sizes, filter-height)};
+
+  // 圆角
+  --notes-radius-lg: #{map-get($notes-radius, lg)};
+  --notes-radius-pill: #{map-get($notes-radius, pill)};
+  --notes-radius-sm: #{map-get($notes-radius, sm)};
+}

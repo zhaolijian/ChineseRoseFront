@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "编辑笔记",
+  "usingComponents": {
+    "app-nav-bar": "../../components/common/AppNavBar",
+    "page-container": "../../components/common/PageContainer",
+    "primary-button": "../../components/common/PrimaryButton"
+  }
+}

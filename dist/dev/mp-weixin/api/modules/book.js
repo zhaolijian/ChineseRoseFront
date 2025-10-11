@@ -1,0 +1,1 @@
+"use strict";const t=require("../../utils/request.js");exports.createBook=e=>t.http.post("/v1/books",e),exports.deleteBook=e=>t.http.delete(`/v1/books/${e}`),exports.searchBookByISBN=e=>t.http.get("/v1/books/isbn",{isbn:e});

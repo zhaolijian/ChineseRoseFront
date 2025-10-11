@@ -1,0 +1,180 @@
+// login-tokens.scss - 登录页面专用设计令牌
+// 严格遵循ADR-007设计规范，与Profile页面风格统一
+
+@import './design-tokens.scss';
+
+// ===========================
+// 登录页面专用令牌
+// ===========================
+
+// 背景色系统（100%还原Figma设计：白色简洁风格）
+$login-bg: (
+  // 纯白色背景（与Figma设计一致）
+  page: #FFFFFF,
+);
+
+// 登录卡片样式（参考Profile卡片）
+$login-card: (
+  // 卡片背景（毛玻璃效果）
+  background: rgba(255, 255, 255, 0.8),
+  // 毛玻璃模糊度
+  backdrop-blur: 10px,
+  // 边框（淡绿色）
+  border: 1px solid rgba(0, 168, 45, 0.1),
+  // 圆角
+  border-radius: map-get($cr-radius, md),
+  // 内边距
+  padding: map-get($cr-spacing, xl),
+  // 卡片阴影
+  shadow: map-get($cr-shadow, md),
+  // 负margin实现悬浮效果
+  negative-margin: -40rpx,
+);
+
+// Logo样式
+$login-logo: (
+  // Logo尺寸
+  size: 120rpx,
+  // 圆角
+  border-radius: map-get($cr-radius, lg),
+  // 阴影
+  shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12),
+);
+
+// 文字样式（黑色主题，适配白色背景 - Figma设计）
+$login-text: (
+  // App名称（黑色）
+  app-name-size: map-get($cr-font-size, xxl),
+  app-name-weight: map-get($cr-font-weight, semibold),
+  app-name-color: #000000,
+
+  // Slogan（绿色）
+  slogan-size: map-get($cr-font-size, sm),
+  slogan-color: #10B981,
+
+  // 卡片标题
+  card-title-size: map-get($cr-font-size, md),
+  card-title-weight: map-get($cr-font-weight, semibold),
+  card-title-color: #000000,
+);
+
+// 按钮样式（100%还原Figma：灰色背景 + 黑色文字）
+$login-button: (
+  // 一键登录按钮（灰色背景）
+  wechat-bg: #F3F4F6,
+  wechat-height: 88rpx, // 44px，符合主流
+  wechat-radius: 16rpx,
+  wechat-color: #000000,
+  wechat-border: 1rpx solid #E5E7EB,
+  wechat-icon-gap: map-get($cr-spacing, sm),
+
+  // 手机号登录按钮（同样灰色）
+  phone-bg: #F3F4F6,
+  phone-height: 88rpx,
+  phone-radius: 16rpx,
+  phone-color: #000000,
+  phone-border: 1rpx solid #E5E7EB,
+
+  // 获取验证码按钮（手机号登录页用）
+  code-btn-bg: map-get($cr-colors, primary),
+  code-btn-height: 72rpx,
+  code-btn-radius: map-get($cr-radius, sm),
+);
+
+// 输入框样式
+$login-input: (
+  // 输入框背景
+  background: rgba(248, 250, 252, 0.8),
+  // 输入框高度
+  height: 88rpx,
+  // 圆角
+  border-radius: map-get($cr-radius, md),
+  // 边框
+  border: 1rpx solid map-get($cr-colors, border-light),
+  // 内边距
+  padding: 0 32rpx,
+  // 文字颜色
+  text-color: map-get($cr-colors, text-primary),
+  // placeholder颜色
+  placeholder-color: map-get($cr-colors, text-secondary),
+  // focus边框色
+  focus-border: map-get($cr-colors, primary),
+);
+
+// 间距系统
+$login-spacing: (
+  // 头部区域
+  header-padding-top: map-get($cr-spacing, xxxl),
+  header-padding-bottom: 80rpx,
+
+  // 登录区域（移除卡片后的直接间距）
+  section-padding-h: map-get($cr-spacing, xl),
+  section-padding-v: map-get($cr-spacing, lg),
+
+  // 元素间距
+  logo-margin-bottom: map-get($cr-spacing, lg),
+  app-name-margin-bottom: map-get($cr-spacing, md),
+  section-gap: map-get($cr-spacing, lg),
+  input-gap: map-get($cr-spacing, md),
+  button-margin-top: map-get($cr-spacing, xl),
+);
+
+// 切换入口样式（黑色文字，适配白色背景）
+$login-switch: (
+  text-size: map-get($cr-font-size, base),
+  text-color: #10B981, // 绿色链接
+  icon-color: #10B981,
+  hover-bg: rgba(16, 185, 129, 0.05),
+  gap: map-get($cr-spacing, xs),
+  back-btn-gap: map-get($cr-spacing, xs),
+);
+
+// 用户协议样式（黑色文字，适配白色背景）
+$login-agreement: (
+  checkbox-text-size: map-get($cr-font-size, sm), // 28rpx ≈ 14px
+  text-color: #6B7280, // 灰色文字
+  link-color: #10B981, // 绿色链接
+  margin-top: map-get($cr-spacing, lg),
+);
+
+// 卡片标题样式
+$login-card-header: (
+  icon-size: 20,
+  icon-color: map-get($cr-colors, primary),
+  gap: map-get($cr-spacing, sm),
+  margin-bottom: map-get($cr-spacing, xl),
+);
+
+// 动画过渡
+$login-animation: (
+  // 切换动画时长
+  switch-duration: map-get($cr-duration, base),
+  // 缓动函数
+  easing: map-get($cr-easing, ease-in-out),
+);
+
+// ===========================
+// 手机号登录页专用令牌（白色背景主题）
+// ===========================
+
+// 手机号登录页头部
+$phone-login-header: (
+  bg: #FFFFFF,
+  title-color: #000000,
+  back-btn-bg: #F3F4F6,
+  back-icon-color: #000000,
+);
+
+// 手机号登录页内容区
+$phone-login-content: (
+  label-color: #6B7280,
+  prefix-color: #9CA3AF,
+  field-bg: #F9FAFB,
+  field-border: 1rpx solid #E5E7EB,
+);
+
+// 手机号登录页文字
+$phone-login-text: (
+  input-color: #000000,
+  placeholder-color: #9CA3AF,
+);

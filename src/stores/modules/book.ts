@@ -94,10 +94,12 @@ export const useBookStore = defineStore('book', () => {
     try {
       loading.value = true
       
+      const { pageSize: customPageSize, ...restParams } = params
+      const limit = customPageSize ?? restParams.limit ?? pageSize.value
       const queryParams = {
         page,
-        pageSize: pageSize.value,
-        ...params
+        limit,
+        ...restParams
       }
       
       const result = await request<BookListResponse>({
@@ -108,19 +110,34 @@ export const useBookStore = defineStore('book', () => {
       
       if (result as any) {
         const resultTyped = result as BookListResponse
-        
+
+        const fetchedBooks = resultTyped.books || []
         // 如果是第一页，替换数据；否则追加数据
         if (page === 1) {
-          books.value = resultTyped.books
+          books.value = [...fetchedBooks]
         } else {
-          books.value.push(...resultTyped.books)
+          books.value.push(...fetchedBooks)
+        }
+
+        const { pagination } = resultTyped
+        currentPage.value = pagination?.page ?? page
+        pageSize.value = pagination?.limit ?? limit
+        total.value = pagination?.total ?? fetchedBooks.length
+        hasMore.value = pagination ? pagination.page < pagination.totalPages : fetchedBooks.length >= (pagination?.limit ?? limit)
+
+        const enriched: BookListResponse = {
+          ...resultTyped,
+          books: fetchedBooks,
+          pagination: pagination ?? {
+            page: currentPage.value,
+            limit: pageSize.value,
+            total: total.value,
+            totalPages: hasMore.value ? currentPage.value+1 : currentPage.value
+          },
+          hasMore: hasMore.value
         }
         
-        currentPage.value = page
-        total.value = resultTyped.total
-        hasMore.value = resultTyped.hasMore
-        
-        return resultTyped
+        return enriched
       }
     } catch (error: any) {
       console.error('获取书籍列表失败:', error)
@@ -236,12 +253,12 @@ export const useBookStore = defineStore('book', () => {
   
   // 搜索书籍
   const searchBooks = async (keyword: string, page = 1): Promise<BookListResponse> => {
-    return await fetchBooks(page, { keyword, page, pageSize: pageSize.value })
+    return await fetchBooks(page, { keyword, page, limit: pageSize.value })
   }
   
   // 按状态筛选书籍
   const filterBooksByStatus = async (status: 'reading' | 'finished' | 'wishlist', page = 1): Promise<BookListResponse> => {
-    return await fetchBooks(page, { status, page, pageSize: pageSize.value })
+    return await fetchBooks(page, { status, page, limit: pageSize.value })
   }
   
   // 通过ISBN获取书籍信息

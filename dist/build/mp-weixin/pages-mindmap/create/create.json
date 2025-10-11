@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "创建思维导图",
+  "usingComponents": {
+    "app-nav-bar": "../../components/common/AppNavBar",
+    "page-container": "../../components/common/PageContainer",
+    "empty-state": "../../components/common/EmptyState"
+  }
+}

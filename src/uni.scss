@@ -1,126 +1,112 @@
-// 全局设计令牌与 uView 主题变量（统一"翡翠绿/青绿"体系）
-// 说明：页面与组件仅引用本文件令牌，不得直写色值/魔法数字
+// src/uni.scss
+// 全局样式入口：导入 uView 主题 + 自定义设计 token + 通用工具类
 
-// 首先导入 uView Plus 的 mixins 和基础主题
-@import 'uview-plus/libs/css/mixin.scss';
+@use 'uview-plus/libs/css/mixin.scss';
+@use '@/styles/theme.scss' as theme;
+@use '@/styles/mixins.scss' as mixins;
+@import '@/styles/design-tokens.scss';
+@import '@/styles/uview-override.scss';
+
+// —— uView 主题变量对齐 ——
+$u-primary: theme.theme-color('primary');
+$u-success: theme.theme-color('success');
+$u-warning: theme.theme-color('warning');
+$u-error: theme.theme-color('destructive');
+$u-info: theme.theme-color('info');
+$u-text-color: theme.theme-color('foreground');
+$u-content-color: theme.theme-color('muted-foreground');
+$u-tips-color: theme.theme-color('muted-foreground');
+$u-border-color: theme.theme-color('divider');
+$u-bg-color: theme.theme-color('background');
+
 @import 'uview-plus/theme.scss';
 
-// —— uView Plus 主题主色 ——
-$u-primary: #2E7D32; // 绿色主题 - 更新为指定色值
-$u-success: #16A34A;
-$u-warning: #F59E0B;
-$u-error:   #DC2626;
-$u-info:    #0EA5E9;
-
-// —— uView 基础中性色 ——
-$u-text-color:     #374151; // 文本
-$u-content-color:  #6B7280; // 次文本
-$u-tips-color:     #6B7280; // 提示/弱文本
-$u-border-color:   #E5E7EB; // 边框
-$u-bg-color:       #F9FAFB; // 背景
-
-// —— 设计令牌（CSS变量）——
-:root {
-  /* 主色阶 */
-  --cr-color-primary-700: #1B5E20; /* 深绿色 */
-  --cr-color-primary-600: #2E7D32; /* 主色 - 统一主题色 */
-  --cr-color-primary-500: #388E3C; /* hover/弱强调 */
-  --cr-color-primary-50:  #E8F5E9; /* 浅背景 */
-
-  /* 语义色 */
-  --cr-color-success: #16A34A;
-  --cr-color-warning: #F59E0B;
-  --cr-color-error:   #DC2626;
-  --cr-color-info:    #0EA5E9;
-
-  /* 中性色 */
-  --cr-color-text-strong: #111827;
-  --cr-color-text:        #374151;
-  --cr-color-subtext:     #6B7280;
-  --cr-color-border:      #E5E7EB;
-  --cr-color-divider:     #F3F4F6;
-  --cr-color-bg:          #F9FAFB;
-  --cr-color-surface:     #FFFFFF;
-
-  /* 圆角与阴影 */
-  --cr-radius-base:  12rpx;
-  --cr-radius-card:  16rpx;
-  --cr-shadow-sm:    0 4rpx 12rpx rgba(17, 24, 39, 0.06);
-  --cr-shadow-md:    0 8rpx 20rpx rgba(17, 24, 39, 0.08);
-
-  /* 字体字号 */
-  --cr-font-title:    34rpx;
-  --cr-font-subtitle: 28rpx;
-  --cr-font-body:     26rpx;
-  --cr-font-caption:  24rpx;
+page {
+  background-color: theme.theme-color('background');
+  color: theme.theme-color('foreground');
+  font-size: theme.theme-font-size('base');
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-// —— 通用工具类（容器/卡片/按钮尺寸/输入/毛玻璃顶栏）——
+// —— 布局容器 ——
+.cr-page {
+  min-height: 100vh;
+  background-color: theme.theme-color('background');
+}
 
-// 页面背景与容器
-.cr-page-bg {
-  background-color: var(--cr-color-bg);
+.cr-page__content {
+  margin: 0 auto;
+  max-width: theme.$container-max-width;
+  max-width: #{mixins.px-to-rpx(theme.$container-max-width)};
+  padding-left: 14px;
+  padding-right: 14px;
 }
 
 .cr-container {
-  padding: 24rpx;
-  background-color: var(--cr-color-bg);
+  background-color: theme.theme-color('background');
+  @include mixins.spacing(padding, 'lg');
 }
 
-// 卡片容器
+// —— 卡片 ——
 .cr-card {
-  background: var(--cr-color-surface);
-  border-radius: var(--cr-radius-card);
-  box-shadow: var(--cr-shadow-sm);
-  border: 1rpx solid var(--cr-color-border);
+  @include mixins.surface-card;
 }
 
 .cr-card--padded {
-  padding: 24rpx;
+  @include mixins.spacing(padding, 'lg');
 }
 
-// 主要按钮尺寸（基于 u-button）
+// —— 按钮尺寸 ——
 .cr-btn {
   width: 100%;
-  border-radius: 9999rpx; // Pill 形
+  @include mixins.radius('pill');
+  font-weight: theme.theme-font-weight('medium');
 }
+
 .cr-btn--lg { height: 96rpx; font-size: 32rpx; }
 .cr-btn--md { height: 84rpx; font-size: 28rpx; }
 .cr-btn--sm { height: 72rpx; font-size: 26rpx; }
 
-// 输入容器（配合 u-input 使用）
+// —— 输入区域 ——
 .cr-input {
-  background: var(--cr-color-surface);
-  border: 1rpx solid var(--cr-color-border);
-  border-radius: var(--cr-radius-base);
+  background-color: theme.theme-color('surface');
+  border: 1px solid theme.theme-color('border');
+  @include mixins.radius('md');
   padding: 0 24rpx;
   height: 80rpx;
   display: flex;
   align-items: center;
 }
 
-// 顶栏毛玻璃（白底半透）
+// —— 顶栏毛玻璃 ——
 .cr-navbar--frosted {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: saturate(160%) blur(16rpx);
   -webkit-backdrop-filter: saturate(160%) blur(16rpx);
-  border-bottom: 1rpx solid var(--cr-color-divider);
+  border-bottom: 1rpx solid theme.theme-color('divider');
 }
 
-// 语义色辅助类
-.text-strong { color: var(--cr-color-text-strong); }
-.text-main   { color: var(--cr-color-text); }
-.text-sub    { color: var(--cr-color-subtext); }
-.text-primary{ color: var(--cr-color-primary-600); }
+// —— 语义色 ——
+.text-strong { color: theme.theme-color('foreground'); }
+.text-main   { color: theme.theme-color('foreground'); }
+.text-sub    { color: theme.theme-color('muted-foreground'); }
+.text-primary{ color: theme.theme-color('primary'); }
 
-.bg-primary  { background-color: var(--cr-color-primary-600); }
-.bg-surface  { background-color: var(--cr-color-surface); }
-.bg-weak     { background-color: var(--cr-color-primary-50); }
+.bg-primary  { background-color: theme.theme-color('primary'); }
+.bg-surface  { background-color: theme.theme-color('surface'); }
+.bg-weak     { background-color: theme.theme-color('primary-soft'); }
 
-// 分割线
-.cr-divider { height: 1rpx; background-color: var(--cr-color-divider); }
+// 新增：页面背景色
+.cr-page-bg {
+  background-color: map-get($cr-colors, bg-page);
+}
 
-// 图标默认中性，活跃态主色
-.cr-icon { color: var(--cr-color-subtext); }
-.cr-icon--active { color: var(--cr-color-primary-600); }
+.cr-divider { height: 1rpx; background-color: theme.theme-color('divider'); }
+
+.cr-icon { color: theme.theme-color('muted-foreground'); }
+.cr-icon--active { color: theme.theme-color('primary'); }
+
+// —— Utility ——
+.shadow-sm { box-shadow: theme.theme-shadow('sm'); }
+.shadow-md { box-shadow: theme.theme-shadow('md'); }
 

@@ -35,10 +35,10 @@ onHide(() => {
 
 const initApp = async () => {
   const ctx = createContext()
-  
+
   try {
     logger.debug(ctx, '[initApp] 开始初始化应用')
-    
+
     // 获取系统信息
     const systemInfo = await uni.getSystemInfo()
     logger.debug(ctx, '[initApp] 系统信息', {
@@ -47,15 +47,12 @@ const initApp = async () => {
       screenWidth: systemInfo.screenWidth,
       screenHeight: systemInfo.screenHeight
     })
-    
-    // 修复：初始化用户信息（使用await确保完成）
+
+    // ADR-007: 只从本地存储读取token，不发送网络请求验证，不跳转
+    // 二元登录状态设计：有token = 已登录，无token = 未登录
     await userStore.initUserInfo()
-    const isLoggedIn = await userStore.checkLoginStatus()
-    logger.info(ctx, '[initApp] 用户登录状态', { isLoggedIn })
-    
-    // 初始化其他必要的服务
-    // TODO: 初始化推送、统计等服务
-    
+    logger.info(ctx, '[initApp] 用户登录状态（本地检查）', { isLoggedIn: userStore.isLoggedIn })
+
     logger.info(ctx, '[initApp] 应用初始化完成')
   } catch (error) {
     logger.error(ctx, '[initApp] 应用初始化失败', error)

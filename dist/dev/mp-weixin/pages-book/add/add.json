@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "添加书籍",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "app-nav-bar": "../../components/common/AppNavBar",
+    "isbn-scanner": "../../components/business/IsbnScanner"
+  }
+}

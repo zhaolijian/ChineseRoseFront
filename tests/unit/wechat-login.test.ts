@@ -8,6 +8,7 @@ import { ErrorCode } from '@/types/errorCodes'
 vi.mock('@/api/modules/auth', () => ({
   wechatCodeLogin: vi.fn(),
   wechatPhoneLogin: vi.fn(),
+  wechatQuickLogin: vi.fn(),
   smsLogin: vi.fn(),
   sendSMSCode: vi.fn(),
   getUserInfo: vi.fn(),
@@ -49,35 +50,32 @@ describe('user store – 微信登录流程', () => {
     return `${header}.${payload}.signature`
   }
 
-  it('wechatLogin 应调用 wechatPhoneLogin 并持久化用户信息', async () => {
+  it('wechatQuickLogin 应调用 wechatQuickLogin API 并持久化用户信息', async () => {
     const store = useUserStore()
     const apiResult = { token: createToken(), user: { id: 10, phone: '13800000000' } }
-    vi.mocked(authAPI.wechatPhoneLogin).mockResolvedValue(apiResult)
+    vi.mocked(authAPI.wechatQuickLogin).mockResolvedValue(apiResult)
 
-    await store.wechatLogin({ code: 'code', encryptedData: 'enc', iv: 'iv' })
+    await store.wechatQuickLogin('loginCode123', 'phoneCode456')
 
-    expect(uni.showLoading).toHaveBeenCalledWith({ title: '登录中...', mask: true })
-    expect(authAPI.wechatPhoneLogin).toHaveBeenCalledWith({ code: 'code', encryptedData: 'enc', iv: 'iv' })
+    expect(authAPI.wechatQuickLogin).toHaveBeenCalledWith('loginCode123', 'phoneCode456')
     expect(store.userInfo).toEqual(apiResult.user)
     expect(storage.setStorage).toHaveBeenCalledWith('token', apiResult.token)
     expect(storage.setStorage).toHaveBeenCalledWith('userInfo', apiResult.user)
   })
 
-  it('wechatLogin 参数缺失时应抛出业务异常', async () => {
+  it('wechatQuickLogin 参数缺失时应抛出业务异常', async () => {
     const store = useUserStore()
 
-    await expect(store.wechatLogin({ code: '', encryptedData: '', iv: '' }))
+    await expect(store.wechatQuickLogin('', ''))
       .rejects.toMatchObject({ code: ErrorCode.ERR_INVALID_PARAMS })
   })
 
-  it('wechatLogin 网络错误应提示并返回超时错误码', async () => {
+  it('wechatQuickLogin 网络错误应抛出超时错误', async () => {
     const store = useUserStore()
-    vi.mocked(authAPI.wechatPhoneLogin).mockRejectedValue(new Error('Network Error'))
+    vi.mocked(authAPI.wechatQuickLogin).mockRejectedValue(new Error('Network Error'))
 
-    await expect(store.wechatLogin({ code: 'c', encryptedData: 'e', iv: 'i' }))
+    await expect(store.wechatQuickLogin('code1', 'code2'))
       .rejects.toMatchObject({ code: ErrorCode.ERR_REQUEST_TIMEOUT })
-
-    expect(uni.showToast).toHaveBeenCalledWith(expect.objectContaining({ icon: 'none' }))
   })
 
   it('loginWithWeChat 应调用 wechatCodeLogin 并返回成功结构', async () => {

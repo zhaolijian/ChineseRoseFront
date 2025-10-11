@@ -1,0 +1,320 @@
+// effects.scss - 视觉效果 mixins
+// 提供可复用的视觉效果，支持优雅降级
+
+@import './design-tokens.scss';
+
+// ===========================
+// 1. 阴影效果
+// ===========================
+
+// 基础阴影
+@mixin cr-shadow($level: 'base', $color: null) {
+  @if $color {
+    box-shadow: 0 4rpx 16rpx 0 $color;
+  } @else if map-has-key($cr-shadow, $level) {
+    // H5使用px单位
+    /* #ifndef MP */
+    box-shadow: map-get($cr-shadow, $level);
+    /* #endif */
+    
+    // 小程序使用rpx单位
+    /* #ifdef MP */
+    box-shadow: map-get($cr-shadow-compat, $level);
+    /* #endif */
+  }
+}
+
+// 多层阴影（增强立体感）
+@mixin cr-shadow-layers() {
+  /* #ifndef MP */
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.02),
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 8px 16px rgba(0, 0, 0, 0.08);
+  /* #endif */
+  
+  /* #ifdef MP */
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  /* #endif */
+}
+
+// 悬浮阴影动画
+@mixin cr-hover-shadow($duration: map-get($cr-duration, base)) {
+  transition: box-shadow $duration map-get($cr-easing, ease-out);
+  
+  &:hover {
+    @include cr-shadow('md');
+  }
+}
+
+// ===========================
+// 2. 毛玻璃效果
+// ===========================
+
+// 毛玻璃背景（仅H5支持）
+@mixin cr-glass($blur: 'base', $opacity: 0.85) {
+  /* #ifndef MP */
+  backdrop-filter: blur(map-get($cr-blur, $blur));
+  -webkit-backdrop-filter: blur(map-get($cr-blur, $blur));
+  background-color: rgba(255, 255, 255, $opacity);
+  /* #endif */
+  
+  /* #ifdef MP */
+  // 小程序降级方案：使用半透明背景
+  background-color: rgba(255, 255, 255, 0.95);
+  /* #endif */
+}
+
+// 彩色毛玻璃
+@mixin cr-glass-colored($color, $blur: 'base', $opacity: 0.1) {
+  /* #ifndef MP */
+  backdrop-filter: blur(map-get($cr-blur, $blur));
+  -webkit-backdrop-filter: blur(map-get($cr-blur, $blur));
+  background-color: rgba($color, $opacity);
+  /* #endif */
+  
+  /* #ifdef MP */
+  background-color: rgba($color, $opacity * 2);
+  /* #endif */
+}
+
+// ===========================
+// 3. 渐变效果
+// ===========================
+
+// 基础渐变
+@mixin cr-gradient($type: 'primary', $angle: 135deg) {
+  @if map-has-key($cr-gradient, $type) {
+    background: map-get($cr-gradient, $type);
+  } @else {
+    background: linear-gradient($angle, $type 0%, darken($type, 10%) 100%);
+  }
+}
+
+// 文字渐变（仅H5支持）
+@mixin cr-text-gradient($gradient: map-get($cr-gradient, primary)) {
+  /* #ifndef MP */
+  background: $gradient;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* #endif */
+  
+  /* #ifdef MP */
+  // 小程序降级：使用主色
+  color: map-get($cr-colors, primary);
+  /* #endif */
+}
+
+// 渐变边框
+@mixin cr-gradient-border($gradient: map-get($cr-gradient, primary), $width: 2rpx) {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    padding: $width;
+    background: $gradient;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+  }
+}
+
+// ===========================
+// 4. 卡片效果
+// ===========================
+
+// 基础卡片
+@mixin cr-card($padding: true) {
+  background: map-get($cr-colors, bg-container);
+  border-radius: map-get($cr-component-radius, card);
+  @include cr-shadow('base');
+  
+  @if $padding {
+    padding: map-get($cr-spacing, lg);
+  }
+}
+
+// 悬浮卡片
+@mixin cr-card-elevated() {
+  @include cr-card();
+  @include cr-shadow-layers();
+}
+
+// 可交互卡片
+@mixin cr-card-interactive() {
+  @include cr-card();
+  transition: all map-get($cr-duration, base) map-get($cr-easing, ease-out);
+  cursor: pointer;
+  
+  &:hover {
+    @include cr-shadow('md');
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    @include cr-shadow('sm');
+    transform: translateY(0);
+  }
+}
+
+// ===========================
+// 5. 按钮效果
+// ===========================
+
+// 按钮基础样式
+@mixin cr-button-base() {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: map-get($cr-spacing, md) map-get($cr-spacing, xl);
+  border-radius: map-get($cr-component-radius, button);
+  font-weight: map-get($cr-font-weight, medium);
+  transition: all map-get($cr-duration, fast) map-get($cr-easing, ease-out);
+  cursor: pointer;
+  user-select: none;
+}
+
+// 主按钮
+@mixin cr-button-primary() {
+  @include cr-button-base();
+  background: map-get($cr-colors, primary);
+  color: white;
+  @include cr-shadow('sm', rgba(0, 168, 45, 0.2));
+  
+  &:hover {
+    background: map-get($cr-colors, primary-dark);
+    @include cr-shadow('md', rgba(0, 168, 45, 0.3));
+  }
+  
+  &:active {
+    @include cr-shadow('xs', rgba(0, 168, 45, 0.2));
+  }
+}
+
+// ===========================
+// 6. 输入框效果
+// ===========================
+
+// 输入框焦点效果
+@mixin cr-input-focus() {
+  outline: none;
+  border-color: map-get($cr-colors, primary);
+  
+  /* #ifndef MP */
+  box-shadow: 0 0 0 3px rgba(map-get($cr-colors, primary), 0.1);
+  /* #endif */
+}
+
+// ===========================
+// 7. 过渡动画
+// ===========================
+
+// 淡入动画
+@mixin cr-fade-in($duration: map-get($cr-duration, base)) {
+  animation: crFadeIn $duration map-get($cr-easing, ease-out);
+}
+
+@keyframes crFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 缩放动画
+@mixin cr-scale-in($duration: map-get($cr-duration, base)) {
+  animation: crScaleIn $duration map-get($cr-easing, spring);
+}
+
+@keyframes crScaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// ===========================
+// 8. 徽章效果
+// ===========================
+
+// 基础徽章
+@mixin cr-badge($type: 'default') {
+  display: inline-flex;
+  align-items: center;
+  padding: map-get($cr-badge, padding);
+  font-size: map-get($cr-badge, font-size);
+  border-radius: map-get($cr-badge, radius);
+  font-weight: map-get($cr-font-weight, medium);
+  
+  @if $type == 'vip' {
+    background: map-get(map-get($cr-badge, colors), vip);
+    color: #8b6914;
+    @include cr-shadow('sm', rgba(255, 215, 0, 0.3));
+  } @else if $type == 'premium' {
+    background: map-get(map-get($cr-badge, colors), premium);
+    color: #424242;
+  } @else {
+    background: map-get(map-get($cr-badge, colors), default);
+    color: map-get($cr-colors, primary);
+  }
+}
+
+// ===========================
+// 9. 加载效果
+// ===========================
+
+// 骨架屏动画
+@mixin cr-skeleton() {
+  background: map-get($cr-gradient, skeleton);
+  background-size: 200% 100%;
+  animation: crSkeleton 1.5s map-get($cr-easing, ease-in-out) infinite;
+}
+
+@keyframes crSkeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// ===========================
+// 10. 响应式工具
+// ===========================
+
+// 媒体查询
+@mixin cr-breakpoint($breakpoint) {
+  @if map-has-key($cr-breakpoints, $breakpoint) {
+    @media (min-width: map-get($cr-breakpoints, $breakpoint)) {
+      @content;
+    }
+  }
+}
+
+// 隐藏滚动条
+@mixin cr-hide-scrollbar() {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

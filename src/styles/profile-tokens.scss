@@ -1,0 +1,67 @@
+// profile-tokens.scss - 个人中心专用设计令牌
+// 严格匹配Figma设计稿
+
+@import './design-tokens.scss';
+
+// ===========================
+// 个人中心专用令牌
+// ===========================
+
+// 背景色
+$profile-bg: (
+  page: #f5f7fa,  // 页面背景
+  header: map-get($cr-colors, primary),  // 头部背景
+  card: rgba(255, 255, 255, 0.8),  // 卡片背景（半透明）
+);
+
+// 卡片样式
+$profile-card: (
+  background: rgba(255, 255, 255, 0.8),
+  backdrop-blur: 10px,
+  border: 1px solid rgba(0, 168, 45, 0.1),  // border-green-200/50
+  border-radius: map-get($cr-radius, base),
+  padding: map-get($cr-spacing, xl),
+);
+
+// 头像尺寸
+$profile-avatar: (
+  size: 64px,  // 64x64 as per Figma
+  size-rpx: 128rpx,
+);
+
+// 徽章样式
+$profile-badges: (
+  premium: (
+    background: linear-gradient(135deg, #4a90e2 0%, #5ba0f2 100%),
+    color: #ffffff,
+    icon: '👑',
+  ),
+  streak: (
+    background: linear-gradient(135deg, #f5a623 0%, #f7b84b 100%),
+    color: #ffffff,
+    icon: '🔥',
+  ),
+);
+
+// 数据统计样式
+$profile-stats: (
+  icon-color: map-get($cr-colors, primary),
+  number-size: map-get($cr-font-size, xl),
+  label-size: map-get($cr-font-size, sm),
+  divider-color: rgba(0, 168, 45, 0.1),
+);
+
+// 设置项样式
+$profile-settings: (
+  hover-bg: rgba(0, 168, 45, 0.04),  // hover:bg-green-50
+  icon-size: 20,
+  arrow-color: #999999,
+);
+
+// 间距
+$profile-spacing: (
+  section-gap: 48rpx,  // space-y-6
+  card-padding: 32rpx,
+  header-padding-top: 120rpx,
+  header-padding-bottom: 80rpx,
+);
