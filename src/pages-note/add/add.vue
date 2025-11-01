@@ -25,13 +25,15 @@
         
         <view class="book-selector" @click="showBookPicker = true">
           <view v-if="selectedBook" class="selected-book">
-            <u-image
-              :src="selectedBook.coverUrl || '/static/images/book-placeholder.png'"
-              width="40px"
-              height="54px"
-              radius="4"
-              mode="aspectFit"
-            ></u-image>
+            <BookCover
+              :src="selectedBook.coverUrl"
+              :width="80"
+              :ratio="3 / 4"
+              :radius="12"
+              :padding="8"
+              :shadow="false"
+              bg-color="#F5F7FA"
+            />
             <view class="book-info">
               <text class="book-title">{{ selectedBook.title }}</text>
               <text class="book-author">{{ selectedBook.author }}</text>
@@ -233,13 +235,15 @@
             class="book-item"
             @click="selectBook(book)"
           >
-            <u-image
-              :src="book.coverUrl || '/static/images/book-placeholder.png'"
-              width="40px"
-              height="54px"
-              radius="4"
-              mode="aspectFit"
-            ></u-image>
+            <BookCover
+              :src="book.coverUrl"
+              :width="80"
+              :ratio="3 / 4"
+              :radius="12"
+              :padding="8"
+              :shadow="false"
+              bg-color="#F5F7FA"
+            />
             <view class="book-info">
               <text class="book-title">{{ book.title }}</text>
               <text class="book-author">{{ book.author }}</text>
@@ -270,6 +274,7 @@ import { useBookStore } from '@/stores/modules/book'
 import { useNoteStore } from '@/stores/modules/note'
 import { logger, createContext } from '@/utils'
 import { ensureLoggedIn } from '@/utils/auth-guard'
+import BookCover from '@/components/book/BookCover.vue'
 
 // 类型定义
 interface Book {
@@ -483,6 +488,8 @@ const saveNote = async () => {
       title: noteForm.title.trim(),
       content: noteForm.content.trim(),
       bookId: noteForm.bookId,
+      noteType: noteForm.noteType,
+      tags: [...noteForm.tags],
       pageNumber: noteForm.pageNumber ? parseInt(noteForm.pageNumber) : undefined,
       chapter: noteForm.chapterName.trim() || undefined
     }
@@ -574,6 +581,11 @@ const handleBack = () => {
     padding: 12px;
     background: var(--cr-color-bg);
     border-radius: 8px;
+    
+    :deep(.cr-book-cover) {
+      margin-right: 12px;
+      pointer-events: none;
+    }
     
     .book-info {
       flex: 1;
@@ -739,11 +751,16 @@ const handleBack = () => {
     max-height: 400px;
     overflow-y: auto;
     
-    .book-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #f0f0f0;
+  .book-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    
+    :deep(.cr-book-cover) {
+      margin-right: 12px;
+      pointer-events: none;
+    }
       
       &:last-child {
         border-bottom: none;
@@ -774,13 +791,6 @@ const handleBack = () => {
 /* #ifdef MP-WEIXIN */
 .custom-navbar {
   padding-top: 20px; // 微信小程序状态栏高度
-}
-/* #endif */
-
-/* H5特定样式 */
-/* #ifdef H5 */
-.custom-navbar {
-  padding-top: 0;
 }
 /* #endif */
 </style>

@@ -235,7 +235,7 @@ describe('手机号登录页', () => {
     await phoneInput.setValue('13800138000')
     const codeInput = wrapper.find('input[data-testid="code-input"]')
     await codeInput.setValue('123456')
-    await wrapper.find('input[type="checkbox"]').trigger('click')
+    await wrapper.find('checkbox.agreement-checkbox').trigger('click')
     await wrapper.vm.$nextTick()
 
     const submitButton = wrapper.find('[data-testid="submit-button"]')

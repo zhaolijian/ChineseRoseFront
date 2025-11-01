@@ -2,11 +2,15 @@
   "navigationBarTitleText": "书架",
   "navigationStyle": "custom",
   "usingComponents": {
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-popup": "../../node-modules/uview-plus/components/u-popup/u-popup",
+    "u-loading-page": "../../node-modules/uview-plus/components/u-loading-page/u-loading-page",
     "app-nav-bar": "../../components/common/AppNavBar",
     "page-container": "../../components/common/PageContainer",
     "empty-state": "../../components/common/EmptyState",
     "tab-bar": "../../components/common/TabBar",
     "loading-skeleton": "../../components/common/LoadingSkeleton",
+    "book-cover": "../../components/book/BookCover",
     "book-preview": "../../components/business/BookPreview"
   }
 }

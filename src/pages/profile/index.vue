@@ -36,7 +36,6 @@
     <view class="stats-section">
       <view class="section-card">
         <view class="card-header">
-          <u-icon name="chart-line" size="20" :color="primaryColor"></u-icon>
           <text class="card-title">我的阅读数据</text>
         </view>
         
@@ -108,6 +107,7 @@
         </view>
       </view>
     </view>
+    <TabBar />
   </view>
 </template>
 
@@ -116,6 +116,8 @@ import { ref, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/modules/user'
 import { getUserStats } from '@/api/modules/auth'
+import { safeHideTabBar } from '@/utils/tabbar'
+import TabBar from '@/components/common/TabBar.vue'
 
 // Store
 const userStore = useUserStore()
@@ -135,10 +137,12 @@ const primaryColor = '#00a82d'
 // 生命周期
 onMounted(async () => {
   await loadUserStats()
+  safeHideTabBar()
 })
 
 onShow(async () => {
   await loadUserStats()
+  safeHideTabBar()
 })
 
 // 方法
@@ -227,6 +231,8 @@ const handleLogout = () => {
 .profile-page {
   min-height: 100vh;
   background-color: map-get($profile-bg, page);
+  padding-bottom: calc(160rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
 }
 
 // 头部区域

@@ -39,11 +39,6 @@ class StorageManager {
       })
       // #endif
       
-      // #ifdef H5
-      localStorage.setItem(this.prefix + key, finalData)
-      return Promise.resolve()
-      // #endif
-      
       // #ifdef APP-PLUS
       return new Promise((resolve) => {
         plus.storage.setItem(this.prefix + key, finalData)
@@ -73,10 +68,6 @@ class StorageManager {
           fail: () => resolve(null)
         })
       })
-      // #endif
-      
-      // #ifdef H5
-      rawData = localStorage.getItem(this.prefix + key)
       // #endif
       
       // #ifdef APP-PLUS
@@ -126,11 +117,6 @@ class StorageManager {
       })
       // #endif
       
-      // #ifdef H5
-      localStorage.removeItem(this.prefix + key)
-      return Promise.resolve()
-      // #endif
-      
       // #ifdef APP-PLUS
       return new Promise((resolve) => {
         plus.storage.removeItem(this.prefix + key)
@@ -171,11 +157,6 @@ class StorageManager {
       }
       // #endif
       
-      // #ifdef H5
-      const h5Keys = Object.keys(localStorage).filter(key => key.startsWith(this.prefix))
-      h5Keys.forEach(key => localStorage.removeItem(key))
-      // #endif
-      
       // #ifdef APP-PLUS
       const appKeys = plus.storage.getLength()
       for (let i = 0; i < appKeys; i++) {
@@ -210,24 +191,6 @@ class StorageManager {
           },
           fail: reject
         })
-      })
-      // #endif
-      
-      // #ifdef H5
-      const h5StorageKeys = Object.keys(localStorage).filter(key => key.startsWith(this.prefix))
-      // 计算大概大小（字节）
-      let currentSize = 0
-      h5StorageKeys.forEach(key => {
-        const value = localStorage.getItem(key)
-        if (value) {
-          currentSize += key.length + value.length
-        }
-      })
-      
-      return Promise.resolve({
-        keys: h5StorageKeys,
-        currentSize: Math.ceil(currentSize / 1024), // 转换为KB
-        limitSize: 5 * 1024 // H5一般限制5MB
       })
       // #endif
       
@@ -297,11 +260,6 @@ class StorageManager {
     })
     // #endif
     
-    // #ifdef H5
-    // H5端使用IndexedDB存储大文件
-    return this.saveToIndexedDB(fileName, content)
-    // #endif
-    
     // #ifdef APP-PLUS
     // App端使用plus.io存储
     return this.saveToAppStorage(fileName, content)
@@ -328,10 +286,6 @@ class StorageManager {
     })
     // #endif
     
-    // #ifdef H5
-    return this.getFromIndexedDB(fileName)
-    // #endif
-    
     // #ifdef APP-PLUS
     return this.getFromAppStorage(fileName)
     // #endif
@@ -339,19 +293,7 @@ class StorageManager {
     return null
   }
 
-  // H5端IndexedDB实现（简化版）
-  private async saveToIndexedDB(fileName: string, content: string): Promise<string> {
-    // 这里应该实现IndexedDB存储逻辑
-    // 简化处理，使用localStorage
-    const key = `file_${fileName}`
-    localStorage.setItem(key, content)
-    return Promise.resolve(key)
-  }
-
-  private async getFromIndexedDB(fileName: string): Promise<string | null> {
-    const key = `file_${fileName}`
-    return Promise.resolve(localStorage.getItem(key))
-  }
+  // H5端IndexedDB相关逻辑已移除
 
   // App端存储实现
   private async saveToAppStorage(fileName: string, content: string): Promise<string> {
@@ -394,10 +336,6 @@ export const getStorageSync = <T = any>(key: string, defaultValue: T | null = nu
     rawData = uni.getStorageSync(fullKey)
     // #endif
     
-    // #ifdef H5
-    rawData = localStorage.getItem(fullKey)
-    // #endif
-    
     // #ifdef APP-PLUS
     rawData = plus.storage.getItem(fullKey)
     // #endif
@@ -433,10 +371,6 @@ export const setStorageSync = (key: string, value: any): void => {
     uni.setStorageSync(fullKey, finalData)
     // #endif
     
-    // #ifdef H5
-    localStorage.setItem(fullKey, finalData)
-    // #endif
-    
     // #ifdef APP-PLUS
     plus.storage.setItem(fullKey, finalData)
     // #endif
@@ -453,11 +387,7 @@ export const removeStorageSync = (key: string): void => {
     // #ifdef MP-WEIXIN
     uni.removeStorageSync(fullKey)
     // #endif
-    
-    // #ifdef H5
-    localStorage.removeItem(fullKey)
-    // #endif
-    
+
     // #ifdef APP-PLUS
     plus.storage.removeItem(fullKey)
     // #endif

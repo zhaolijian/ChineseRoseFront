@@ -1,4 +1,11 @@
 {
   "navigationBarTitleText": "思维导图",
-  "usingComponents": {}
+  "usingComponents": {
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-button": "../../node-modules/uview-plus/components/u-button/u-button",
+    "u-empty": "../../node-modules/uview-plus/components/u-empty/u-empty",
+    "u-image": "../../node-modules/uview-plus/components/u-image/u-image",
+    "u-popup": "../../node-modules/uview-plus/components/u-popup/u-popup",
+    "u-loading-page": "../../node-modules/uview-plus/components/u-loading-page/u-loading-page"
+  }
 }

@@ -5,16 +5,29 @@ import uni from '@dcloudio/vite-plugin-uni'
 const isH5 = !process.env.UNI_PLATFORM || process.env.UNI_PLATFORM === 'h5'
 
 const alias: Record<string, string> = {}
+const wxsStubPlugin = () => ({
+  name: 'uni-wxs-stub',
+  enforce: 'pre',
+  transform(code: string, id: string) {
+    if (id.endsWith('.wxs')) {
+      return { code: 'export default {}', map: null }
+    }
+  }
+})
+
 
 if (isH5) {
   alias.vue = path.resolve(__dirname, 'src/shims/vue.ts')
   alias['vue/package.json'] = '@dcloudio/uni-h5-vue/package.json'
 }
 
+alias['@vue/shared$'] = path.resolve(__dirname, 'src/shims/vue-shared.ts')
+alias['@vue/shared/package.json'] = path.resolve(__dirname, 'node_modules/@vue/shared/package.json')
+
 export default defineConfig({
   plugins: [
-    uni()
-    // WXS 文件由 uni-app 框架自动处理，无需额外插件
+    uni(),
+    wxsStubPlugin()
   ],
   resolve: {
     alias
@@ -34,16 +47,11 @@ export default defineConfig({
   build: {
     minify: 'terser',
     sourcemap: false,
-    outDir: 'dist',
-    // ⚠️ 关键修复：完全移除 rollupOptions.output.manualChunks
-    // uni-app H5 模式下不能将 vue/pinia 分离为独立 chunk
     target: 'es2015'
   },
   optimizeDeps: {
-    include: isH5 ? ['@dcloudio/uni-h5-vue'] : [],
+    include: [],
     exclude: isH5 ? ['vue'] : []
   },
-  define: {
-    __UNI_PLATFORM__: JSON.stringify(process.env.UNI_PLATFORM || 'h5')
-  }
+  // 由 @dcloudio/vite-plugin-uni 负责注入运行时平台常量，无需自定义 define
 })

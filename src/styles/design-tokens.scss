@@ -255,6 +255,103 @@ $cr-badge: (
 );
 
 // ===========================
+// 11. BookChapterSelector 专用令牌（源自 Figma 36:159）
+// ===========================
+
+// 转换说明：1px ≈ 2rpx（小程序单位）
+$cr-modal: (
+  // 容器
+  modal-radius-top: 27rpx,         // 13.49px
+  spacing-x: 40rpx,                // 19.93px
+  spacing-y: 24rpx,
+  padding-x: 42rpx,                // ≈20.99px
+  padding-top: 28rpx,              // ≈13.989px
+  row-gap: 42rpx,                  // ≈20.99px
+
+  // 标题
+  title-size: 28rpx,               // 14px
+  title-weight: 700,
+  title-color: #333333,
+  title-align: center,
+  font-title-leading: 42rpx,       // ≈21px
+  font-title-tracking: -0.3rpx,    // ≈-0.1504px
+
+  // 输入/选择框
+  field-height: 63rpx,             // 31.49px
+  field-radius: 13.5rpx,           // 6.75px
+  field-bg: #F8FAF8,
+  field-text: #333333,
+  field-placeholder: #666666,
+  field-icon-size: 28rpx,          // 13.989px
+  input-height: 63rpx,             // ≈31.49px
+  radius: 13.5rpx,                 // ≈6.75px
+  hairline: 1.5rpx,                // ≈0.749px
+
+  // 颜色
+  color-text-primary: #333333,
+  color-text-secondary: #666666,
+  color-surface-soft: #F8FAF8,
+  color-brand-accent: #00A82D,     // 确认按钮纯色
+  color-divider-accent: rgba(0, 168, 45, 0.12),
+
+  // 书籍缩略图占位（输入框内左侧）
+  cover-w: 42rpx,                  // 20.99px
+  cover-h: 56rpx,                  // 27.99px
+  cover-radius: 6rpx,
+  book-chip-bg: #2B7FFF,           // 左侧色条
+  book-chip-width: 42rpx,          // ≈20.99px
+  book-chip-height: 56rpx,         // ≈27.99px
+  book-chip-radius: 7rpx,          // ≈3.5px
+  book-chip-gap: 14rpx,            // ≈6.989px
+  book-icon-size: 28rpx,           // ≈13.989px
+
+  // 确认按钮
+  btn-height: 63rpx,               // 31.49px
+  btn-radius: 13.5rpx,             // 6.75px
+  btn-bg: #00A82D,
+  btn-text-color: #FFFFFF,
+  btn-text-size: 28rpx,            // 14px
+  btn-text-weight: 700,
+
+  // 列表面板（书籍/章节）
+  panel-bg: #FFFFFF,
+  panel-radius: 13.5rpx,
+  item-height: 66rpx,              // 估算自 Figma 行高
+  item-title-size: 28rpx,
+  item-title-color: #333333,
+  item-subtitle-size: 24rpx,
+  item-subtitle-color: #999999,
+  item-gap-y: 12rpx,
+
+  // 选中态
+  selected-bar-color: #00A82D,
+  selected-bar-w: 4rpx,
+
+  // 字体规格
+  font-label-size: 24.5rpx,        // ≈12.25px
+  font-label-leading: 35rpx,       // ≈17.5px
+  font-label-tracking: -0.04rpx,   // ≈-0.0179px
+  font-label-weight: 500,
+
+  font-subtext-size: 21rpx,        // ≈10.5px
+  font-subtext-leading: 28rpx,     // ≈14px
+  font-subtext-tracking: 0.18rpx,  // ≈0.0923px
+
+  font-placeholder-size: 28rpx,    // ≈14px
+  font-placeholder-tracking: -0.3rpx, // ≈-0.1504px
+
+  // Header 高度
+  header-height: 99.5rpx,          // ≈49.729px
+
+  // Footer 上边距
+  footer-padding-top: 29.5rpx,     // ≈14.739px
+
+  // 边线（Figma里有非常轻的顶边线/分隔）
+  divider-hairline: 1rpx,
+  divider-color-weak: rgba(0,168,45,0.12)
+);
+
+// ===========================
 // 导出为CSS变量（可选）
 // ===========================
 

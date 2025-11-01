@@ -34,6 +34,13 @@
       }
     },
     {
+      "path": "pages/book/add-book",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "添加书籍"
+      }
+    },
+    {
       "path": "pages/profile/index",
       "style": {
         "navigationBarTitleText": "我的",
@@ -48,7 +55,8 @@
         {
           "path": "detail/detail",
           "style": {
-            "navigationBarTitleText": "书籍详情"
+            "navigationBarTitleText": "书籍详情",
+            "navigationStyle": "custom"
           }
         },
         {
@@ -105,17 +113,6 @@
           }
         }
       ]
-    },
-    {
-      "root": "pages-user",
-      "pages": [
-        {
-          "path": "profile/profile",
-          "style": {
-            "navigationBarTitleText": "个人资料"
-          }
-        }
-      ]
     }
   ],
   "tabBar": {
@@ -149,5 +146,12 @@
     "navigationBarBackgroundColor": "#FFFFFF",
     "backgroundColor": "#F9FAFB",
     "navigationBarTextStyle": "black"
+  },
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^u-(.*)": "uview-plus/components/u-$1/u-$1.vue",
+      "^create-note-modal$": "@/components/create-note-modal/index.vue"
+    }
   }
 }

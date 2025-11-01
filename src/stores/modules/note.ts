@@ -54,7 +54,10 @@ export const useNoteStore = defineStore('note', () => {
 
       currentPage.value = response.page
       total.value = response.total
-      hasMore.value = response.hasMore
+      const computedHasMore = typeof response.hasMore === 'boolean'
+        ? response.hasMore
+        : (response.page * (response.pageSize || pageSize.value)) < response.total
+      hasMore.value = computedHasMore
 
       logger.debug(ctx, '[NoteStore] 获取笔记列表成功', { page, params, total: total.value })
       return response
@@ -92,7 +95,12 @@ export const useNoteStore = defineStore('note', () => {
     const ctx = createContext()
     try {
       loading.value = true
-      const note = await apiCreateNote(payload)
+      const requestPayload: CreateNoteData = {
+        ...payload,
+        noteType: payload.noteType || 'reading',
+        tags: payload.tags ?? []
+      }
+      const note = await apiCreateNote(requestPayload)
       notes.value.unshift(note)
       total.value += 1
       logger.info(ctx, '[NoteStore] 创建笔记成功', { id: note.id })
@@ -187,7 +195,10 @@ export const useNoteStore = defineStore('note', () => {
       })
       notes.value = response.list
       total.value = response.total
-      hasMore.value = response.hasMore
+      const computedHasMore = typeof response.hasMore === 'boolean'
+        ? response.hasMore
+        : (response.page * (response.pageSize || pageSize.value)) < response.total
+      hasMore.value = computedHasMore
       logger.debug(ctx, '[NoteStore] 按书籍获取笔记成功', { bookId })
       return response
     } catch (error) {

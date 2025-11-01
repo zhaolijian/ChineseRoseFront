@@ -669,11 +669,4 @@ const formatDate = (dateStr?: string): string => {
   padding-top: 20px; // 微信小程序状态栏高度
 }
 /* #endif */
-
-/* H5特定样式 */
-/* #ifdef H5 */
-.custom-navbar {
-  padding-top: 0;
-}
-/* #endif */
 </style>

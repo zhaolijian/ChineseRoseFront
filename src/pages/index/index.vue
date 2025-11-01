@@ -1,67 +1,116 @@
 <template>
   <view class="bookshelf-page">
-    <AppNavBar title="书架" :showBack="false">
-      <template #left>
-        <u-icon name="plus" size="20" color="#2E7D32" @click="goToAddBook" />
-      </template>
-      <template #right>
-        <u-icon name="scan" size="20" color="#2E7D32" @click="handleScanISBN" />
-      </template>
-    </AppNavBar>
+    <AppNavBar title="书架" :showBack="false" />
 
     <!-- 书籍列表 -->
     <PageContainer>
-    <view class="bookshelf-content">
-      <!-- 未登录状态：显示登录引导 -->
-      <view v-if="!userStore.isLoggedIn" class="empty-state">
-        <EmptyState
-          icon="account"
-          title="登录后查看你的书架"
-          actionText="立即登录"
-          @action="goToLogin"
-        />
-      </view>
-
-      <!-- 已登录状态：显示书籍列表 -->
-      <view v-else>
-        <view v-if="loading && books.length === 0">
-          <LoadingSkeleton :rows="4" />
-        </view>
-        <view v-else-if="books.length === 0" class="empty-state">
-          <EmptyState icon="book" title="还没有添加书籍" actionText="添加第一本书" @action="showAddBook = true" />
+      <view class="bookshelf-content">
+        <!-- 未登录状态：显示登录引导 -->
+        <view v-if="!userStore.isLoggedIn" class="bookshelf-empty">
+          <EmptyState
+            icon="account"
+            title="登录后查看你的书架"
+            actionText="立即登录"
+            @action="goToLogin"
+          />
         </view>
 
-        <view v-else class="book-grid">
-          <view v-for="book in books" :key="book.id" class="book-item cr-card cr-card--padded" @click="goToBookDetail(book)">
-            <view class="book-cover">
-              <u-image
-                :src="book.coverUrl || '/static/images/book-placeholder.svg'"
-                mode="aspectFit"
-                width="100%"
-                height="140px"
-                radius="8"
-                loading-icon="book"
-              ></u-image>
+        <!-- 已登录状态：显示书籍列表 -->
+        <view v-else>
+          <view class="bookshelf-search" :style="searchSafeStyle">
+            <view
+              :class="[
+                'search-box',
+                { 'search-box--focus': isSearchFocus }
+              ]"
+            >
+              <view class="search-leading">
+                <u-icon name="search" size="20" color="#6b7280" class="search-leading__icon" />
+                <input
+                  class="search-input"
+                  type="text"
+                  confirm-type="search"
+                  :value="searchKeyword"
+                  placeholder="搜索书籍"
+                  placeholder-class="search-placeholder"
+                  @input="handleSearchInput"
+                  @confirm="handleSearchConfirm"
+                  @keyup.enter="handleSearchConfirm"
+                  @focus="handleSearchFocus"
+                  @blur="handleSearchBlur"
+                />
+                <u-icon
+                  v-if="searchKeyword"
+                  name="close"
+                  size="20"
+                  color="#6b7280"
+                  class="search-clear-icon"
+                  @click="handleClearSearch"
+                />
+              </view>
+              <view class="search-divider" />
+              <view class="search-suffix" @click="handleScanISBN">
+                <image
+                  class="scan-icon"
+                  src="/static/icons/scan-isbn.svg"
+                  mode="aspectFit"
+                />
+              </view>
             </view>
-            <view class="book-info">
-              <text class="book-title">{{ book.title }}</text>
-              <text class="book-author">{{ book.author }}</text>
-              <text class="book-notes">{{ book.noteCount || 0 }}条笔记</text>
+          </view>
+
+          <view v-if="loading && books.length === 0">
+            <LoadingSkeleton :rows="4" />
+          </view>
+
+          <view v-else class="shelf-grid">
+            <view class="shelf-card add-book-card" @click="goToAddBook">
+              <view class="add-card__icon">
+                <text class="add-card__plus">+</text>
+              </view>
+              <text class="add-card__text">添加新书</text>
+            </view>
+            <view
+              v-for="book in books"
+              :key="book.id"
+              class="shelf-card book-card"
+              @click="goToBookDetail(book)"
+            >
+              <BookCover
+                :src="book.coverUrl"
+                :width="120"
+                :ratio="3 / 4"
+                :radius="16"
+                :padding="12"
+                bg-color="#F5F7FA"
+                :shadow="true"
+              />
+              <view class="book-info">
+                <text class="book-title">{{ book.title }}</text>
+                <text class="book-notes">{{ book.noteCount || 0 }}条笔记</text>
+              </view>
             </view>
           </view>
         </view>
       </view>
-    </view>
     </PageContainer>
+    <!-- 浮动添加按钮 -->
+    <view class="bookshelf-fab" @click="goToAddBook">
+      <text class="fab-icon">+</text>
+    </view>
     <TabBar />
 
     <!-- 添加书籍弹窗 -->
-    <u-popup 
-      v-model="showAddBook" 
-      mode="bottom" 
-      height="30%"
-      round="20"
+    <u-popup
+      v-if="showAddBook"
+      v-model="showAddBook"
+      mode="bottom"
+      :round="24"
       closeable
+      :z-index="10075"
+      :overlay="true"
+      :close-on-click-overlay="true"
+      :custom-style="popupStyle"
     >
       <view class="add-book-popup">
         <view class="popup-header">
@@ -90,6 +139,7 @@
 
     <!-- 书籍预览弹窗 -->
     <BookPreview
+      v-if="showBookPreview"
       v-model="showBookPreview"
       :book="previewBook"
       @rescan="handleRescan"
@@ -99,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useBookStore } from '@/stores/modules/book'
 import { useUserStore } from '@/stores/modules/user'
@@ -110,8 +160,11 @@ import PageContainer from '@/components/common/PageContainer.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import TabBar from '@/components/common/TabBar.vue'
 import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue'
+import BookCover from '@/components/book/BookCover.vue'
 import BookPreview from '@/components/business/BookPreview.vue'
 import { searchBookByISBN } from '@/api/modules/book'
+import { isNetworkError } from '@/types/errorCodes'
+import type { BookListParams } from '@/stores/modules/book'
 
 // 类型定义
 interface Book {
@@ -140,17 +193,45 @@ const showBookPreview = ref(false)
 const previewBook = ref<any>({})
 const scanLoading = ref(false)
 const hasInitialLoaded = ref(false)
+const PAGE_SIZE = 12
+const popupStyle = {
+  backgroundColor: '#ffffff',
+  boxShadow: '0 -2rpx 16rpx rgba(0, 0, 0, 0.08)'
+}
+const searchKeyword = ref('')
+const currentKeyword = ref('')
+const isSearchFocus = ref(false)
+const windowWidth = ref(375)
+const safeTopPx = ref(56)
+const safeRightPx = ref(16)
+
+const pxToRpx = (px: number) => {
+  const width = windowWidth.value || 375
+  return Math.round((px * 750) / width)
+}
+
+const searchSafeStyle = computed(() => {
+  const extra = Math.max(0, safeRightPx.value - 16)
+  if (extra <= 0) return {}
+  return { paddingRight: `${pxToRpx(extra)}rpx` }
+})
+
+// ISBN 归一化与校验
+const normalizeISBN = (raw: string) => (raw || '').replace(/[^0-9Xx]/g, '').toUpperCase()
+const isValidISBN = (s: string) => /^\d{13}$/.test(s) || /^\d{9}[\dX]$/.test(s)
 
 // 生命周期
 onMounted(async () => {
   const ctx = createContext()
   logger.info(ctx, '[BookshelfPage] 页面挂载')
+  updateSafeArea()
   await init()
 })
 
 onShow(async () => {
   const ctx = createContext()
   logger.info(ctx, '[BookshelfPage] 页面显示')
+  updateSafeArea()
   
   // 修复：使用统一的TabBar工具函数
   safeHideTabBar()
@@ -240,7 +321,14 @@ const loadBooks = async (refresh = false) => {
     logger.debug(ctx, '[loadBooks] 开始加载书籍', { refresh })
     
     const targetPage = refresh || books.value.length === 0 ? 1 : bookStore.currentPage + 1
-    const result = await bookStore.fetchBooks(targetPage)
+    const params: BookListParams & { limit?: number } = {
+      pageSize: PAGE_SIZE,
+      limit: PAGE_SIZE
+    }
+    if (currentKeyword.value) {
+      params.keyword = currentKeyword.value
+    }
+    const result = await bookStore.fetchBooks(targetPage, params)
 
     if (targetPage === 1) {
       books.value = [...result.books]
@@ -279,7 +367,7 @@ const goToAddBook = () => {
   const ctx = createContext()
   logger.debug(ctx, '[goToAddBook] 跳转到添加书籍页面')
   uni.navigateTo({
-    url: '/pages-book/add/add'
+    url: '/pages/book/add-book'
   })
 }
 
@@ -290,26 +378,53 @@ const addByISBN = () => {
   handleScanISBN()
 }
 
+// 安全显示Toast（避免与扫码界面关闭动画冲突）
+const showToastSafely = (options: any) => {
+  // 延迟300ms，等待扫码界面完全关闭
+  setTimeout(() => {
+    uni.showToast({
+      ...options,
+      duration: options.duration || 2500 // 默认2.5秒，让用户有足够时间看到
+    })
+  }, 300)
+}
+
 // ISBN扫码处理
 const handleScanISBN = async () => {
   const ctx = createContext()
-  
+
   try {
-    logger.debug(ctx, '[handleScanISBN] 开始扫码')
-    
+    logger.info(ctx, '[handleScanISBN] 开始扫码')
+
     // 调用uni-app扫码API
     const scanResult = await uni.scanCode({
-      onlyFromCamera: false,
-      scanType: ['barCode'] // ISBN通常是条形码
+      onlyFromCamera: true,
+      scanType: ['barCode'] // 仅条形码（ISBN常见为EAN-13）
     })
-    
+
     if (!scanResult.result) {
       logger.warn(ctx, '[handleScanISBN] 扫码结果为空')
+      showToastSafely({
+        title: '未识别到条形码，请重试',
+        icon: 'none'
+      })
       return
     }
-    
-    const isbn = scanResult.result
-    logger.info(ctx, '[handleScanISBN] 扫码成功', { isbn })
+
+    const raw = scanResult.result || ''
+    const isbn = normalizeISBN(raw)
+    logger.info(ctx, '[handleScanISBN] 扫码原始结果', { raw, isbn })
+
+    if (!isValidISBN(isbn)) {
+      logger.warn(ctx, '[handleScanISBN] 无效的ISBN', { raw, isbn })
+      showToastSafely({
+        title: `扫描到：${raw}，这不是有效的ISBN码`,
+        icon: 'none',
+        duration: 3000
+      })
+      return
+    }
+    logger.info(ctx, '[handleScanISBN] ISBN校验通过', { isbn })
     
     // 显示加载提示
     uni.showLoading({
@@ -320,38 +435,56 @@ const handleScanISBN = async () => {
     scanLoading.value = true
     
     try {
-      // 调用后端ISBN查询接口
-      const bookInfo = await searchBookByISBN(isbn)
-      
-      logger.info(ctx, '[handleScanISBN] 书籍信息查询成功', { bookInfo })
-      
+      // 调用后端ISBN查询接口（禁用request自动Loading，由页面管理）
+      const bookInfo = await searchBookByISBN(isbn, { showLoading: false })
+
+      logger.info(ctx, '[handleScanISBN] 书籍信息查询成功', {
+        hasTitle: !!bookInfo?.title,
+        hasISBN: !!bookInfo?.isbn,
+        bookInfo
+      })
+
       // 显示书籍预览
       previewBook.value = bookInfo
       showBookPreview.value = true
-      
+
     } catch (error: any) {
-      logger.error(ctx, '[handleScanISBN] 查询书籍信息失败', error)
-      
-      // 查询失败，询问是否手动创建
+      logger.error(ctx, '[handleScanISBN] 查询书籍信息失败', {
+        error,
+        errorCode: error?.code,
+        errorMessage: error?.message
+      })
+
+      // 网络异常单独提示
+      if (typeof error?.code === 'number' && isNetworkError(error.code)) {
+        showToastSafely({
+          title: '网络异常，请检查网络后重试',
+          icon: 'none'
+        })
+        return
+      }
+
+      // 未找到书籍：弹窗询问
       uni.showModal({
         title: '未找到书籍信息',
-        content: '无法获取该ISBN的书籍信息，是否手动创建？',
-        confirmText: '手动创建',
+        content: `ISBN：${isbn}\n\n数据库中暂无此书信息，请手动添加`,
+        confirmText: '手动添加',
         cancelText: '重新扫描',
         success: (res) => {
           if (res.confirm) {
-            // 跳转到手动添加页面，带上ISBN
-            uni.navigateTo({
-              url: `/pages-book/add/add?isbn=${isbn}`
-            })
-          } else {
-            // 重新扫描
+            uni.navigateTo({ url: `/pages/book/add-book?isbn=${isbn}` })
+          } else if (res.cancel) {
             handleScanISBN()
           }
         }
       })
     } finally {
-      uni.hideLoading()
+      // 防御性关闭Loading：避免在某些异常情况下Loading已被关闭导致报错
+      try {
+        uni.hideLoading()
+      } catch (e) {
+        logger.warn(ctx, '[handleScanISBN] hideLoading失败（非致命错误）', e)
+      }
       scanLoading.value = false
     }
     
@@ -394,126 +527,351 @@ const addManually = () => {
   logger.debug(ctx, '[addManually] 跳转到手动添加页面')
   showAddBook.value = false
   uni.navigateTo({
-    url: '/pages-book/add/add'
+    url: '/pages/book/add-book'
   })
+}
+
+const handleSearchInput = (event: any) => {
+  searchKeyword.value = event?.detail?.value ?? event?.target?.value ?? ''
+}
+
+const handleSearchConfirm = async (event?: any) => {
+  const value = event?.detail?.value ?? searchKeyword.value
+  currentKeyword.value = value.trim()
+  searchKeyword.value = currentKeyword.value
+  await loadBooks(true)
+}
+
+const handleSearchFocus = () => {
+  isSearchFocus.value = true
+}
+
+const handleSearchBlur = () => {
+  isSearchFocus.value = false
+}
+
+const handleClearSearch = async () => {
+  searchKeyword.value = ''
+  currentKeyword.value = ''
+  await loadBooks(true)
+}
+
+function updateSafeArea() {
+  try {
+    const info = uni.getSystemInfoSync?.()
+    if (!info) return
+    windowWidth.value = info.windowWidth || 375
+    const statusBarHeight = info.statusBarHeight || 0
+    const menuRect = uni.getMenuButtonBoundingClientRect?.()
+    const capsuleBottom = menuRect?.bottom ?? (statusBarHeight + 44)
+    const capsuleRight = menuRect?.right ?? (windowWidth.value - 16)
+    safeTopPx.value = capsuleBottom + 6
+    safeRightPx.value = Math.max(12, windowWidth.value - capsuleRight)
+  } catch (error) {
+    logger.warn(createContext(), '[BookshelfPage] 获取系统信息失败', error)
+  }
 }
 </script>
 
-<style lang="scss" scoped>
-.bookshelf-page { min-height: 100vh; background-color: var(--cr-color-bg); }
+<style lang="scss">
+@import '@/styles/design-tokens/bookshelf.scss';
+@import '@/styles/modules/bookshelf.scss';
 
-.bookshelf-content {
-  padding: 16px;
-  padding-bottom: 100px; // 为tabbar留出空间
+$fab-default: map-get($bookshelf-fab-states, default);
+$fab-hover: map-get($bookshelf-fab-states, hover);
+$fab-active: map-get($bookshelf-fab-states, active);
+
+.bookshelf-page {
+  min-height: 100vh;
+  background-color: map-get($bookshelf-colors, background);
+  padding-bottom: map-get($bookshelf-layout, tabbar-height);
 }
 
-.empty-state {
-  padding-top: 100px;
+.bookshelf-content {
+  padding: map-get($bookshelf-layout, page-padding-y) map-get($bookshelf-layout, page-padding-x);
+  display: flex;
+  flex-direction: column;
+  // gap: $shelf-card-gap;  // 移除：小程序flex gap兼容性问题，改用margin-top
+}
+
+// 为shelf-grid添加上边距（替代gap）
+.shelf-grid {
+  margin-top: $shelf-card-gap;
+}
+
+.bookshelf-search {
+  display: flex;
+  align-items: center;
+  gap: map-get($bookshelf-spacing, md);
+}
+
+.search-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 72rpx;
+  padding: 0 map-get($bookshelf-spacing, md);
+  border-radius: 40rpx;
+  background: #f8f9fa;
+  border: 1rpx solid rgba(0, 0, 0, 0.12);
+  transition: background-color map-get($bookshelf-transitions, normal), border-color map-get($bookshelf-transitions, normal), border-width map-get($bookshelf-transitions, normal), box-shadow map-get($bookshelf-transitions, normal);
+}
+
+.search-box--focus {
+  background: #ffffff;
+  border: 2rpx solid map-get($bookshelf-colors, primary);
+  padding: 0 calc(#{map-get($bookshelf-spacing, md)} - 1rpx);
+  box-shadow: 0 4rpx 16rpx rgba(0, 168, 45, 0.12);
+}
+
+.search-leading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+
+  &__icon {
+    flex-shrink: 0;
+  }
+}
+
+.search-clear-icon {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.search-divider {
+  width: 1rpx;
+  height: 44rpx;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 0 8rpx;
+}
+
+.search-suffix {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80rpx;
+  height: 72rpx;
+  padding: 0 16rpx;
+  cursor: pointer;
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.95);
+    transition: all 0.1s;
+  }
+}
+
+.scan-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.search-icon {
+  margin-right: map-get($bookshelf-spacing, sm);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: map-get($bookshelf-font-sizes, sm);
+  color: map-get($bookshelf-colors, title);
+  line-height: 72rpx;
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.search-clear {
+  margin-left: map-get($bookshelf-spacing, sm);
+  padding: map-get($bookshelf-spacing, xs);
+}
+
+.search-placeholder {
+  color: #6b7280;
+  font-size: map-get($bookshelf-font-sizes, sm);
+}
+
+.search-quick {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: map-get($bookshelf-radius, lg);
+  border: 1rpx solid map-get($bookshelf-colors, border);
+  background: map-get($bookshelf-colors, card-background);
+  box-shadow: map-get($bookshelf-shadows, card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform map-get($bookshelf-transitions, fast), box-shadow map-get($bookshelf-transitions, normal);
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.bookshelf-empty {
+  padding-top: map-get($bookshelf-spacing, huge);
+  display: flex;
+  justify-content: center;
+}
+
+// 添加新书卡片（外壳由 .shelf-card 统一，这里只定义特有样式）
+.add-book-card {
+  border: 3.5rpx dashed rgba(0, 168, 45, 0.12);
+  gap: 12rpx;
+  transition: transform map-get($bookshelf-transitions, fast), border-color map-get($bookshelf-transitions, normal);
+
+  &:active {
+    transform: scale(0.97);
+    border-color: rgba(0, 168, 45, 0.25);
+  }
+}
+
+ 
+
+.add-card__icon {
+  // 极致压缩：缩小图标尺寸
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 12rpx;
+  background: #f8faf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background map-get($bookshelf-transitions, normal);
+}
+
+.add-card__plus {
+  font-size: 40rpx;
+  font-weight: 300;
+  color: #666666;
+  line-height: 1;
+  transition: color map-get($bookshelf-transitions, normal);
+}
+
+ 
+
+.add-card__text {
+  // 极致压缩：缩小字号
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #666666;
+  line-height: 1.4;
   text-align: center;
 }
 
-.book-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
+// 书籍卡片（外壳由 .shelf-card 统一，这里只定义内部样式）
+.book-card {
+  gap: 12rpx;
+  transition: transform map-get($bookshelf-transitions, fast), box-shadow map-get($bookshelf-transitions, normal);
 
-.book-item {
-  transition: transform 0.2s;
-  
   &:active {
     transform: scale(0.98);
   }
-  
-  .book-cover {
-    margin-bottom: 8px;
-  }
-  
+}
+
 .book-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  align-items: center; // 居中对齐
+
   .book-title {
-    display: block;
-    font-size: 14px; // 保持原字号（后续按令牌统一）
-    font-weight: 600;
-    color: var(--cr-color-text-strong);
-    line-height: 1.4;
-    margin-bottom: 4px;
+    font-size: 26rpx; // 缩小字号
+    font-weight: map-get($bookshelf-font-weights, semibold);
+    color: map-get($bookshelf-colors, title);
+    line-height: 1.3;
+    text-align: center; // 居中
+    // 单行截断
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    width: 100%;
   }
-  
-  .book-author {
-    display: block;
-    font-size: 12px;
-    color: var(--cr-color-text);
-    margin-bottom: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  
+
   .book-notes {
-    display: block;
-    font-size: 11px;
-    color: var(--cr-color-subtext);
+    font-size: 22rpx; // 缩小字号
+    color: map-get($bookshelf-colors, gray-text);
+    text-align: center; // 居中
   }
 }
+
+.bookshelf-fab {
+  position: fixed;
+  left: 50%;
+  bottom: calc(#{map-get($bookshelf-layout, fab-bottom)} + constant(safe-area-inset-bottom));
+  bottom: calc(#{map-get($bookshelf-layout, fab-bottom)} + env(safe-area-inset-bottom));
+  width: map-get($bookshelf-sizes, fab-size);
+  height: map-get($bookshelf-sizes, fab-size);
+  border-radius: map-get($bookshelf-radius, full);
+  background: map-get($fab-default, background);
+  box-shadow: map-get($fab-default, shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: transform map-get($bookshelf-transitions, fast), box-shadow map-get($bookshelf-transitions, normal), background-color map-get($bookshelf-transitions, normal);
+  transform: translateX(-50%);
+
+  &:active {
+    transform: translateX(-50%) #{map-get($fab-active, transform)};
+    box-shadow: map-get($fab-active, shadow);
+  }
+}
+
+.fab-icon {
+  font-size: 48rpx;
+  font-weight: map-get($bookshelf-font-weights, bold);
+  color: #ffffff;
+  line-height: 1;
 }
 
 .add-book-popup {
-  padding: 20px;
-  
+  padding: map-get($bookshelf-spacing, xl);
+  display: flex;
+  flex-direction: column;
+  gap: map-get($bookshelf-spacing, xl);
+
   .popup-header {
     text-align: center;
-    margin-bottom: 30px;
-    
+
     .popup-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
+      font-size: map-get($bookshelf-font-sizes, lg);
+      font-weight: map-get($bookshelf-font-weights, semibold);
+      color: map-get($bookshelf-colors, title);
     }
   }
-  
+
   .add-methods {
     display: flex;
-    justify-content: space-around;
-    margin-bottom: 30px;
-    
-    .method-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      border-radius: 12px;
-      background: #f8f9fa;
-      min-width: 100px;
-      
-      &:active {
-        background: #e9ecef;
-      }
-      
-      .method-text {
-        margin-top: 8px;
-        font-size: 14px;
-        color: #333;
-      }
+    justify-content: center;
+    gap: map-get($bookshelf-spacing, xl);
+  }
+
+  .method-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: map-get($bookshelf-spacing, sm);
+    min-width: 168rpx;
+    padding: map-get($bookshelf-spacing, lg);
+    border-radius: map-get($bookshelf-radius, lg);
+    background: map-get($bookshelf-colors, primary-light);
+    transition: background-color map-get($bookshelf-transitions, normal), transform map-get($bookshelf-transitions, fast);
+
+    &:active {
+      transform: scale(0.98);
     }
   }
-  
-}
 
-
-/* 微信小程序特定样式 */
-/* #ifdef MP-WEIXIN */
-.custom-navbar {
-  padding-top: 20px; // 微信小程序状态栏高度
+  .method-text {
+    font-size: map-get($bookshelf-font-sizes, base);
+    color: map-get($bookshelf-colors, title);
+    font-weight: map-get($bookshelf-font-weights, medium);
+  }
 }
-/* #endif */
-
-/* H5特定样式 */
-/* #ifdef H5 */
-.custom-navbar {
-  padding-top: 0;
-}
-/* #endif */
 </style>

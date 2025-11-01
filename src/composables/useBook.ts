@@ -206,7 +206,7 @@ export function useBook() {
 
   const goToAddBook = () => {
     uni.navigateTo({
-      url: '/pages-book/add/add'
+      url: '/pages/book/add-book'
     })
   }
 

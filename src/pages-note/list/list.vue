@@ -1,17 +1,21 @@
 <template>
   <view class="note-list-page">
     <!-- 搜索栏 -->
-    <view class="search-section">
+    <view class="search-section" :style="searchSectionStyle">
       <u-search
         v-model="searchKeyword"
         placeholder="搜索笔记..."
-        bg-color="#f8f9fa"
-        border-color="transparent"
+        bg-color="transparent"
+        shape="round"
+        :custom-style="searchInputStyle"
+        :placeholder-style="searchPlaceholderStyle"
         @search="handleSearch"
         @clear="handleClearSearch"
+        @focus="handleSearchFocus"
+        @blur="handleSearchBlur"
       >
         <template #suffix>
-          <u-icon name="search" size="18" color="#999"></u-icon>
+          <u-icon class="search-icon" name="search" size="16" color="#999"></u-icon>
         </template>
       </u-search>
     </view>
@@ -20,8 +24,8 @@
     <view class="filter-section">
       <scroll-view class="filter-scroll" scroll-x>
         <view class="filter-list">
-          <view 
-            v-for="filter in filterList" 
+          <view
+            v-for="filter in filterList"
             :key="filter.key"
             class="filter-item"
             :class="{ active: activeFilter === filter.key }"
@@ -40,19 +44,16 @@
     <!-- 笔记列表 -->
     <view class="notes-content">
       <view v-if="notes.length === 0 && !loading" class="empty-state">
-        <u-empty 
-          mode="list" 
+        <u-empty
+          mode="list"
           text="还没有笔记"
           textColor="#999"
           iconSize="80"
         >
           <template #bottom>
-            <u-button 
-              type="primary" 
-              text="添加第一条笔记"
-              @click="goToAddNote"
-              style="margin-top: 20px;"
-            ></u-button>
+            <PrimaryButton class="empty-action" size="md" @click="goToAddNote">
+              添加第一条笔记
+            </PrimaryButton>
           </template>
         </u-empty>
       </view>
@@ -74,7 +75,7 @@
             <text class="note-date">{{ formatDate(note.createdAt) }}</text>
           </view>
           
-          <text class="note-content">{{ note.content }}</text>
+          <text class="note-content">{{ note.excerpt || note.content }}</text>
           
           <view class="note-footer">
             <view class="note-tags" v-if="note.tags && note.tags.length > 0">
@@ -90,7 +91,7 @@
             
             <view class="note-actions">
               <u-icon 
-                v-if="note.images && note.images.length > 0"
+                v-if="note.hasImages || (note.images && note.images.length > 0)"
                 name="image" 
                 size="14" 
                 color="#999"
@@ -109,12 +110,12 @@
     </view>
 
     <!-- 排序弹窗 -->
-    <u-popup 
-      v-model="showSortPopup" 
+    <u-popup
+      v-model="showSortPopup"
       mode="bottom"
-      height="300px"
-      round="20"
+      :round="24"
       closeable
+      :custom-style="popupStyle"
     >
       <view class="sort-popup">
         <view class="popup-header">
@@ -142,12 +143,12 @@
     </u-popup>
 
     <!-- 笔记操作弹窗 -->
-    <u-popup 
-      v-model="showNoteActions" 
+    <u-popup
+      v-model="showNoteActions"
       mode="bottom"
-      height="200px"
-      round="20"
+      :round="24"
       closeable
+      :custom-style="popupStyle"
     >
       <view class="action-popup">
         <view class="popup-header">
@@ -180,8 +181,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { onLoad, onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
+import PrimaryButton from '@/components/common/PrimaryButton.vue'
+import { logger, createContext } from '@/utils'
 
 // 类型定义
 interface Note {
@@ -190,8 +193,10 @@ interface Note {
   content: string
   bookId?: number
   bookTitle?: string
-  noteType: string
+  noteType?: string
   tags?: string[]
+  excerpt?: string
+  hasImages?: boolean
   images?: string[]
   createdAt?: string
   updatedAt?: string
@@ -217,6 +222,35 @@ const pageLoading = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
 const pageSize = ref(20)
+const isSearchFocus = ref(false)
+const windowWidth = ref(375)
+const safeTopPx = ref(56)
+const searchPlaceholderStyle = 'color:#6b7280;font-size:28rpx;'
+
+const pxToRpx = (px: number) => {
+  const width = windowWidth.value || 375
+  return Math.round((px * 750) / width)
+}
+
+const searchSectionStyle = computed(() => ({
+  paddingTop: `${pxToRpx(safeTopPx.value)}rpx`
+}))
+
+const searchInputStyle = computed(() => ({
+  background: isSearchFocus.value ? '#ffffff' : '#f8f9fa',
+  border: isSearchFocus.value
+    ? '2rpx solid #00a82d'
+    : '1rpx solid rgba(0, 0, 0, 0.12)',
+  height: '72rpx',
+  borderRadius: '40rpx',
+  paddingLeft: isSearchFocus.value ? '31rpx' : '32rpx',
+  paddingRight: isSearchFocus.value ? '31rpx' : '32rpx',
+  transition: 'all 0.2s ease'
+}))
+const popupStyle = {
+  backgroundColor: '#ffffff',
+  boxShadow: '0 -2rpx 16rpx rgba(0, 0, 0, 0.08)'
+}
 
 // 弹窗状态
 const showSortPopup = ref(false)
@@ -243,6 +277,21 @@ const sortOptions: SortOption[] = [
 // 路由参数
 const routeParams = ref<{ bookId?: number }>({})
 
+// 安全区计算函数
+function updateSafeArea() {
+  try {
+    const info = uni.getSystemInfoSync?.()
+    if (!info) return
+    windowWidth.value = info.windowWidth || 375
+    const statusBarHeight = info.statusBarHeight || 0
+    const menuRect = uni.getMenuButtonBoundingClientRect?.()
+    const capsuleBottom = menuRect?.bottom ?? (statusBarHeight + 44)
+    safeTopPx.value = capsuleBottom + 6
+  } catch (error) {
+    logger.warn(createContext(), '[NotesPage] 获取系统信息失败', error)
+  }
+}
+
 // 生命周期
 onLoad((options: any) => {
   if (options.bookId) {
@@ -251,10 +300,16 @@ onLoad((options: any) => {
 })
 
 onMounted(async () => {
+  const ctx = createContext()
+  logger.info(ctx, '[NotesPage] 页面挂载')
+  updateSafeArea()
   await loadNotes(true)
 })
 
 onShow(async () => {
+  const ctx = createContext()
+  logger.info(ctx, '[NotesPage] 页面显示')
+  updateSafeArea()
   // 从编辑页面返回时刷新数据
   await loadNotes(true)
 })
@@ -335,6 +390,14 @@ const handleClearSearch = async () => {
 const handleFilterChange = async (filterKey: string) => {
   activeFilter.value = filterKey
   await loadNotes(true)
+}
+
+const handleSearchFocus = () => {
+  isSearchFocus.value = true
+}
+
+const handleSearchBlur = () => {
+  isSearchFocus.value = false
 }
 
 const handleSortChange = async (sortKey: string) => {
@@ -451,235 +514,276 @@ const formatDate = (dateStr?: string): string => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/design-tokens/notes.scss';
+
+$card-default: map-get($notes-card-states, default);
+$card-hover: map-get($notes-card-states, hover);
+$card-active: map-get($notes-card-states, active);
+$filter-default: map-get($notes-filter-states, default);
+$filter-active: map-get($notes-filter-states, active);
+$filter-hover: map-get($notes-filter-states, hover);
+$fab-default: map-get($notes-fab-states, default);
+$fab-hover: map-get($notes-fab-states, hover);
+$fab-active: map-get($notes-fab-states, active);
+$tag-default: map-get($notes-tag-states, default);
+
 .note-list-page {
   min-height: 100vh;
-  background-color: #f5f7fa;
-  padding-bottom: 80px; // 为FAB按钮留出空间
+  background-color: map-get($notes-colors, background);
+  padding-bottom: map-get($notes-spacing, bottom-safe);
 }
 
 .search-section {
-  background: #fff;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  padding-left: map-get($notes-layout, search-padding-x);
+  padding-right: map-get($notes-layout, search-padding-x);
+  padding-bottom: 12rpx; // 减小底部间距，与书架页面对齐
+  background: transparent;
+  // padding-top通过searchSectionStyle动态设置
+}
+
+.search-icon {
+  color: map-get($notes-colors, secondary-text);
 }
 
 .filter-section {
-  background: #fff;
-  padding: 12px 0;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-  
+  background: map-get($notes-colors, card-background);
+  padding: map-get($notes-layout, filter-padding-y) 0;
+  border-bottom: 1rpx solid map-get($notes-colors, divider);
+
   .filter-scroll {
     flex: 1;
     white-space: nowrap;
   }
-  
+
   .filter-list {
     display: flex;
-    padding: 0 16px;
-    
-    .filter-item {
-      padding: 6px 16px;
-      margin-right: 12px;
-      border-radius: 20px;
-      background: #f8f9fa;
-      white-space: nowrap;
-      
-      &.active {
-        background: #00a82d;
-        
-        .filter-text {
-          color: #fff;
-        }
-      }
-      
-      .filter-text {
-        font-size: 14px;
-        color: #666;
-      }
+    align-items: center;
+    padding: 0 map-get($notes-layout, filter-padding-x);
+    gap: map-get($notes-spacing, md);
+  }
+
+  .filter-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: map-get($notes-sizes, filter-height);
+    padding: map-get($notes-spacing, sm) map-get($notes-spacing, lg);
+    border-radius: map-get($notes-radius, pill);
+    background: map-get($filter-default, background);
+    color: map-get($filter-default, color);
+    font-size: map-get($notes-font-sizes, base);
+    transition: background-color map-get($notes-transitions, normal), color map-get($notes-transitions, normal);
+
+    &.active {
+      background: map-get($filter-active, background);
+      color: map-get($filter-active, color);
     }
   }
-  
+
   .sort-button {
-    padding: 8px 16px;
-    margin-right: 8px;
+    margin-right: map-get($notes-spacing, lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: map-get($notes-sizes, filter-height);
+    height: map-get($notes-sizes, filter-height);
+    border-radius: map-get($notes-radius, pill);
+    background: map-get($notes-colors, filter-background);
+    transition: background-color map-get($notes-transitions, normal);
   }
 }
 
 .notes-content {
-  padding: 12px 16px;
+  padding: map-get($notes-layout, list-padding-y) map-get($notes-layout, list-padding-x);
 }
 
 .empty-state {
-  padding-top: 100px;
+  padding-top: map-get($notes-spacing, huge);
   text-align: center;
 }
 
+.empty-action {
+  margin-top: map-get($notes-spacing, xl);
+}
+
 .notes-list {
-  .note-item {
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    
-    &:active {
-      transform: scale(0.98);
-      transition: transform 0.1s;
-    }
-    
-    .note-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 8px;
-      
-      .note-title-section {
-        flex: 1;
-        margin-right: 12px;
-        
-        .note-title {
-          display: block;
-          font-size: 16px;
-          font-weight: 600;
-          color: #333;
-          line-height: 1.4;
-          margin-bottom: 4px;
-        }
-        
-        .book-title {
-          font-size: 12px;
-          color: #00a82d;
-          background: rgba(0, 168, 45, 0.1);
-          padding: 2px 6px;
-          border-radius: 4px;
-        }
-      }
-      
-      .note-date {
-        font-size: 12px;
-        color: #999;
-        white-space: nowrap;
-      }
-    }
-    
-    .note-content {
-      font-size: 14px;
-      color: #666;
-      line-height: 1.6;
-      margin-bottom: 12px;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 3;
-      overflow: hidden;
-    }
-    
-    .note-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      
-      .note-tags {
-        display: flex;
-        flex-wrap: wrap;
-        flex: 1;
-        
-        .note-tag {
-          font-size: 11px;
-          color: #00a82d;
-          background: rgba(0, 168, 45, 0.1);
-          padding: 2px 6px;
-          border-radius: 4px;
-          margin-right: 6px;
-          margin-bottom: 4px;
-        }
-        
-        .more-tags {
-          font-size: 11px;
-          color: #999;
-        }
-      }
-      
-      .note-actions {
-        display: flex;
-        align-items: center;
-        
-        .note-type {
-          font-size: 12px;
-          color: #999;
-        }
-      }
-    }
+  display: flex;
+  flex-direction: column;
+  gap: map-get($notes-spacing, md);
+}
+
+.note-item {
+  background: map-get($card-default, background);
+  border-radius: map-get($notes-radius, lg);
+  padding: map-get($notes-spacing, lg);
+  box-shadow: map-get($card-default, shadow);
+  transition: transform map-get($notes-transitions, fast), box-shadow map-get($notes-transitions, normal);
+
+  &:active {
+    transform: map-get($card-active, transform);
+    box-shadow: map-get($card-active, shadow);
+  }
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: map-get($notes-spacing, sm);
+  gap: map-get($notes-spacing, sm);
+}
+
+.note-title-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: map-get($notes-spacing, xs);
+}
+
+.note-title {
+  font-size: map-get($notes-font-sizes, base);
+  font-weight: map-get($notes-font-weights, semibold);
+  color: map-get($notes-colors, title);
+  line-height: 1.4;
+}
+
+.book-title {
+  display: inline-flex;
+  align-items: center;
+  padding: map-get($notes-spacing, xs) map-get($notes-spacing, sm);
+  border-radius: map-get($notes-radius, sm);
+  background: map-get($tag-default, background);
+  color: map-get($tag-default, color);
+  font-size: map-get($notes-font-sizes, xs);
+}
+
+.note-date {
+  font-size: map-get($notes-font-sizes, xs);
+  color: map-get($notes-colors, secondary-text);
+  white-space: nowrap;
+}
+
+.note-content {
+  font-size: map-get($notes-font-sizes, sm);
+  color: map-get($notes-colors, muted-foreground);
+  line-height: 1.6;
+  margin-bottom: map-get($notes-spacing, md);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.note-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: map-get($notes-spacing, md);
+}
+
+.note-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map-get($notes-spacing, xs);
+
+  .note-tag {
+    font-size: map-get($notes-font-sizes, xxs);
+    padding: map-get($notes-spacing, xs) map-get($notes-spacing, sm);
+    border-radius: map-get($notes-radius, sm);
+    background: map-get($tag-default, background);
+    color: map-get($tag-default, color);
+  }
+
+  .more-tags {
+    font-size: map-get($notes-font-sizes, xxs);
+    color: map-get($notes-colors, secondary-text);
+  }
+}
+
+.note-actions {
+  display: flex;
+  align-items: center;
+  gap: map-get($notes-spacing, xs);
+
+  .note-type {
+    font-size: map-get($notes-font-sizes, xs);
+    color: map-get($notes-colors, secondary-text);
   }
 }
 
 .fab-button {
   position: fixed;
-  right: 20px;
-  bottom: 100px; // 避开tabbar
-  width: 56px;
-  height: 56px;
-  background: #00a82d;
-  border-radius: 50%;
+  right: map-get($notes-layout, fab-right);
+  bottom: map-get($notes-layout, fab-bottom);
+  width: map-get($notes-sizes, fab-size);
+  height: map-get($notes-sizes, fab-size);
+  border-radius: map-get($notes-radius, full);
+  background: map-get($fab-default, background);
+  box-shadow: map-get($fab-default, shadow);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 168, 45, 0.3);
   z-index: 999;
-  
+  transition: transform map-get($notes-transitions, fast), box-shadow map-get($notes-transitions, normal), background-color map-get($notes-transitions, normal);
+
   &:active {
-    transform: scale(0.95);
+    transform: map-get($fab-active, transform);
+    box-shadow: map-get($fab-active, shadow);
   }
 }
 
 .sort-popup,
 .action-popup {
-  padding: 20px;
-  
+  padding: map-get($notes-spacing, xl);
+  display: flex;
+  flex-direction: column;
+  gap: map-get($notes-spacing, xl);
+
   .popup-header {
     text-align: center;
-    margin-bottom: 20px;
-    
+
     .popup-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
+      font-size: map-get($notes-font-sizes, lg);
+      font-weight: map-get($notes-font-weights, semibold);
+      color: map-get($notes-colors, title);
     }
   }
-  
+
   .sort-options,
   .action-options {
-    .sort-option,
-    .action-option {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 0;
-      border-bottom: 1px solid #f0f0f0;
-      
-      &:last-child {
-        border-bottom: none;
-      }
-      
-      &.active {
-        .option-text {
-          color: #00a82d;
-          font-weight: 600;
-        }
-      }
-      
-      .option-text {
-        font-size: 14px;
-        color: #333;
-        margin-left: 12px;
-        flex: 1;
-      }
+    display: flex;
+    flex-direction: column;
+    gap: map-get($notes-spacing, md);
+  }
+
+  .sort-option,
+  .action-option {
+    display: flex;
+    align-items: center;
+    gap: map-get($notes-spacing, sm);
+    padding: map-get($notes-spacing, sm) 0;
+    font-size: map-get($notes-font-sizes, base);
+    color: map-get($notes-colors, title);
+    border-bottom: 1rpx solid map-get($notes-colors, divider);
+
+    &:last-child {
+      border-bottom: none;
     }
-    
-    .action-option {
-      justify-content: flex-start;
+
+    &.active .option-text {
+      color: map-get($notes-colors, primary);
+      font-weight: map-get($notes-font-weights, semibold);
     }
+  }
+
+  .action-option {
+    justify-content: flex-start;
+  }
+
+  .option-text {
+    flex: 1;
   }
 }
 </style>

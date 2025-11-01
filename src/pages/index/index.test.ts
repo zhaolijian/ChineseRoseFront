@@ -108,7 +108,10 @@ describe('书架页面刷新功能', () => {
       await wrapper.vm.loadBooks(true)
       
       // 验证调用了正确的页码
-      expect(bookStore.fetchBooks).toHaveBeenCalledWith(1)
+      expect(bookStore.fetchBooks).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ limit: 12, pageSize: 12 })
+      )
       
       // 注意：stopPullDownRefresh 是在 onPullDownRefresh 回调中调用的
       // 而测试直接调用 loadBooks，所以不会触发 stopPullDownRefresh
@@ -192,7 +195,10 @@ describe('书架页面刷新功能', () => {
       await wrapper.vm.loadMoreBooks()
       
       // 验证加载了下一页
-      expect(bookStore.fetchBooks).toHaveBeenCalledWith(2)
+      expect(bookStore.fetchBooks).toHaveBeenCalledWith(
+        2,
+        expect.objectContaining({ limit: 12, pageSize: 12 })
+      )
       
       // 验证数据被追加而不是替换
       expect(wrapper.vm.books).toHaveLength(4)
@@ -289,7 +295,10 @@ describe('书架页面刷新功能', () => {
       // refresh = true
       await wrapper.vm.loadBooks(true)
       
-      expect(bookStore.fetchBooks).toHaveBeenCalledWith(1)
+      expect(bookStore.fetchBooks).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ limit: 12, pageSize: 12 })
+      )
     })
     
     it('加载更多时应该请求下一页', async () => {
@@ -304,7 +313,10 @@ describe('书架页面刷新功能', () => {
       // refresh = false
       await wrapper.vm.loadBooks(false)
       
-      expect(bookStore.fetchBooks).toHaveBeenCalledWith(3)
+      expect(bookStore.fetchBooks).toHaveBeenCalledWith(
+        3,
+        expect.objectContaining({ limit: 12, pageSize: 12 })
+      )
     })
     
     it('首次加载（列表为空）应该从第1页开始', async () => {
@@ -317,7 +329,10 @@ describe('书架页面刷新功能', () => {
       
       await wrapper.vm.loadBooks(false)
       
-      expect(bookStore.fetchBooks).toHaveBeenCalledWith(1)
+      expect(bookStore.fetchBooks).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ limit: 12, pageSize: 12 })
+      )
     })
   })
 })

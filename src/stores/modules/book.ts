@@ -28,6 +28,8 @@ export interface CreateBookParams {
   isbn?: string
   publisher?: string
   publishDate?: string
+  // 预签名直传：优先传coverKey（由后端最终化），兼容旧coverUrl
+  coverKey?: string
   coverUrl?: string
   description?: string
   status?: 'reading' | 'finished' | 'wishlist'
@@ -55,6 +57,12 @@ export interface BookListResponse {
   pageSize: number
   totalPages: number
   hasMore: boolean
+  pagination?: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }
 
 export interface ApiResponse<T = any> {
@@ -94,8 +102,8 @@ export const useBookStore = defineStore('book', () => {
     try {
       loading.value = true
       
-      const { pageSize: customPageSize, ...restParams } = params
-      const limit = customPageSize ?? restParams.limit ?? pageSize.value
+      const { pageSize: customPageSize, limit: customLimit, ...restParams } = params
+      const limit = customLimit ?? customPageSize ?? pageSize.value
       const queryParams = {
         page,
         limit,
@@ -120,21 +128,39 @@ export const useBookStore = defineStore('book', () => {
         }
 
         const { pagination } = resultTyped
-        currentPage.value = pagination?.page ?? page
-        pageSize.value = pagination?.limit ?? limit
-        total.value = pagination?.total ?? fetchedBooks.length
-        hasMore.value = pagination ? pagination.page < pagination.totalPages : fetchedBooks.length >= (pagination?.limit ?? limit)
+        const effectivePage = pagination?.page ?? resultTyped.page ?? page
+        const effectiveLimit = pagination?.limit ?? resultTyped.pageSize ?? limit
+        const effectiveTotal = pagination?.total ?? resultTyped.total ?? fetchedBooks.length
+        const effectiveTotalPages =
+          pagination?.totalPages ??
+          resultTyped.totalPages ??
+          Math.max(1, Math.ceil(effectiveTotal / (effectiveLimit || 1)))
+        const effectiveHasMore =
+          typeof resultTyped.hasMore === 'boolean'
+            ? resultTyped.hasMore
+            : pagination
+              ? pagination.page < pagination.totalPages
+              : effectivePage < effectiveTotalPages
+
+        currentPage.value = effectivePage
+        pageSize.value = effectiveLimit
+        total.value = effectiveTotal
+        hasMore.value = effectiveHasMore
 
         const enriched: BookListResponse = {
           ...resultTyped,
           books: fetchedBooks,
+          page: effectivePage,
+          pageSize: effectiveLimit,
+          total: effectiveTotal,
+          totalPages: effectiveTotalPages,
+          hasMore: effectiveHasMore,
           pagination: pagination ?? {
-            page: currentPage.value,
-            limit: pageSize.value,
-            total: total.value,
-            totalPages: hasMore.value ? currentPage.value+1 : currentPage.value
-          },
-          hasMore: hasMore.value
+            page: effectivePage,
+            limit: effectiveLimit,
+            total: effectiveTotal,
+            totalPages: effectiveTotalPages
+          }
         }
         
         return enriched

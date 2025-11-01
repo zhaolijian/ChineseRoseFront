@@ -18,12 +18,6 @@ vi.mock('@dcloudio/uni-app', () => ({
   setStorageSync: vi.fn()
 }))
 
-const mockShowModal = vi.mocked(uni.showModal)
-const mockShowLoading = vi.mocked(uni.showLoading)
-const mockHideLoading = vi.mocked(uni.hideLoading)
-const mockShowToast = vi.mocked(uni.showToast)
-const mockNavigateBack = vi.mocked(uni.navigateBack)
-
 // Mock API
 vi.mock('@/api/modules/book', () => ({
   deleteBook: vi.fn()
@@ -35,8 +29,7 @@ vi.mock('@/stores/modules/book', () => ({
       id: 1,
       title: '测试书籍',
       author: '测试作者',
-      noteCount: 5,
-      progress: 50
+      noteCount: 5
     }),
     fetchBookNotes: vi.fn().mockResolvedValue({
       notes: [],
@@ -74,8 +67,7 @@ describe('书籍删除功能', () => {
                   id: 1,
                   title: '测试书籍',
                   author: '测试作者',
-                  noteCount: 5,
-                  progress: 50
+                  noteCount: 5
                 }]
               }
             },
@@ -86,9 +78,7 @@ describe('书籍删除功能', () => {
           'u-icon': true,
           'u-image': true,
           'u-button': true,
-          'u-line-progress': true,
           'u-empty': true,
-          'u-slider': true,
           'u-popup': true,
           'u-loading-page': true,
           'AppNavBar': {
@@ -104,8 +94,7 @@ describe('书籍删除功能', () => {
       id: 1,
       title: '测试书籍',
       author: '测试作者',
-      noteCount: 5,
-      progress: 50
+      noteCount: 5
     }
   })
   

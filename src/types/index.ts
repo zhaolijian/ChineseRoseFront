@@ -84,41 +84,46 @@ export interface CreateBookRequest {
   tags?: string[]
 }
 
+// 章节相关类型
+export interface Chapter {
+  id: number
+  title: string
+  orderNum?: number
+  createdAt?: string
+  updatedAt?: string
+}
+
 // 笔记相关类型
 export interface Note {
   id: number
   bookId: number
   title: string
   content: string
-  pageNumber?: number
-  chapterName?: string
   noteType: NoteType
   tags: string[]
   images: string[]
-  isPublic: boolean
+  excerpt?: string
+  hasImages?: boolean
   createdAt: string
   updatedAt: string
   book?: Book // 关联的书籍信息
+  chapterName?: string // 章节名称
 }
 
-export enum NoteType {
-  READING = 'READING', // 阅读笔记
-  THOUGHT = 'THOUGHT', // 思考感悟
-  QUOTE = 'QUOTE', // 摘录
-  SUMMARY = 'SUMMARY' // 总结
-}
+export type NoteType = 'reading' | 'thought' | 'quote' | 'summary'
 
 export interface CreateNoteRequest {
   bookId: number
   title: string
   content: string
-  pageNumber?: number
-  chapterName?: string
   noteType: NoteType
   tags?: string[]
   images?: string[]
+  pageNumber?: number
+  chapterName?: string
   isPublic?: boolean
 }
+
 
 // OCR相关类型
 export interface OCRRequest {

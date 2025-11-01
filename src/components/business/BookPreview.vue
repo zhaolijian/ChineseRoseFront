@@ -5,6 +5,9 @@
     width="90%"
     round="20"
     closeable
+    :z-index="10075"
+    :overlay="true"
+    :close-on-click-overlay="true"
     @close="handleClose"
   >
     <view class="book-preview">
@@ -15,12 +18,14 @@
       <view class="preview-content">
         <!-- 书籍封面 -->
         <view class="book-cover-section">
-          <u-image
-            :src="book.coverUrl || '/static/images/book-placeholder.svg'"
-            width="120px"
-            height="160px"
-            radius="8"
-            mode="aspectFit"
+          <BookCover
+            :src="book.coverUrl"
+            :width="120"
+            :ratio="3 / 4"
+            :radius="16"
+            :padding="12"
+            :shadow="true"
+            bg-color="#F5F7FA"
           />
         </view>
         
@@ -87,6 +92,7 @@ import { createBook } from '@/api/modules/book'
 import { logger, createContext } from '@/utils'
 import { ensureLoggedIn } from '@/utils/auth-guard'
 import type { Book } from '@/api/modules/book'
+import BookCover from '@/components/book/BookCover.vue'
 
 // 扩展Book类型以包含description
 interface BookWithDescription extends Book {

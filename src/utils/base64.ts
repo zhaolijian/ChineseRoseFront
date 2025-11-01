@@ -18,18 +18,6 @@ export function base64Decode(str: string): string {
   if (padding > 0) {
     base64String += '='.repeat(4 - padding)
   }
-  // #ifdef H5
-  // H5环境：使用原生atob
-  if (typeof atob !== 'undefined') {
-    try {
-      return atob(base64String)
-    } catch (error) {
-      console.error('[base64Decode] H5解码失败:', error)
-      // 降级到手动解码
-      return manualBase64Decode(base64String)
-    }
-  }
-  // #endif
 
   // #ifdef MP-WEIXIN
   // 小程序环境：使用uni.base64ToArrayBuffer
@@ -60,13 +48,6 @@ export function base64Decode(str: string): string {
  * @returns Base64编码的字符串
  */
 export function base64Encode(str: string): string {
-  // #ifdef H5
-  // H5环境：使用原生btoa
-  if (typeof btoa !== 'undefined') {
-    return btoa(str)
-  }
-  // #endif
-
   // #ifdef MP-WEIXIN
   // 小程序环境：使用uni.arrayBufferToBase64
   try {

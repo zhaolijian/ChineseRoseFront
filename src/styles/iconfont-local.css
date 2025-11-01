@@ -1,0 +1,9 @@
+/* src/styles/iconfont-local.css */
+/* 唯一的本地 @font-face 声明，任何地方都不要再写第二个 */
+@font-face {
+  font-family: "uicon-iconfont";
+  src: url("/static/iconfont/iconfont.woff2") format("woff2"),
+       url("/static/iconfont/iconfont.woff") format("woff"),
+       url("/static/iconfont/iconfont.ttf") format("truetype");
+  font-display: swap;
+}

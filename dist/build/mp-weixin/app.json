@@ -5,6 +5,7 @@
     "pages/login/phone-login",
     "pages/notes/index",
     "pages/mindmap/index",
+    "pages/book/add-book",
     "pages/profile/index"
   ],
   "subPackages": [
@@ -29,12 +30,6 @@
       "pages": [
         "create/create",
         "view/view"
-      ]
-    },
-    {
-      "root": "pages-user",
-      "pages": [
-        "profile/profile"
       ]
     }
   ],
@@ -73,15 +68,6 @@
   "permission": {
     "scope.userLocation": {
       "desc": "您的位置信息将用于小程序位置接口的效果展示"
-    },
-    "scope.camera": {
-      "desc": "用于拍照识别纸质书笔记"
-    },
-    "scope.album": {
-      "desc": "用于选择图片识别纸质书笔记"
-    },
-    "scope.writePhotosAlbum": {
-      "desc": "用于保存识别结果和思维导图"
     }
   },
   "requiredPrivateInfos": [

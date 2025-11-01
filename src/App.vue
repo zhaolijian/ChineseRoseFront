@@ -62,7 +62,10 @@ const initApp = async () => {
 
 <style lang="scss">
 /* 引入项目设计令牌（已包含 uView 主题配置） */
+@import '@/styles/iconfont-local.css';    /* 本地 @font-face（唯一） */
+@import '@/styles/iconfont-mapping.css';  /* 仅图标类映射 */
 @import '@/uni.scss';
+@import '@/styles/overrides/popup.scss';
 /* H5平台样式修复 */
 @import '@/styles/h5-override.scss';
 
@@ -113,4 +116,20 @@ page {
 .flex-1 {
   flex: 1;
 }
+
+/* ==================== 图标系统修复 ==================== */
+/*
+ * 问题：uView Plus 图标组件 + iconfont-mapping.css 导致双份图标
+ * 原因：u-icon 组件自带图标渲染 + iconfont 的 ::before 伪元素 = 双份显示
+ * 解决：禁用 uView 组件的 ::before，保留组件自身的图标渲染
+ */
+.u-icon:before,
+.u-icon__icon:before {
+  content: none !important;
+  display: none !important;
+}
+
+/* 如需手动使用 iconfont 类，请不要套用 u-icon 组件 */
+/* 正确用法：<text class="iconfont uicon-search"></text> */
+
 </style>

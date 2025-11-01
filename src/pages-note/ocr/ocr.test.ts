@@ -186,7 +186,7 @@ describe('OCR页面', () => {
         })
       })
 
-      mockUni.getImageInfo.mockImplementation(({ src, success }: any) => {
+      mockUni.getImageInfo.mockImplementation(({ success }: any) => {
         success({
           width: 2000,
           height: 3000,
@@ -262,7 +262,6 @@ describe('OCR页面', () => {
       })
 
       // 添加测试图片
-      const vm = wrapper.vm as any
       // 先模拟选择图片
       mockUni.chooseImage.mockImplementation(({ success }: any) => {
         success({
@@ -310,8 +309,7 @@ describe('OCR页面', () => {
         }
       })
 
-      const vm = wrapper.vm as any
-      vm.selectedImages = [{
+      ;(wrapper.vm as any).selectedImages = [{
         path: '/temp/image1.jpg',
         size: 1024 * 1024,
         compressed: false
@@ -333,8 +331,8 @@ describe('OCR页面', () => {
       await wrapper.vm.$nextTick()
 
       // 验证识别结果已保存
-      expect(vm.ocrResults).toHaveLength(1)
-      expect(vm.ocrResults[0].texts).toEqual(mockResult.texts)
+      expect((wrapper.vm as any).ocrResults).toHaveLength(1)
+      expect((wrapper.vm as any).ocrResults[0].texts).toEqual(mockResult.texts)
     })
 
     it.skip('应该处理OCR识别失败情况', async () => {
@@ -344,8 +342,7 @@ describe('OCR页面', () => {
         }
       })
 
-      const vm = wrapper.vm as any
-      vm.selectedImages = [{
+      ;(wrapper.vm as any).selectedImages = [{
         path: '/temp/image1.jpg',
         size: 1024 * 1024,
         compressed: false

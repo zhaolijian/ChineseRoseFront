@@ -2,10 +2,10 @@
   "navigationBarTitleText": "笔记",
   "navigationStyle": "custom",
   "usingComponents": {
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-loading-page": "../../node-modules/uview-plus/components/u-loading-page/u-loading-page",
     "app-nav-bar": "../../components/common/AppNavBar",
     "page-container": "../../components/common/PageContainer",
-    "empty-state": "../../components/common/EmptyState",
-    "loading-skeleton": "../../components/common/LoadingSkeleton",
     "tab-bar": "../../components/common/TabBar"
   }
 }

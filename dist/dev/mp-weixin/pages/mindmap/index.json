@@ -2,6 +2,11 @@
   "navigationBarTitleText": "思维导图",
   "navigationStyle": "custom",
   "usingComponents": {
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-tabs": "../../node-modules/uview-plus/components/u-tabs/u-tabs",
+    "u-image": "../../node-modules/uview-plus/components/u-image/u-image",
+    "u-action-sheet": "../../node-modules/uview-plus/components/u-action-sheet/u-action-sheet",
+    "u-loading-page": "../../node-modules/uview-plus/components/u-loading-page/u-loading-page",
     "app-nav-bar": "../../components/common/AppNavBar",
     "page-container": "../../components/common/PageContainer",
     "empty-state": "../../components/common/EmptyState",

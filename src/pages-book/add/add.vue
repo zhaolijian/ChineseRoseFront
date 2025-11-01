@@ -18,18 +18,20 @@
         <view class="cover-section">
           <text class="section-title">书籍封面</text>
           <view class="cover-upload" @click="chooseCover">
-            <u-image
-              v-if="formData.cover"
+            <BookCover
               :src="formData.cover"
-              mode="aspectFit"
-              width="200rpx"
-              height="280rpx"
-              radius="8"
-            />
-            <view v-else class="upload-placeholder">
-              <u-icon name="photo" size="40" color="#999"></u-icon>
-              <text class="upload-tips">点击上传封面</text>
-            </view>
+              :width="200"
+              :ratio="3 / 4"
+              :radius="16"
+              :padding="12"
+              :shadow="true"
+              bg-color="#F5F7FA"
+            >
+              <view v-if="!formData.cover" class="upload-placeholder">
+                <u-icon name="photo" size="40" color="#999"></u-icon>
+                <text class="upload-tips">点击上传封面</text>
+              </view>
+            </BookCover>
           </view>
         </view>
 
@@ -80,7 +82,7 @@
 
 
           <u-form-item label="简介" prop="description" borderBottom>
-            <u--textarea
+            <u-textarea
               v-model="formData.description"
               placeholder="请输入书籍简介（选填）"
               count
@@ -117,6 +119,7 @@ import { useBookStore } from '@/stores/modules/book'
 import { logger, createContext } from '@/utils'
 import AppNavBar from '@/components/common/AppNavBar.vue'
 import IsbnScanner from '@/components/business/IsbnScanner.vue'
+import BookCover from '@/components/book/BookCover.vue'
 import type { CreateBookParams, UpdateBookParams, Book } from '@/stores/modules/book'
 import { 
   BOOK_PAGES_MIN,
@@ -293,7 +296,7 @@ const chooseCover = () => {
       logger.info(ctx, '[chooseCover] 选择图片成功')
       // 暂时使用本地路径
       formData.cover = res.tempFilePaths[0]
-      // TODO: 接入腾讯云COS上传 - 记录在TECH_DEBT.md [2025-09-21] [项目:chinese-rose-front]
+      // 说明：如保留该页面，请接入“预签名直传”封面上传逻辑（参考 add-book 页面实现），并同步更新TECH_DEBT.md。
     },
     fail: (err) => {
       logger.error(ctx, '[chooseCover] 选择图片失败', err)
@@ -422,27 +425,25 @@ const handleSave = async () => {
   }
   
   .cover-upload {
-    display: inline-block;
-    width: 200rpx;
-    height: 280rpx;
-    border-radius: 16rpx;
-    overflow: hidden;
-    background: var(--cr-color-surface);
-    border: 2rpx dashed var(--cr-color-border);
+    display: inline-flex;
     position: relative;
-    
-    &:active {
-      opacity: 0.8;
+
+    :deep(.cr-book-cover) {
+      pointer-events: none;
     }
-    
+
     .upload-placeholder {
-      width: 100%;
-      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      
+      pointer-events: none;
+
       .upload-tips {
         margin-top: 16rpx;
         font-size: 24rpx;

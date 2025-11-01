@@ -74,10 +74,16 @@ describe('Book Store', () => {
       expect(request.request).toHaveBeenCalledWith({
         url: '/v1/books',
         method: 'GET',
-        data: { page: 1, pageSize: 20 }
+        data: { page: 1, limit: 20 }
       })
 
-      expect(result).toEqual(mockResponse)
+      expect(result).toMatchObject({
+        ...mockResponse,
+        pagination: expect.objectContaining({
+          page: 1,
+          limit: 20
+        })
+      })
       expect(store.books).toEqual(mockResponse.books)
       expect(store.total).toBe(10)
       expect(store.hasMore).toBe(false)
@@ -284,11 +290,19 @@ describe('Book Store', () => {
         data: {
           keyword: 'test',
           page: 1,
-          pageSize: 20
+          limit: 20
         }
       })
 
-      expect(result).toEqual(mockResponse)
+      expect(result).toMatchObject({
+        ...mockResponse,
+        pagination: expect.objectContaining({
+          page: 1,
+          limit: 20,
+          total: 1,
+          totalPages: 1
+        })
+      })
     })
   })
 

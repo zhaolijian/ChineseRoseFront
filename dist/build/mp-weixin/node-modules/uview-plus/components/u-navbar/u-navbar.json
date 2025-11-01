@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "u-status-bar": "../u-status-bar/u-status-bar"
+  }
+}

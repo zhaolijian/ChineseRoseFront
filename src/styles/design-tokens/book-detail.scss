@@ -1,0 +1,139 @@
+/**
+ * 书籍详情页 - 设计令牌
+ * 来源：Figma BookDetailPage.tsx
+ * 提取时间：2025-10-20
+ */
+
+/* ==================== 颜色系统 ==================== */
+
+// 主色系
+$book-detail-primary: #00a82d;
+$book-detail-primary-fg: #ffffff;
+
+// 背景色
+$book-detail-bg: #fafafa;
+$book-detail-card-bg: #ffffff;
+$book-detail-input-bg: #ffffff;
+$book-detail-secondary-bg: #f8faf8;
+$surface-translucent: rgba(255, 255, 255, 0.95);
+
+// 文字颜色
+$book-detail-text-primary: #1f2329;
+$book-detail-text-secondary: #3a3f45;
+$book-detail-text-muted: #8a8f99;
+
+// 边框
+$book-detail-border: rgba(0, 168, 45, 0.12);
+$book-detail-border-light: #e5e7eb;
+
+// 状态色
+$book-detail-destructive: #dc2626;
+$book-detail-accent-bg: #e8f3e8;
+$book-detail-accent-fg: #2d5a2d;
+$book-detail-mindmap-gradient: linear-gradient(135deg, #60a5fa, #a855f7);
+$book-detail-mindmap-gradient-from: #60a5fa;
+$book-detail-mindmap-gradient-to: #a855f7;
+$book-detail-cover-placeholder-gradient: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+
+/* ==================== 字体系统 ==================== */
+
+// 字号（14px基准，px × 2 = rpx）
+$book-detail-font-xs: 24rpx;      // 12px
+$book-detail-font-sm: 28rpx;      // 14px
+$book-detail-font-base: 32rpx;    // 16px
+$book-detail-font-lg: 36rpx;      // 18px
+$book-detail-font-xl: 40rpx;      // 20px
+$book-detail-font-2xl: 48rpx;     // 24px
+
+// 字重
+$book-detail-font-normal: 400;
+$book-detail-font-medium: 500;
+$book-detail-font-semibold: 600;
+
+/* ==================== 间距系统 ==================== */
+
+// 基础间距单位：8rpx
+$book-detail-spacing-0-25: 2rpx;
+$book-detail-spacing-0-5: 4rpx;
+$book-detail-spacing-1: 8rpx;
+$book-detail-spacing-1-5: 12rpx;
+$book-detail-spacing-2: 16rpx;
+$book-detail-spacing-3: 24rpx;
+$book-detail-spacing-4: 32rpx;
+$book-detail-spacing-5: 40rpx;
+$book-detail-spacing-6: 48rpx;
+$book-detail-spacing-8: 64rpx;
+$book-detail-spacing-12: 96rpx;
+$book-detail-spacing-16: 128rpx;
+
+/* ==================== 圆角系统 ==================== */
+
+$book-detail-radius-sm: 8rpx;
+$book-detail-radius-md: 16rpx;
+$book-detail-radius-lg: 20rpx;
+$book-detail-radius-card: 24rpx;
+$book-detail-radius-xl: 24rpx;
+$book-detail-radius-full: 999rpx;
+
+/* ==================== 阴影系统 ==================== */
+
+$book-detail-shadow-card: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+$book-detail-shadow-sm: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+$book-detail-shadow-md: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
+$book-detail-shadow-lg: 0 12rpx 40rpx rgba(0, 0, 0, 0.1);
+
+/* ==================== Mixins工具类 ==================== */
+
+// 文字省略
+@mixin book-detail-text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行省略
+@mixin book-detail-line-clamp($lines) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+}
+
+// 卡片悬停效果
+@mixin book-detail-card-hover {
+  transition: box-shadow 200ms ease, transform 150ms ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Flex居中
+@mixin book-detail-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==================== 层级系统 ==================== */
+$book-detail-z-control:        900 !default;   // 排序控件层级
+$book-detail-z-dropdown-mask:  999 !default;   // 下拉遮罩层级
+$book-detail-z-dropdown:      1000 !default;   // 下拉菜单层级
+$book-detail-z-fab:           1001 !default;   // FAB按钮层级
+$book-detail-z-modal:         2000 !default;   // 弹窗层级
+
+/* ==================== 表面系统 ==================== */
+$book-detail-surface-elevated: $book-detail-card-bg !default;   // 复用已有卡片底色
+$book-detail-surface-float:    $book-detail-card-bg !default;   // 复用已有卡片底色
+$book-detail-surface-hover:    #f5f7fa !default;                // 轻灰悬停态
+
+/* ==================== 阴影系统（别名增强） ==================== */
+$book-detail-shadow-elev-1:    $book-detail-shadow-sm !default; // 复用 shadow-sm
+$book-detail-shadow-elev-3:    $book-detail-shadow-md !default; // 复用 shadow-md
+
+/* ==================== 圆角系统（别名） ==================== */
+$book-detail-radius-2xl:       $book-detail-radius-xl !default; // 复用 24rpx
+
+/* ==================== 控件尺寸 ==================== */
+$book-detail-control-md-h:     64rpx !default;   // 32px
+$book-detail-control-md-w:     256rpx !default;  // 128px

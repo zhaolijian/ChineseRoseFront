@@ -69,7 +69,7 @@ describe('AddBookPage', () => {
           'u-button': true,
           'u-image': true,
           'u-datetime-picker': true,
-          'u--textarea': {
+          'u-textarea': {
             template: '<textarea :placeholder="placeholder" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
             props: ['placeholder', 'modelValue']
           },

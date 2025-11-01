@@ -6,6 +6,7 @@ import type { LogContext } from './logger'
 import { DEFAULT_REQUEST_TIMEOUT, REDIRECT_THROTTLE_TIME, TOKEN_KEY, USER_INFO_KEY } from '@/constants'
 import { handleError } from './error-handler'
 import { isAuthError } from '@/types/errorCodes'
+import { useUserStore } from '@/stores/modules/user'
 
 // 请求配置
 interface RequestConfig {
@@ -17,6 +18,7 @@ interface RequestConfig {
   timeout?: number
   showLoading?: boolean
   showError?: boolean
+  silenceBusinessErrorCodes?: number[]
   logContext?: LogContext  // 日志上下文，可选
 }
 
@@ -34,6 +36,8 @@ class RequestManager {
   private requestInterceptors: RequestInterceptor[] = []
   private responseInterceptors: ResponseInterceptor[] = []
   private errorInterceptors: ErrorInterceptor[] = []
+  // 统一Loading管理：引用计数，避免重复hide导致的"hideLoading:fail"
+  private loadingCount = 0
 
   constructor() {
     this.setBaseURL()
@@ -49,55 +53,74 @@ class RequestManager {
     const ctx = createRequestContext()
     logger.debug(ctx, '[setBaseURL] 环境变量检查', {
       VITE_API_BASE: envBase,
+      VITE_API_BASE_MP_DEV: env.VITE_API_BASE_MP_DEV,
+      VITE_API_BASE_MP_DEVICE: env.VITE_API_BASE_MP_DEVICE,
       MODE: env.MODE,
       DEV: env.DEV
     })
 
-    // 小程序开发环境（微信开发者工具、调试版）需要走HTTP本地/内网地址，否则会因HTTPS证书缺失导致 TLS 错误
-    // 提供环境变量覆盖：VITE_API_BASE_MP_DEV；若未配置，默认回退到 http://127.0.0.1:8080/api
-    // 该代码在其它平台会被 tree-shaking 掉（#ifdef）
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const mpDevFallback = (env.VITE_API_BASE_MP_DEV || env.VITE_API_BASE_DEV || 'http://127.0.0.1:8080/api') as string
-
     // #ifdef MP-WEIXIN
+    // 小程序环境：区分开发者工具和真机
     let isWechatDevtools = false
+    let platform = 'unknown'
+
     try {
       const systemInfo = uni.getSystemInfoSync?.()
-      if (systemInfo?.platform === 'devtools') {
+      platform = systemInfo?.platform || 'unknown'
+
+      // 判断是否为开发者工具
+      // 只用 platform === 'devtools' 判定，envVersion 无法区分"开发者工具预览"和"真机扫码预览"
+      if (platform === 'devtools') {
         isWechatDevtools = true
         logger.debug(ctx, '[setBaseURL] 检测到微信开发者工具 platform=devtools')
-      }
-      const accountInfo = uni.getAccountInfoSync?.()
-      const envVersion = accountInfo?.miniProgram?.envVersion
-      if (envVersion === 'develop' || envVersion === 'trial') {
-        isWechatDevtools = true
-        logger.debug(ctx, `[setBaseURL] envVersion=${envVersion}，视为调试环境`)
       }
     } catch (error) {
       logger.warn(ctx, '[setBaseURL] 检测小程序运行环境失败', error)
     }
 
     if (isWechatDevtools) {
+      // 开发者工具环境：使用本地地址
+      const mpDevFallback = (env.VITE_API_BASE_MP_DEV || env.VITE_API_BASE_DEV || 'http://127.0.0.1:8080/api') as string
       this.baseURL = mpDevFallback || envBase || 'http://127.0.0.1:8080/api'
-      logger.warn(ctx, `[setBaseURL] 微信调试环境强制使用调试基址: ${this.baseURL}`)
+      logger.warn(ctx, `[setBaseURL] 微信开发者工具环境，使用本地调试基址: ${this.baseURL}`, { platform })
+      return
+    } else {
+      // 真机环境：使用配置的局域网地址
+      const mpDeviceBase = env.VITE_API_BASE_MP_DEVICE as string | undefined
+
+      if (!mpDeviceBase || mpDeviceBase.trim() === '') {
+        const errorMsg = '真机环境未配置API地址！\n' +
+          '请在 .env.development 中设置 VITE_API_BASE_MP_DEVICE\n' +
+          '获取IP方法：\n' +
+          'Mac: ifconfig | grep "inet " | grep -v 127.0.0.1\n' +
+          'Windows: ipconfig 查看IPv4地址\n' +
+          '示例: VITE_API_BASE_MP_DEVICE=http://192.168.31.88:8080/api'
+
+        logger.error(ctx, '[setBaseURL] ' + errorMsg.replace(/\n/g, ' '))
+
+        // 在真机上显示友好的错误提示
+        uni.showModal({
+          title: '网络配置错误',
+          content: '真机环境需要配置局域网IP地址，请联系开发者',
+          showCancel: false
+        })
+
+        throw new Error(errorMsg)
+      }
+
+      this.baseURL = mpDeviceBase
+      logger.info(ctx, `[setBaseURL] 真机环境，使用配置的局域网API基址: ${this.baseURL}`, { platform })
       return
     }
     // #endif
 
+    // H5和其他平台的处理
     if (envBase) {
       this.baseURL = envBase
       logger.info(ctx, `[setBaseURL] 使用环境变量配置: ${this.baseURL}`)
       return
     }
 
-    // #ifdef H5
-    this.baseURL = '/api'
-    logger.info(ctx, '[setBaseURL] H5模式使用代理: /api')
-    // #endif
-    // #ifdef MP-WEIXIN
-    this.baseURL = 'http://127.0.0.1:8080/api'
-    logger.info(ctx, '[setBaseURL] 小程序默认地址: http://127.0.0.1:8080/api')
-    // #endif
     // #ifndef H5 && !MP-WEIXIN
     this.baseURL = 'http://127.0.0.1:8080/api'
     logger.info(ctx, '[setBaseURL] 其他平台默认地址: http://127.0.0.1:8080/api')
@@ -153,7 +176,7 @@ class RequestManager {
 
     // 响应拦截器：统一处理响应 - 简化版本
     this.addResponseInterceptor((response) => {
-      const { statusCode, data } = response
+      const { statusCode, data, config } = response
 
       const ctx = (response.config as RequestConfig)?.logContext || createRequestContext()
       logger.info(ctx, `[addResponseInterceptor] 响应状态码: ${statusCode}`)
@@ -180,8 +203,8 @@ class RequestManager {
       } else {
         // 所有非0错误码都交给业务错误处理器
         logger.warn(ctx, `[addResponseInterceptor] 业务错误 - 错误码: ${data.code}, 信息: ${data.message}`)
-        this.handleBusinessError(data)
-        return Promise.reject(data)
+        this.handleBusinessError(data, config as RequestConfig | undefined)
+        return Promise.reject({ ...data, config })
       }
     })
 
@@ -208,11 +231,19 @@ class RequestManager {
   }
 
   // 处理业务错误 - 使用统一的错误处理器
-  private handleBusinessError(data: any) {
+  private handleBusinessError(data: any, config?: RequestConfig) {
     const errorCode = data?.code || 0
     
     const ctx = createRequestContext()
     logger.warn(ctx, `[handleBusinessError] 业务错误`, data)
+
+    const silenceList = config?.silenceBusinessErrorCodes || []
+    const shouldSilence = silenceList.includes(errorCode)
+
+    if (shouldSilence) {
+      logger.info(ctx, `[handleBusinessError] 已静默错误码 ${errorCode}`, data)
+      return
+    }
     
     // 使用统一的错误处理器
     handleError(data, {
@@ -244,14 +275,10 @@ class RequestManager {
 
       // 清除Pinia store的内存状态
       try {
-        // 动态导入避免循环依赖
-        import('@/stores/modules/user').then(module => {
-          const { useUserStore } = module
-          const userStore = useUserStore()
-          userStore.token = ''
-          userStore.userInfo = null
-          logger.debug(ctx, '[redirectToLogin] 已清除store状态')
-        })
+        const userStore = useUserStore()
+        userStore.token = ''
+        userStore.userInfo = null
+        logger.debug(ctx, '[redirectToLogin] 已清除store状态')
       } catch (error) {
         logger.warn(ctx, '[redirectToLogin] 清除store状态失败（非致命错误）', error)
       }
@@ -292,12 +319,12 @@ class RequestManager {
       finalConfig = await interceptor(finalConfig)
     }
 
-    // 显示加载提示
+    // 显示加载提示（引用计数）
     if (finalConfig.showLoading !== false) {
-      uni.showLoading({
-        title: '加载中...',
-        mask: true
-      })
+      if (this.loadingCount === 0) {
+        uni.showLoading({ title: '加载中...', mask: true })
+      }
+      this.loadingCount++
     }
 
     try {
@@ -332,8 +359,8 @@ class RequestManager {
             ...finalConfig.headers
           },
           timeout: finalConfig.timeout || this.timeout,
-          success: (res) => resolve(res),
-          fail: (err) => reject(err)
+          success: (res) => resolve({ ...res, config: finalConfig }),
+          fail: (err) => reject({ ...err, config: finalConfig })
         })
         // #endif
         // #ifndef MP-WEIXIN
@@ -346,15 +373,20 @@ class RequestManager {
             ...finalConfig.headers
           },
           timeout: finalConfig.timeout || this.timeout,
-          success: (res) => resolve(res),
-          fail: (err) => reject(err)
+          success: (res) => resolve({ ...res, config: finalConfig }),
+          fail: (err) => reject({ ...err, config: finalConfig })
         })
         // #endif
       })
 
-      // 隐藏加载提示
+      // 隐藏加载提示（安全）
       if (finalConfig.showLoading !== false) {
-        uni.hideLoading()
+        if (this.loadingCount > 0) this.loadingCount--
+        if (this.loadingCount === 0) {
+          // 安全隐藏Loading（在部分环境中可能未显示过loading）
+          const hide = (uni as any)?.hideLoading
+          if (typeof hide === 'function') hide()
+        }
       }
 
       // 应用响应拦截器
@@ -366,9 +398,13 @@ class RequestManager {
       // 此处 finalResponse 为后续拦截器产物：直接是 data（即 body.data）
       return finalResponse as T
     } catch (error) {
-      // 隐藏加载提示
+      // 隐藏加载提示（安全）
       if (finalConfig.showLoading !== false) {
-        uni.hideLoading()
+        if (this.loadingCount > 0) this.loadingCount--
+        if (this.loadingCount === 0) {
+          const hide = (uni as any)?.hideLoading
+          if (typeof hide === 'function') hide()
+        }
       }
 
       // 应用错误拦截器

@@ -145,11 +145,11 @@ $bookshelf-radius: (
 // ===========================
 
 $bookshelf-sizes: (
-  // 书籍封面宽度（网格布局，2列）
-  book-cover-width: 220rpx,
+  // 书籍封面宽度（极致压缩版本）
+  book-cover-width: 150rpx,
 
-  // 书籍封面高度（3:4比例）
-  book-cover-height: 280rpx,
+  // 书籍封面高度（保持3:4比例）
+  book-cover-height: 200rpx,
 
   // 导航栏图标尺寸
   nav-icon-size: 40rpx,
@@ -313,9 +313,9 @@ $bookshelf-empty-button: (
   --bookshelf-spacing-md: #{map-get($bookshelf-spacing, md)};
   --bookshelf-page-padding: #{map-get($bookshelf-layout, page-padding-x)};
 
-  // 尺寸
-  --bookshelf-cover-width: #{map-get($bookshelf-sizes, book-cover-width)};
-  --bookshelf-cover-height: #{map-get($bookshelf-sizes, book-cover-height)};
+  // 尺寸（极致压缩：150x200封面）
+  --bookshelf-cover-width: 150rpx;
+  --bookshelf-cover-height: 200rpx;
   --bookshelf-fab-size: #{map-get($bookshelf-sizes, fab-size)};
 
   // 圆角

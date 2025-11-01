@@ -615,11 +615,4 @@ const formatDate = (dateString: string) => {
   padding-top: 20px;
 }
 /* #endif */
-
-/* H5特定样式 */
-/* #ifdef H5 */
-.custom-navbar {
-  padding-top: 0;
-}
-/* #endif */
 </style>

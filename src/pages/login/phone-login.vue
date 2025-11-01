@@ -6,9 +6,11 @@
     <view class="header" :style="headerPadding">
       <view class="header-content">
         <view
-          class="back-button"
+          class="back-button phone-login-header__back"
           role="button"
+          tabindex="0"
           @tap="goBack"
+          @click="goBack"
         >
           <text class="back-icon">←</text>
         </view>
@@ -42,7 +44,9 @@
             <text class="phone-prefix">+86</text>
             <input
               class="input-field"
-              type="number"
+              data-testid="phone-input"
+              type="tel"
+              inputmode="numeric"
               v-model="phoneNumber"
               placeholder="填写手机号"
               maxlength="11"
@@ -56,19 +60,24 @@
           <view class="field verification-field">
             <input
               class="input-field"
-              type="number"
+              data-testid="code-input"
+              type="tel"
+              inputmode="numeric"
               v-model="verifyCode"
               placeholder="填写验证码"
               maxlength="6"
             />
-            <view
+            <button
               class="send-code-button"
+              data-testid="send-code-button"
               :class="{ disabled: countdown > 0 || !isPhoneValid }"
-              role="button"
+              type="button"
+              :disabled="countdown > 0 || !isPhoneValid"
+              @click="sendCode"
               @tap="sendCode"
             >
               {{ sendButtonText }}
-            </view>
+            </button>
           </view>
         </view>
       </view>
@@ -76,9 +85,13 @@
       <!-- 协议 -->
       <view class="agreement">
         <checkbox-group @change="handleAgreeChange">
-          <checkbox value="agree" :checked="agreed" class="agreement-checkbox" />
+          <checkbox
+            value="agree"
+            :checked="agreed"
+            class="agreement-checkbox"
+          />
         </checkbox-group>
-<text class="agreement-text">
+        <text class="agreement-text">
           我已阅读并同意
           <text class="link" @click="openAgreement('user')">《用户协议》</text>
           和
@@ -89,6 +102,7 @@
       <!-- 登录按钮 -->
       <button
         class="login-button"
+        data-testid="submit-button"
         :disabled="!canLogin"
         :loading="isSubmitting"
         @click="handleLogin"
@@ -100,11 +114,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores'
 import { logger, createContext } from '@/utils'
 import { isValidPhone } from '@/utils/validate'
 import { sendSMSCode } from '@/api/modules/auth'
+import { useCountdown } from '@/composables/useCountdown'
+import { VERIFY_CODE_COUNTDOWN } from '@/constants'
 
 type AgreementType = 'user' | 'privacy'
 
@@ -118,9 +135,11 @@ const userStore = useUserStore()
 const phoneNumber = ref('')
 const verifyCode = ref('')
 const agreed = ref(false)
-const countdown = ref(0)
 const isSubmitting = ref(false)
 const hasRequestedCode = ref(false)
+const { countdown, start: startCountdown, restore: restoreCountdown } = useCountdown()
+const normalizedPhone = computed(() => `${phoneNumber.value ?? ''}`.trim())
+const normalizedCode = computed(() => `${verifyCode.value ?? ''}`.trim())
 
 // 状态栏高度适配
 const headerPadding = computed(() => {
@@ -130,12 +149,12 @@ const headerPadding = computed(() => {
 
 // 手机号格式验证
 const isPhoneValid = computed(() => {
-  return isValidPhone(phoneNumber.value)
+  return isValidPhone(normalizedPhone.value)
 })
 
 // 是否可登录
 const canLogin = computed(() => {
-  return isPhoneValid.value && verifyCode.value.length === 6
+  return isPhoneValid.value && normalizedCode.value.length === 6
   // ✅ 移除 && agreed.value，不再作为前置条件
 })
 
@@ -146,59 +165,10 @@ const sendButtonText = computed(() => {
   return hasRequestedCode.value ? '重新发送' : '获取验证码'
 })
 
-type TimerSetFn = (handler: () => void, timeout?: number) => any
-type TimerClearFn = (handle: any) => void
-
-const resolveTimerHandlers = (): { set: TimerSetFn; clear: TimerClearFn } => {
-  if (typeof wx !== 'undefined') {
-    const setFn = (wx as any).setTimeout?.bind(wx)
-    const clearFn = (wx as any).clearTimeout?.bind(wx)
-    if (setFn && clearFn) {
-      return { set: setFn, clear: clearFn }
-    }
+watch(countdown, (value) => {
+  if (value > 0) {
+    hasRequestedCode.value = true
   }
-  if (typeof globalThis !== 'undefined') {
-    const setFn = (globalThis as any).setTimeout?.bind(globalThis)
-    const clearFn = (globalThis as any).clearTimeout?.bind(globalThis)
-    if (setFn && clearFn) {
-      return { set: setFn, clear: clearFn }
-    }
-  }
-  return { set: setTimeout, clear: clearTimeout }
-}
-
-const { set: scheduleTimeout, clear: clearTimeoutFn } = resolveTimerHandlers()
-
-let timeoutHandle: any = null
-
-const stopCountdown = () => {
-  if (timeoutHandle !== null) {
-    clearTimeoutFn(timeoutHandle)
-    timeoutHandle = null
-  }
-  countdown.value = 0
-}
-
-const startCountdown = (seconds = 60) => {
-  stopCountdown()
-  countdown.value = seconds
-
-  const tick = () => {
-    timeoutHandle = scheduleTimeout(() => {
-      if (countdown.value <= 1) {
-        stopCountdown()
-        return
-      }
-      countdown.value -= 1
-      tick()
-    }, 1000)
-  }
-
-  tick()
-}
-
-onUnmounted(() => {
-  stopCountdown()
 })
 
 // 发送验证码
@@ -207,15 +177,16 @@ const sendCode = async () => {
 
   if (!isPhoneValid.value) return
   if (countdown.value > 0) return
+  const phone = normalizedPhone.value
 
   try {
-    logger.info(ctx, '[PhoneLoginPage] 发送验证码', { phone: phoneNumber.value })
+    logger.info(ctx, '[PhoneLoginPage] 发送验证码', { phone })
 
     uni.showLoading({ title: '发送中...' })
-    await sendSMSCode(phoneNumber.value)
+    await sendSMSCode(phone)
 
     hasRequestedCode.value = true
-    startCountdown()
+    startCountdown(VERIFY_CODE_COUNTDOWN)
     uni.showToast({ title: '验证码已发送', icon: 'success' })
 
     logger.info(ctx, '[PhoneLoginPage] 验证码发送成功')
@@ -226,6 +197,16 @@ const sendCode = async () => {
     uni.hideLoading()
   }
 }
+
+const syncCountdownState = () => {
+  restoreCountdown()
+  if (countdown.value > 0) {
+    hasRequestedCode.value = true
+  }
+}
+
+onLoad(syncCountdownState)
+onShow(syncCountdownState)
 
 // 处理登录
 const handleLogin = async () => {
@@ -245,13 +226,15 @@ const handleLogin = async () => {
 
   try {
     isSubmitting.value = true
-    logger.info(ctx, '[PhoneLoginPage] 开始手机号登录', { phone: phoneNumber.value })
+    const phone = normalizedPhone.value
+    const code = normalizedCode.value
+    logger.info(ctx, '[PhoneLoginPage] 开始手机号登录', { phone })
 
     uni.showLoading({ title: '登录中...' })
 
     const result = await userStore.loginWithPhone({
-      phone: phoneNumber.value,
-      code: verifyCode.value
+      phone,
+      code
     })
 
     if (!result?.success) {
@@ -280,6 +263,8 @@ const handleLogin = async () => {
 const handleAgreeChange = (e: any) => {
   agreed.value = e.detail.value.includes('agree')
 }
+
+// 通过 checkbox-group 的 change 事件统一更新，不再在 checkbox 上做二次切换，避免瞬间又被反转
 
 // 打开协议
 const openAgreement = (type: AgreementType) => {

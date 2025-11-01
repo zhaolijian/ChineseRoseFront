@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 // 书籍信息 - 基于架构文档的表结构
-export interface Book {
+export interface BookResponse {
   id: number
   title: string
   author?: string
@@ -9,11 +9,21 @@ export interface Book {
   publisher?: string
   publishDate?: string
   coverUrl?: string
+  coverColor?: string
+  pages?: number
   totalNotes?: number
+  noteCount?: number
+  chapters?: number
+  description?: string
+  progress?: number
+  status?: 'reading' | 'finished' | 'wishlist'
   source?: 'isbn_api' | 'manual'
   createdAt?: string
   updatedAt?: string
 }
+
+// 兼容旧的命名导出
+export type Book = BookResponse
 
 // 书籍列表查询参数
 export interface BookListParams {
@@ -27,7 +37,7 @@ export interface BookListParams {
 
 // 书籍列表响应 - 匹配后端响应结构
 export interface BookListResponse {
-  books: Book[]
+  books: BookResponse[]
   pagination: {
     page: number
     limit: number
@@ -44,18 +54,29 @@ export interface CreateBookData {
   isbn?: string
   publisher?: string
   publishDate?: string
+  // 预签名直传：优先传递coverKey，由后端最终化写回coverUrl；兼容旧coverUrl传参
+  coverKey?: string
   coverUrl?: string
+  pages?: number
   source?: 'isbn_api' | 'manual'
+  description?: string
+  status?: 'reading' | 'finished' | 'wishlist'
 }
 
 // 更新书籍参数
-export interface UpdateBookData {
+export interface UpdateBookRequest {
   title?: string
   author?: string
   isbn?: string
   publisher?: string
   publishDate?: string
+  coverKey?: string
   coverUrl?: string
+  pages?: number
+  source?: 'isbn_api' | 'manual'
+  description?: string
+  status?: 'reading' | 'finished' | 'wishlist'
+  progress?: number
 }
 
 /**
@@ -75,22 +96,22 @@ export const getBookList = (params: BookListParams = {}): Promise<BookListRespon
 /**
  * 获取书籍详情
  */
-export const getBookDetail = (id: number): Promise<Book> => {
-  return request.get<Book>(`/v1/books/${id}`)
+export const getBookDetail = (id: number): Promise<BookResponse> => {
+  return request.get<BookResponse>(`/v1/books/${id}`)
 }
 
 /**
  * 创建书籍
  */
-export const createBook = (data: CreateBookData): Promise<Book> => {
-  return request.post<Book>('/v1/books', data)
+export const createBook = (data: CreateBookData): Promise<BookResponse> => {
+  return request.post<BookResponse>('/v1/books', data)
 }
 
 /**
  * 更新书籍信息
  */
-export const updateBook = (id: number, data: UpdateBookData): Promise<Book> => {
-  return request.put<Book>(`/v1/books/${id}`, data)
+export const updateBook = (id: number, data: UpdateBookRequest): Promise<BookResponse> => {
+  return request.put<BookResponse>(`/v1/books/${id}`, data)
 }
 
 /**
@@ -103,9 +124,9 @@ export const deleteBook = (id: number): Promise<void> => {
 /**
  * 通过ISBN查询书籍信息
  */
-export const searchBookByISBN = (isbn: string): Promise<Book> => {
+export const searchBookByISBN = (isbn: string, config?: { showLoading?: boolean }): Promise<BookResponse> => {
   // 后端契约：GET /api/v1/books/isbn?isbn=xxx
-  return request.get<Book>('/v1/books/isbn', { isbn })
+  return request.get<BookResponse>('/v1/books/isbn', { isbn }, config)
 }
 
 /**
@@ -113,4 +134,23 @@ export const searchBookByISBN = (isbn: string): Promise<Book> => {
  */
 export const searchBooks = (keyword: string): Promise<BookListResponse> => {
   return request.get<BookListResponse>('/v1/books/search', { keyword })
+}
+
+/**
+ * 获取书籍章节列表
+ */
+export interface Chapter {
+  id: number
+  title: string
+  orderNum?: number | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ChapterListResponse {
+  chapters: Chapter[]
+}
+
+export const getBookChapters = (bookId: number): Promise<ChapterListResponse> => {
+  return request.get<ChapterListResponse>(`/v1/books/${bookId}/chapters`)
 }

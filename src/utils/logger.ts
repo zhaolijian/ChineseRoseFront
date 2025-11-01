@@ -39,13 +39,7 @@ export interface LogEntry {
 class Logger {
   // 环境判断
   private isDevelopment(): boolean {
-    // 在uni-app中通过编译条件判断
-    // #ifdef H5
     return process.env.NODE_ENV === 'development'
-    // #endif
-    // #ifndef H5
-    return true // 小程序开发环境默认为true
-    // #endif
   }
 
   // 格式化时间戳
@@ -112,15 +106,12 @@ class Logger {
       // 开发环境：输出到console
       this.logToConsole(level, message, context, extra)
     } else {
-      // 生产环境：准备上报
-      const entry: LogEntry = {
-        level,
-        message,
-        context,
-        timestamp: this.formatTimestamp(Date.now()),
-        extra
+      // 生产环境：微信实时日志上报
+      // #ifdef MP-WEIXIN
+      if (level === LogLevel.ERROR || level === LogLevel.WARN) {
+        this.reportToWechat(level, message, context, extra)
       }
-      this.report(entry)
+      // #endif
     }
   }
 
@@ -144,18 +135,43 @@ class Logger {
     this.log(LogLevel.DEBUG, context, message, extra)
   }
 
-  // 上报接口（预留）
-  report(entry: LogEntry): void {
-    // TODO: 实现日志上报逻辑
+  // 微信实时日志上报
+  private reportToWechat(level: LogLevel, message: string, context: LogContext, extra?: any): void {
+    // #ifdef MP-WEIXIN
+    try {
+      // 检查API是否存在（基础库 >= 2.7.1）
+      if (typeof wx === 'undefined' || typeof wx.getRealtimeLogManager !== 'function') {
+        return
+      }
+
+      const realtimeLog = wx.getRealtimeLogManager()
+      const logData = {
+        traceId: context.traceId,
+        userId: context.userId,
+        platform: context.platform,
+        timestamp: context.timestamp,
+        extra
+      }
+
+      if (level === LogLevel.ERROR) {
+        realtimeLog.error(message, logData)
+      } else if (level === LogLevel.WARN) {
+        realtimeLog.warn(message, logData)
+      }
+    } catch (e) {
+      // 静默失败，不影响业务
+    }
+    // #endif
+  }
+
+  // 自建日志接口（预留，用于未来App/H5端）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private report(_entry: LogEntry): void {
+    // TODO: 当扩展到App/H5端时实现
     // 1. 批量收集日志
     // 2. 压缩数据
-    // 3. 上报到服务端
+    // 3. POST到后端接口 /api/v1/logs
     // 4. 失败重试机制
-    
-    // 临时实现：在生产环境也输出到console
-    if (!this.isDevelopment()) {
-      console.log('[Logger] 生产环境日志（待上报）:', entry)
-    }
   }
 }
 

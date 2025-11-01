@@ -1,0 +1,33 @@
+/* 书架页统一卡片尺寸与布局（两列栅格 + 统一行高） */
+$shelf-card-radius: 24rpx !default;
+$shelf-card-padding: 24rpx !default;
+$shelf-card-height: 300rpx !default; // 统一行高，基于4/3竖向BookCover(160rpx)+文字(64rpx)+间距(56rpx)计算
+$shelf-card-gap: 24rpx !default;
+
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: $shelf-card-height;
+  column-gap: $shelf-card-gap;
+  row-gap: $shelf-card-gap;
+
+  // 如页面已有外层 padding，这里不要再叠加
+}
+
+.shelf-card {
+  height: 100%;
+  border-radius: $shelf-card-radius;
+  background: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.04);
+  padding: $shelf-card-padding;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  // 防压缩与网格溢出
+  min-width: 0;
+  min-height: 0;
+}

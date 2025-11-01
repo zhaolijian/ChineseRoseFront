@@ -3,9 +3,10 @@
  * 提供Context创建、TraceID生成等功能
  */
 
-import { useUserStore } from '@/stores/modules/user'
 import type { LogContext } from './logger'
 import CryptoJS from 'crypto-js'
+import { getActivePinia } from 'pinia'
+import { useUserStore } from '@/stores/modules/user'
 
 /**
  * 生成唯一的TraceID
@@ -33,13 +34,46 @@ export function hashUserId(userId: string | null | undefined): string {
 
     // 使用MD5哈希
     const hash = CryptoJS.MD5(userId).toString()
-    
+
     // 取前8位 + 后8位
     return hash.substring(0, 8) + hash.substring(hash.length - 8)
   } catch (error) {
     console.warn('[Logger] 哈希用户ID失败:', error)
     return ''
   }
+}
+
+/**
+ * 惰性获取用户信息
+ * 避免在Pinia未初始化时调用useUserStore导致错误
+ * @returns 用户ID（已哈希），如果获取失败返回空字符串
+ */
+function getUserIdSafely(): string {
+  try {
+    // 优先从活动实例获取，其次从全局 app 中获取
+    const active = typeof getActivePinia === 'function' ? getActivePinia() : null
+    // @ts-ignore
+    const globalPinia = (typeof getApp === 'function' && (getApp() as any)?.$pinia) || null
+    const pinia = active || globalPinia
+
+    let userStore: ReturnType<typeof useUserStore> | null = null
+    if (pinia) {
+      userStore = useUserStore(pinia)
+    } else {
+      // 测试环境兜底：允许无参数调用（vitest 中已 mock useUserStore）
+      try { userStore = useUserStore() as any } catch { userStore = null }
+    }
+
+    if (userStore?.userInfo?.id) {
+      return hashUserId(userStore.userInfo.id)
+    }
+  } catch (error) {
+    // Pinia未初始化或其他错误时，静默失败
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Logger] 获取用户信息失败（可能是Pinia未初始化）:', error)
+    }
+  }
+  return ''
 }
 
 /**
@@ -50,18 +84,10 @@ export function hashUserId(userId: string | null | undefined): string {
 export function createContext(): LogContext {
   let userId = ''
   let platform = 'unknown'
-  
-  // 获取用户ID
-  try {
-    const userStore = useUserStore()
-    if (userStore.userInfo?.id) {
-      userId = hashUserId(userStore.userInfo.id)
-    }
-  } catch (error) {
-    // userStore异常时使用空字符串
-    console.warn('[Logger] 获取用户信息失败:', error)
-  }
-  
+
+  // 安全地获取用户ID（惰性调用，避免初始化问题）
+  userId = getUserIdSafely()
+
   // 获取平台信息
   try {
     const systemInfo = uni.getSystemInfoSync()
@@ -70,7 +96,7 @@ export function createContext(): LogContext {
     // 获取失败时使用默认值
     console.warn('[Logger] 获取平台信息失败:', error)
   }
-  
+
   return {
     traceId: generateTraceId(),
     userId: userId,

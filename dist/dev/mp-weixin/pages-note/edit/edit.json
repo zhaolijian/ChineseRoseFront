@@ -1,6 +1,12 @@
 {
   "navigationBarTitleText": "编辑笔记",
   "usingComponents": {
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-image": "../../node-modules/uview-plus/components/u-image/u-image",
+    "u-button": "../../node-modules/uview-plus/components/u-button/u-button",
+    "u-input": "../../node-modules/uview-plus/components/u-input/u-input",
+    "u-textarea": "../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u-loading-page": "../../node-modules/uview-plus/components/u-loading-page/u-loading-page",
     "app-nav-bar": "../../components/common/AppNavBar",
     "page-container": "../../components/common/PageContainer",
     "primary-button": "../../components/common/PrimaryButton"

@@ -1,6 +1,14 @@
 {
   "navigationBarTitleText": "创建思维导图",
   "usingComponents": {
+    "u-button": "../../node-modules/uview-plus/components/u-button/u-button",
+    "u-input": "../../node-modules/uview-plus/components/u-input/u-input",
+    "u-form-item": "../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u-textarea": "../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u-form": "../../node-modules/uview-plus/components/u-form/u-form",
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-popup": "../../node-modules/uview-plus/components/u-popup/u-popup",
+    "u-loading-page": "../../node-modules/uview-plus/components/u-loading-page/u-loading-page",
     "app-nav-bar": "../../components/common/AppNavBar",
     "page-container": "../../components/common/PageContainer",
     "empty-state": "../../components/common/EmptyState"

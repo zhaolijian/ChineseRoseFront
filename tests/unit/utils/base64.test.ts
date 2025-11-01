@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { base64Decode, base64Encode } from '@/utils/base64'
 
 describe('base64工具测试', () => {

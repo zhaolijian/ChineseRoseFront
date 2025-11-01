@@ -1,0 +1,89 @@
+/* 弹层容器通用覆写：只用类，不写标签/属性选择器 */
+.u-popup__content {
+  border: none !important;
+  outline: none !important;
+  width: 100%;
+  background: #fff;
+  /* Figma：4dp 阴影近似 */
+  box-shadow: 0 12rpx 48rpx rgba(0, 0, 0, 0.12);
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: calc(100vh - 96rpx);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 统一清理发丝线（uview 的 hairline） */
+.u-hairline,
+.u-border,
+.u-border-top,
+.u-border-bottom,
+.u-border-left,
+.u-border-right {
+  border: 0 !important;
+}
+.u-hairline::after,
+.u-border-top::after,
+.u-border-bottom::after,
+.u-border-left::after,
+.u-border-right::after {
+  display: none !important;
+}
+
+/* 我们自己的内容布局（只类选择器） */
+.create-note {
+  display: flex;
+  flex-direction: column;
+}
+.create-note__header {
+  padding: 24rpx 32rpx 8rpx;
+  font-weight: 600;
+  font-size: 32rpx; /* 参照 Figma 标题字号 */
+  color: var(--cr-color-text-strong, #111827);
+}
+.create-note__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16rpx 0;
+}
+.create-note__section {
+  margin: 8rpx 0;
+  background: #fff;
+}
+.create-note__cell {
+  padding: 24rpx 32rpx;
+}
+.create-note__cell-title {
+  font-size: 28rpx;
+  color: var(--cr-color-text, #374151);
+}
+.create-note__cell-value {
+  font-size: 28rpx;
+  color: var(--cr-color-text-secondary, #6b7280);
+}
+.create-note__footer {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(24rpx + constant(safe-area-inset-bottom));
+  /* 顶部轻微分隔感，透明色避免 1px 抖动 */
+  border-top: 1rpx solid transparent;
+}
+
+/* 主按钮梯度（用 tokens 回退到 emerald） */
+.cr-btn-primary {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(
+    90deg,
+    var(--cr-primary-500, #34d399) 0%,
+    var(--cr-primary-600, #10b981) 100%
+  );
+}

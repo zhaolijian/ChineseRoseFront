@@ -4,8 +4,6 @@ import TabBar from '../TabBar.vue'
 
 // Mock uni API
 const mockSwitchTab = vi.fn()
-const mockShowActionSheet = vi.fn()
-const mockNavigateTo = vi.fn()
 
 vi.mock('@dcloudio/uni-app', () => ({
   onShow: vi.fn()
@@ -17,86 +15,43 @@ global.getCurrentPages = vi.fn(() => [
 ])
 
 global.uni = {
-  switchTab: mockSwitchTab,
-  showActionSheet: mockShowActionSheet,
-  navigateTo: mockNavigateTo
+  switchTab: mockSwitchTab
 } as any
 
 describe('TabBar组件', () => {
   beforeEach(() => {
     mockSwitchTab.mockClear()
-    mockShowActionSheet.mockClear()
-    mockNavigateTo.mockClear()
   })
 
-  it('应该渲染3个常规Tab', () => {
+  it('应该渲染3个常规Tab并展示图标', () => {
     const wrapper = mount(TabBar)
     const items = wrapper.findAll('.cr-tabbar__item')
     
-    // 应该有3个常规tab（移除了导图）
     expect(items).toHaveLength(3)
     
-    // 检查文本内容
-    const texts = items.map(item => item.find('.cr-tabbar__text').text())
-    expect(texts).toEqual(['书架', '笔记', '我的'])
+    const expectations = [
+      { text: '书架', icon: '/static/images/tabbar/bookshelf.png', activeIcon: '/static/images/tabbar/bookshelf-active.png' },
+      { text: '笔记', icon: '/static/images/tabbar/note.png', activeIcon: '/static/images/tabbar/note-active.png' },
+      { text: '我的', icon: '/static/images/tabbar/profile.png', activeIcon: '/static/images/tabbar/profile-active.png' }
+    ]
+
+    items.forEach((item, index) => {
+      expect(item.find('.cr-tabbar__text').text()).toBe(expectations[index].text)
+      const icon = item.find('image.cr-tabbar__icon')
+      expect(icon.exists()).toBe(true)
+      expect(icon.attributes('src')).toBe(expectations[index].icon)
+    })
   })
 
-  it('应该渲染快录按钮', () => {
+  it('不应再渲染快录悬浮按钮', () => {
     const wrapper = mount(TabBar)
-    const quickBtn = wrapper.find('.cr-tabbar__quick-btn')
-    
-    expect(quickBtn.exists()).toBe(true)
-    expect(quickBtn.classes()).toContain('cr-tabbar__quick-btn')
-  })
-
-  it('快录按钮应该采用悬浮式设计', () => {
-    const wrapper = mount(TabBar)
-    const quickBtn = wrapper.find('.cr-tabbar__quick-btn')
-    
-    // 检查样式类
-    expect(quickBtn.classes()).toContain('cr-tabbar__quick-btn--float')
-  })
-
-  it('点击快录按钮应该显示操作菜单', async () => {
-    const wrapper = mount(TabBar)
-    const quickBtn = wrapper.find('.cr-tabbar__quick-btn')
-    
-    await quickBtn.trigger('click')
-    
-    expect(mockShowActionSheet).toHaveBeenCalledWith({
-      itemList: ['添加书籍', '新建笔记', 'OCR识别'],
-      success: expect.any(Function)
-    })
-    
-    // 测试选择菜单项后的导航行为
-    const successCallback = mockShowActionSheet.mock.calls[0][0].success
-    
-    // 选择添加书籍
-    successCallback({ tapIndex: 0 })
-    expect(mockNavigateTo).toHaveBeenCalledWith({
-      url: '/pages-book/add/add'
-    })
-    
-    // 选择新建笔记
-    mockNavigateTo.mockClear()
-    successCallback({ tapIndex: 1 })
-    expect(mockNavigateTo).toHaveBeenCalledWith({
-      url: '/pages-note/add/add'
-    })
-    
-    // 选择OCR识别
-    mockNavigateTo.mockClear()
-    successCallback({ tapIndex: 2 })
-    expect(mockNavigateTo).toHaveBeenCalledWith({
-      url: '/pages-note/ocr/ocr'
-    })
+    expect(wrapper.find('.cr-tabbar__quick-btn').exists()).toBe(false)
   })
 
   it('点击Tab应该切换到对应页面', async () => {
     const wrapper = mount(TabBar)
     const tabs = wrapper.findAll('.cr-tabbar__item')
     
-    // 点击笔记Tab
     await tabs[1].trigger('click')
     
     expect(mockSwitchTab).toHaveBeenCalledWith({
@@ -104,7 +59,7 @@ describe('TabBar组件', () => {
     })
   })
 
-  it('当前激活的Tab应该有active样式', async () => {
+  it('当前激活的Tab应该展示active样式并更换高亮图标', () => {
     const wrapper = mount(TabBar, {
       props: {
         modelValue: '/pages/notes/index'
@@ -112,17 +67,13 @@ describe('TabBar组件', () => {
     })
     
     const tabs = wrapper.findAll('.cr-tabbar__item')
-    
-    expect(tabs[0].classes()).not.toContain('active')
     expect(tabs[1].classes()).toContain('active')
-    expect(tabs[2].classes()).not.toContain('active')
-  })
 
-  it('快录按钮应该使用主题色', () => {
-    const wrapper = mount(TabBar)
-    const quickBtn = wrapper.find('.cr-tabbar__quick-btn')
-    
-    // 检查是否使用了绿色主题
-    expect(quickBtn.attributes('style')).toContain('#2E7D32')
+    const activeIcon = tabs[1].find('image.cr-tabbar__icon')
+    expect(activeIcon.attributes('src')).toBe('/static/images/tabbar/note-active.png')
+
+    // 其余标签仍为默认图标
+    expect(tabs[0].find('image.cr-tabbar__icon').attributes('src')).toBe('/static/images/tabbar/bookshelf.png')
+    expect(tabs[2].find('image.cr-tabbar__icon').attributes('src')).toBe('/static/images/tabbar/profile.png')
   })
 })

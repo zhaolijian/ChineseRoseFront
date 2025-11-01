@@ -1,0 +1,7 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "添加书籍",
+  "usingComponents": {
+    "book-cover": "../../components/book/BookCover"
+  }
+}

@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import { ErrorCode } from '@/types/errorCodes'
 
 export interface MindmapNode {
   id: string
@@ -13,16 +14,20 @@ export interface MindmapNode {
   }
 }
 
-export interface Mindmap {
+export interface MindMapResponse {
   id: number
-  title?: string
   bookId: number
+  title?: string
+  data?: any
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface Mindmap extends MindMapResponse {
   bookTitle?: string
   thumbnail?: string
   nodeCount?: number
-  nodes: MindmapNode[]
-  createdAt: string
-  updatedAt?: string
+  nodes?: MindmapNode[]
   syncStatus?: 'synced' | 'pending' | 'error'
 }
 
@@ -58,6 +63,13 @@ export const getMindmaps = (params: MindmapListParams = {}): Promise<MindmapList
 
 export const getMindmapDetail = (id: number): Promise<Mindmap> => {
   return request.get<Mindmap>(`/v1/mindmaps/${id}`)
+}
+
+export const getMindmapByBook = (bookId: number): Promise<MindMapResponse> => {
+  return request.get<MindMapResponse>(`/v1/books/${bookId}/mindmap`, undefined, {
+    showLoading: false,
+    silenceBusinessErrorCodes: [ErrorCode.ERR_BAD_REQUEST, ErrorCode.ERR_NOT_FOUND]
+  })
 }
 
 export const createMindmap = (payload: CreateMindmapPayload): Promise<Mindmap> => {

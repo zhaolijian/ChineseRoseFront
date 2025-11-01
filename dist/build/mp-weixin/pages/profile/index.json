@@ -1,5 +1,9 @@
 {
   "navigationBarTitleText": "我的",
   "navigationStyle": "custom",
-  "usingComponents": {}
+  "usingComponents": {
+    "u-avatar": "../../node-modules/uview-plus/components/u-avatar/u-avatar",
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "tab-bar": "../../components/common/TabBar"
+  }
 }

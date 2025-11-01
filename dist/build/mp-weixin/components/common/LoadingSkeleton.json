@@ -1,4 +1,6 @@
 {
   "component": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "u-skeleton": "../../node-modules/uview-plus/components/u-skeleton/u-skeleton"
+  }
 }

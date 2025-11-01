@@ -22,11 +22,11 @@
     "url": "https://github.com/your-org/chinese-rose-uniapp.git"
   },
   "scripts": {
-    "dev:mp-weixin": "uni build --platform mp-weixin --mode development --watch",
+    "dev:mp-weixin": "cross-env UNI_OUTPUT_DIR=dist/dev/mp-weixin uni build --platform mp-weixin --mode development --watch",
     "dev:h5": "uni build --platform h5 --mode development --watch",
     "serve:h5": "UNI_PLATFORM=h5 vite --port 3000 --host 0.0.0.0",
     "dev:app": "uni build --platform app --mode development --watch",
-    "build:mp-weixin": "uni build --platform mp-weixin --mode production",
+    "build:mp-weixin": "cross-env UNI_OUTPUT_DIR=dist/build/mp-weixin uni build --platform mp-weixin --mode production",
     "build:h5": "uni build --platform h5 --mode production",
     "build:app": "uni build --platform app --mode production",
     "lint": "eslint . --ext .js,.ts,.vue --fix",
@@ -42,12 +42,27 @@
     "@dcloudio/uni-app": "3.0.0-3090920231225001",
     "@dcloudio/uni-components": "3.0.0-3090920231225001",
     "@dcloudio/uni-mp-vue": "3.0.0-3090920231225001",
-    "@vue/shared": "3.2.45",
+    "@vue/shared": "3.4.38",
     "crypto-js": "^4.2.0",
     "pinia": "2.1.7",
     "uview-plus": "^3.2.17",
-    "vue": "3.2.45",
+    "vue": "3.4.38",
     "vue-demi": "^0.14.10"
+  },
+  "overrides": {
+    "@vue/shared": "3.4.38",
+    "@dcloudio/uni-app": {
+      "@vue/shared": "3.4.38"
+    },
+    "@dcloudio/uni-h5": {
+      "@vue/shared": "3.4.38"
+    },
+    "@dcloudio/uni-cli-shared": {
+      "@vue/shared": "3.4.38"
+    },
+    "@dcloudio/uni-mp-vue": {
+      "@vue/shared": "3.4.38"
+    }
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.14",
@@ -63,8 +78,9 @@
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "@vitejs/plugin-vue": "^4.1.0",
+    "cross-env": "^7.0.3",
     "@vitest/coverage-v8": "^1.0.4",
-    "@vue/compiler-sfc": "3.2.45",
+    "@vue/compiler-sfc": "3.4.38",
     "@vue/eslint-config-typescript": "^12.0.0",
     "@vue/test-utils": "^2.4.1",
     "@vue/tsconfig": "^0.5.1",
