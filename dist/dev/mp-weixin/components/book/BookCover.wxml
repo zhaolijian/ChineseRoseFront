@@ -1,1 +1,0 @@
-<view class="cr-book-cover-wrapper data-v-063d47e7" style="{{d}}"><view class="cr-book-cover data-v-063d47e7" style="{{c}}"><image wx:if="{{a}}" class="cr-book-cover__img data-v-063d47e7" src="{{b}}" mode="scaleToFill" lazy-load="{{true}}"/><slot/></view></view>

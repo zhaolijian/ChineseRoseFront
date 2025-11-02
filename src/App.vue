@@ -10,15 +10,57 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/modules/user'
-import { logger, createContext } from '@/utils'
+import { logger, createContext, autoLoginInDev } from '@/utils'
+import { getCurrentInstance } from 'vue'
 
 const userStore = useUserStore()
 
-onLaunch(() => {
+onLaunch(async () => {
   const ctx = createContext()
   logger.info(ctx, '[App] 应用启动')
+
+  // #ifdef H5
+  // H5 环境下动态加载 uview-plus（此时 uni 对象已就绪）
+  try {
+    const instance = getCurrentInstance()
+    const uViewModule = await import('uview-plus')
+    if (instance && instance.appContext.app) {
+      instance.appContext.app.use(uViewModule.default)
+      logger.info(ctx, '[App] uview-plus 加载成功')
+
+      // 配置 uView 主题
+      if ((uni as any).$u && (uni as any).$u.setConfig) {
+        (uni as any).$u.setConfig({
+          config: {
+            iconUrl: '/static/iconfont/iconfont.ttf',
+            loadFontOnce: true,
+            customIcons: {
+              'chart-line': '\ue68e',
+              book: '\ue60a',
+              more: '\ue63e',
+              file: '\ue663'
+            }
+          },
+          color: {
+            primary: '#00a82d',
+            success: '#16a34a',
+            warning: '#f59e0b',
+            error: '#dc2626',
+            info: '#0ea5e9'
+          }
+        })
+      }
+    }
+  } catch (error) {
+    logger.error(ctx, '[App] uview-plus 加载失败', error)
+  }
+
+  // H5 开发环境自动登录
+  await autoLoginInDev()
+  // #endif
+
   // 应用启动时的初始化逻辑
-  initApp()
+  await initApp()
 })
 
 onShow(() => {

@@ -12,7 +12,7 @@
     {
       "root": "pages-book",
       "pages": [
-        "detail/detail",
+        "detail/index",
         "add/add"
       ]
     },

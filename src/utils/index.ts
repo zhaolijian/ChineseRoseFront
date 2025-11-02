@@ -7,7 +7,7 @@ export { request, requestManager } from './request'
 export type { RequestConfig } from './request'
 
 // 存储相关
-export { getStorage, setStorage, removeStorage, clearStorage } from './storage'
+export { getStorage, setStorage, removeStorage } from './storage'
 
 // 日志相关
 export { logger } from './logger'
@@ -16,3 +16,6 @@ export type { LogContext, LogLevel, LogEntry } from './logger'
 
 // Base64相关
 export { base64Decode, base64Encode } from './base64'
+
+// 开发工具（仅 H5）
+export { autoLoginInDev } from './dev-auth'

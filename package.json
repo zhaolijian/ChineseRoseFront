@@ -23,7 +23,7 @@
   },
   "scripts": {
     "dev:mp-weixin": "cross-env UNI_OUTPUT_DIR=dist/dev/mp-weixin uni build --platform mp-weixin --mode development --watch",
-    "dev:h5": "uni build --platform h5 --mode development --watch",
+    "dev:h5": "UNI_PLATFORM=h5 vite --port 3000 --host 127.0.0.1",
     "serve:h5": "UNI_PLATFORM=h5 vite --port 3000 --host 0.0.0.0",
     "dev:app": "uni build --platform app --mode development --watch",
     "build:mp-weixin": "cross-env UNI_OUTPUT_DIR=dist/build/mp-weixin uni build --platform mp-weixin --mode production",

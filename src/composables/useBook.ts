@@ -200,7 +200,7 @@ export function useBook() {
 
   const goToBookDetail = (bookId: number) => {
     uni.navigateTo({
-      url: `/pages-book/detail/detail?id=${bookId}`
+      url: `/pages-book/detail/index?id=${bookId}`
     })
   }
 

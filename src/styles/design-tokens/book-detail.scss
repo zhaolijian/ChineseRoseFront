@@ -1,86 +1,74 @@
 /**
- * 书籍详情页 - 设计令牌
- * 来源：Figma BookDetailPage.tsx
- * 提取时间：2025-10-20
+ * 书籍详情页 - 设计令牌（修正版）
+ * 来源：Figma BookDetailPage (fileKey: 3mvXsA0cUXoajDMPsPkKnQ, node: 36:6)
+ * 换算基准：Figma 394.088px = 750rpx → 1px ≈ 1.903rpx
+ * 提取时间：2025-11-01
  */
 
 /* ==================== 颜色系统 ==================== */
 
-// 主色系
+// 页面与卡片
+$book-detail-bg: #fafafa;                          // 页面背景
+$book-detail-card-bg: #ffffff;                     // 卡片背景
+$surface-translucent: rgba(255, 255, 255, 0.95);  // 顶栏半透明
+
+// 文字颜色
+$book-detail-text-primary: #333333;                // 主文字
+$book-detail-text-secondary: #666666;              // 次文字
+
+// 边框（Figma 真实值）
+$book-detail-border-card: rgba(0, 168, 45, 0.06);      // 书籍卡片边框
+$book-detail-border-light: rgba(0, 168, 45, 0.05);     // 其他卡片边框
+$book-detail-border-navbar: rgba(0, 168, 45, 0.12);    // 顶栏边框
+
+// 特殊颜色
+$book-cover-placeholder: #2b7fff;                  // 书籍封面占位背景
+$sort-button-bg: #f8faf8;                          // 排序按钮背景
+
+// 主色系（保留兼容）
 $book-detail-primary: #00a82d;
 $book-detail-primary-fg: #ffffff;
 
-// 背景色
-$book-detail-bg: #fafafa;
-$book-detail-card-bg: #ffffff;
-$book-detail-input-bg: #ffffff;
-$book-detail-secondary-bg: #f8faf8;
-$surface-translucent: rgba(255, 255, 255, 0.95);
+/* ==================== 字体系统（修正换算） ==================== */
 
-// 文字颜色
-$book-detail-text-primary: #1f2329;
-$book-detail-text-secondary: #3a3f45;
-$book-detail-text-muted: #8a8f99;
-
-// 边框
-$book-detail-border: rgba(0, 168, 45, 0.12);
-$book-detail-border-light: #e5e7eb;
-
-// 状态色
-$book-detail-destructive: #dc2626;
-$book-detail-accent-bg: #e8f3e8;
-$book-detail-accent-fg: #2d5a2d;
-$book-detail-mindmap-gradient: linear-gradient(135deg, #60a5fa, #a855f7);
-$book-detail-mindmap-gradient-from: #60a5fa;
-$book-detail-mindmap-gradient-to: #a855f7;
-$book-detail-cover-placeholder-gradient: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-
-/* ==================== 字体系统 ==================== */
-
-// 字号（14px基准，px × 2 = rpx）
-$book-detail-font-xs: 24rpx;      // 12px
-$book-detail-font-sm: 28rpx;      // 14px
-$book-detail-font-base: 32rpx;    // 16px
-$book-detail-font-lg: 36rpx;      // 18px
-$book-detail-font-xl: 40rpx;      // 20px
-$book-detail-font-2xl: 48rpx;     // 24px
+// 字号：Figma px × 1.903 ≈ rpx
+$book-detail-font-xs: 20rpx;       // 10.5px × 1.903 ≈ 20rpx（日期、计数）
+$book-detail-font-sm: 24rpx;       // 12.25px × 1.903 ≈ 24rpx（作者、章节）
+$book-detail-font-base: 27rpx;     // 14px × 1.903 ≈ 27rpx（笔记标题、思维导图）
+$book-detail-font-lg: 30rpx;       // 15.75px × 1.903 ≈ 30rpx（分组标题）
+$book-detail-font-xl: 30rpx;       // 16px × 1.903 ≈ 30rpx（页面标题）
 
 // 字重
 $book-detail-font-normal: 400;
 $book-detail-font-medium: 500;
 $book-detail-font-semibold: 600;
 
-/* ==================== 间距系统 ==================== */
+/* ==================== 间距系统（修正换算） ==================== */
 
-// 基础间距单位：8rpx
-$book-detail-spacing-0-25: 2rpx;
-$book-detail-spacing-0-5: 4rpx;
-$book-detail-spacing-1: 8rpx;
-$book-detail-spacing-1-5: 12rpx;
-$book-detail-spacing-2: 16rpx;
-$book-detail-spacing-3: 24rpx;
-$book-detail-spacing-4: 32rpx;
-$book-detail-spacing-5: 40rpx;
-$book-detail-spacing-6: 48rpx;
-$book-detail-spacing-8: 64rpx;
-$book-detail-spacing-12: 96rpx;
-$book-detail-spacing-16: 128rpx;
+// 页面级间距
+$page-padding-x: 29rpx;            // 15.031px → 28.6rpx ≈ 29rpx
+$page-padding-top: 135rpx;         // 70.707px → 134.5rpx ≈ 135rpx
 
-/* ==================== 圆角系统 ==================== */
+// 卡片间距
+$card-gap: 40rpx;                  // 20.99px → 39.9rpx ≈ 40rpx（卡片间距）
+$card-padding: 28rpx;              // 14.738px → 28rpx（小卡片内边距）
+$card-padding-lg: 35rpx;           // 18.239px → 34.7rpx ≈ 35rpx（书籍卡片内边距）
 
-$book-detail-radius-sm: 8rpx;
-$book-detail-radius-md: 16rpx;
-$book-detail-radius-lg: 20rpx;
-$book-detail-radius-card: 24rpx;
-$book-detail-radius-xl: 24rpx;
-$book-detail-radius-full: 999rpx;
+// 元素间距
+$element-gap-sm: 7rpx;             // 3.489px → 6.6rpx ≈ 7rpx
+$element-gap-md: 20rpx;            // 10.489px → 20rpx
+$element-gap-lg: 27rpx;            // 13.989px → 26.6rpx ≈ 27rpx
+
+/* ==================== 圆角系统（修正换算） ==================== */
+
+$radius-card: 24rpx;               // 12.75px × 1.903 ≈ 24rpx
+$radius-sm: 13rpx;                 // 6.75px × 1.903 ≈ 13rpx
+$radius-cover: 17rpx;              // 8.75px × 1.903 ≈ 17rpx
 
 /* ==================== 阴影系统 ==================== */
 
+$shadow-cover: 0 2rpx 6rpx 0 rgba(0, 0, 0, 0.1), 0 2rpx 4rpx -2rpx rgba(0, 0, 0, 0.1);
 $book-detail-shadow-card: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
-$book-detail-shadow-sm: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
-$book-detail-shadow-md: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
-$book-detail-shadow-lg: 0 12rpx 40rpx rgba(0, 0, 0, 0.1);
 
 /* ==================== Mixins工具类 ==================== */
 

@@ -207,7 +207,7 @@ describe('isTabBarPage', () => {
   it('应该正确识别非tabBar页面', () => {
     expect(isTabBarPage('/pages/login/login')).toBe(false)
     expect(isTabBarPage('/pages-note/add/add')).toBe(false)
-    expect(isTabBarPage('/pages-book/detail/detail')).toBe(false)
+    expect(isTabBarPage('/pages-book/detail/index')).toBe(false)
     expect(isTabBarPage('/pages-note/list/list')).toBe(false)
     expect(isTabBarPage('/pages-book/list/list')).toBe(false)
   })

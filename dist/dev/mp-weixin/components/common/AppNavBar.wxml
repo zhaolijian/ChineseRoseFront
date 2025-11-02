@@ -1,1 +1,0 @@
-<view class="app-navbar data-v-562f0706"><u-navbar wx:if="{{b}}" class="data-v-562f0706" u-s="{{['right']}}" bindleftClick="{{a}}" u-i="562f0706-0" bind:__l="__l" u-p="{{b}}"><view slot="right"><slot name="right"/></view></u-navbar></view>

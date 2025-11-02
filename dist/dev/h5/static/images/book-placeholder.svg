@@ -1,0 +1,28 @@
+<svg width="220" height="280" viewBox="0 0 220 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="220" height="280" fill="#FAFAFA"/>
+
+  <!-- 书本主体 -->
+  <g transform="translate(55, 70)">
+    <!-- 书脊阴影 -->
+    <rect x="3" y="3" width="104" height="140" rx="6" fill="#E5E7EB"/>
+
+    <!-- 书本主体 -->
+    <rect width="104" height="140" rx="6" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="2"/>
+
+    <!-- 书籍装饰线条 -->
+    <line x1="20" y1="40" x2="84" y2="40" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+    <line x1="20" y1="60" x2="84" y2="60" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+    <line x1="20" y1="80" x2="84" y2="80" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+    <line x1="20" y1="100" x2="64" y2="100" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- 书籍图标 -->
+    <g transform="translate(36, 10)">
+      <path d="M16 2C15.4477 2 15 2.44772 15 3V21C15 21.5523 15.4477 22 16 22H28C28.5523 22 29 21.5523 29 21V3C29 2.44772 28.5523 2 28 2H16Z" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M19 6H25M19 10H25M19 14H23" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- 底部文字 -->
+  <text x="110" y="240" text-anchor="middle" font-family="system-ui, -apple-system" font-size="14" fill="#9CA3AF">暂无封面</text>
+</svg>

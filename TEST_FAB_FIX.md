@@ -239,7 +239,7 @@ console.log(getComputedStyle(fab).zIndex)      // 应该是 "999"
 
 ## 附录：修改文件清单
 
-1. `src/pages-book/detail/detail.vue`
+1. `src/pages-book/detail/index.vue`
    - Line 647-654: 添加调试日志
    - Line 1190-1215: FAB样式修改
 

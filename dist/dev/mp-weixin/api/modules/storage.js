@@ -1,1 +1,0 @@
-"use strict";const e=require("../../utils/request.js");exports.deleteTempObject=t=>e.http.delete("/v1/storage/temp",{data:{key:t}}),exports.getCoverPresign=t=>e.http.post("/v1/storage/cover/presign",t);

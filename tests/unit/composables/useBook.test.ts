@@ -427,7 +427,7 @@ describe('useBook', () => {
       goToBookDetail(123)
 
       expect(uni.navigateTo).toHaveBeenCalledWith({
-        url: '/pages-book/detail/detail?id=123'
+        url: '/pages-book/detail/index?id=123'
       })
     })
 

@@ -359,7 +359,7 @@ const goToBookDetail = (book: Book) => {
   const ctx = createContext()
   logger.debug(ctx, '[goToBookDetail] 跳转到书籍详情', { bookId: book.id, title: book.title })
   uni.navigateTo({
-    url: `/pages-book/detail/detail?id=${book.id}`
+    url: `/pages-book/detail/index?id=${book.id}`
   })
 }
 

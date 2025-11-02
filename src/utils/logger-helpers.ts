@@ -7,6 +7,7 @@ import type { LogContext } from './logger'
 import CryptoJS from 'crypto-js'
 import { getActivePinia } from 'pinia'
 import { useUserStore } from '@/stores/modules/user'
+import { getUni, getPlatform } from '@/utils/safeUni'
 
 /**
  * 生成唯一的TraceID
@@ -77,31 +78,33 @@ function getUserIdSafely(): string {
 }
 
 /**
- * 创建日志上下文
+ * 创建日志上下文（惰性读取 uni，带兜底，避免首屏抢跑）
  * 统一创建包含所有必填字段的Context
  * @returns LogContext
  */
 export function createContext(): LogContext {
-  let userId = ''
-  let platform = 'unknown'
+  const userId = getUserIdSafely()
 
-  // 安全地获取用户ID（惰性调用，避免初始化问题）
-  userId = getUserIdSafely()
+  // 平台：优先编译期常量；运行时可进一步补充
+  let platform = getPlatform()
 
-  // 获取平台信息
+  // systemInfo 仅在 runtime 注入后尝试获取（未注入时不抛错）
   try {
-    const systemInfo = uni.getSystemInfoSync()
-    platform = systemInfo.platform || 'unknown'
+    const u = getUni()
+    if (typeof u.getSystemInfoSync === 'function') {
+      const sys = u.getSystemInfoSync()
+      // 如果编译期没有标识，这里用运行时填充
+      platform = platform || sys?.platform || 'unknown'
+    }
   } catch (error) {
-    // 获取失败时使用默认值
     console.warn('[Logger] 获取平台信息失败:', error)
   }
 
   return {
     traceId: generateTraceId(),
-    userId: userId,
+    userId,
     timestamp: Date.now(),
-    platform: platform
+    platform
   }
 }
 

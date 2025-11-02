@@ -1,1 +1,0 @@
-"use strict";const e=require("../../common/vendor.js");Math||n();const n=()=>"./index.js",o=e.defineComponent({__name:"login",setup:e=>(e,n)=>({})}),s=e._export_sfc(o,[["__file","/Users/zhaolijian/Projects/chinese-rose-front/src/pages/login/login.vue"]]);wx.createPage(s);

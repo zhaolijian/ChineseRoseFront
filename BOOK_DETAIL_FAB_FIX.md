@@ -12,7 +12,7 @@
 ## 修复内容
 
 ### 1. FAB位置修复 ✅
-**文件**: `src/pages-book/detail/detail.vue` (Line 1185-1211)
+**文件**: `src/pages-book/detail/index.vue` (Line 1185-1211)
 
 **修改前**:
 ```scss
@@ -52,7 +52,7 @@
 ---
 
 ### 2. 点击无响应问题修复 ✅
-**文件**: `src/pages-book/detail/detail.vue` (Line 647-654)
+**文件**: `src/pages-book/detail/index.vue` (Line 647-654)
 
 **问题分析**:
 - z-index过低（100）可能被其他元素遮挡
@@ -283,7 +283,7 @@ transform: translateX(-50%);
 ## 参考文件
 
 - **主修改文件**:
-  - `/src/pages-book/detail/detail.vue`
+  - `/src/pages-book/detail/index.vue`
   - `/src/components/BookChapterSelector.vue`
 
 - **参考实现**:

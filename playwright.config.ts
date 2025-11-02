@@ -28,15 +28,15 @@ export default defineConfig({
   
   // 共享设置
   use: {
-    // 基础URL
-    baseURL: 'http://localhost:5173',
-    
+    // 基础URL - 与 vite.config.ts 保持一致
+    baseURL: 'http://127.0.0.1:3000',
+
     // 跟踪设置
     trace: 'on-first-retry',
-    
+
     // 截图设置
     screenshot: 'only-on-failure',
-    
+
     // 视频设置
     video: 'retain-on-failure',
   },
@@ -44,20 +44,16 @@ export default defineConfig({
   // 配置项目
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'mobile',
-      use: { ...devices['iPhone 12'] },
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
     },
   ],
   
   // 本地开发服务器设置
   webServer: {
     command: 'npm run dev:h5',
-    port: 5173,
-    reuseExistingServer: true,
+    url: 'http://127.0.0.1:3000',
+    reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
 })

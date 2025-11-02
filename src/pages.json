@@ -53,7 +53,7 @@
       "root": "pages-book",
       "pages": [
         {
-          "path": "detail/detail",
+          "path": "detail/index",
           "style": {
             "navigationBarTitleText": "书籍详情",
             "navigationStyle": "custom"

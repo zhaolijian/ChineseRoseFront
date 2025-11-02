@@ -1,9 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
-    "u-popup": "../../node-modules/uview-plus/components/u-popup/u-popup",
-    "u-overlay": "../../node-modules/uview-plus/components/u-overlay/u-overlay",
-    "book-cover": "../book/BookCover"
-  }
-}

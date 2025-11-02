@@ -1,1 +1,0 @@
-"use strict";exports.DEFAULT_REQUEST_TIMEOUT=1e4,exports.REDIRECT_THROTTLE_TIME=1500;
